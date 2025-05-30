@@ -1,10 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import EditSettingModal from "../components/EditSettingsModal";
+import EditSettingModal from "../dashboard/components/EditSettingsModal";
+import { Link } from 'react-router-dom';
+
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState([]);
     const [editing, setEditing] = useState(null);
+    const [viewing, setViewing] = useState(null); // holds full setting/team object
+
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
@@ -164,8 +168,8 @@ export default function SettingsPage() {
                     <thead className="bg-gray-100 border-b">
                     <tr>
                         <th className="p-3 font-large text-gray-700">Setting Slug</th>
-                        <th className="p-3 font-large text-gray-700">Value</th>
                         <th className="p-3 font-large text-gray-700">Type</th>
+                        <th className="p-3 font-large text-gray-700">Value</th>
                         <th className="p-3 font-large text-gray-700">Action</th>
                     </tr>
                     </thead>
@@ -173,8 +177,8 @@ export default function SettingsPage() {
                     {settings.map(({key, value, type}) => (
                         <tr key={key} className="border-b hover:bg-gray-50">
                             <td className="p-3 font-mono text-sm">{key}</td>
-                            <td className="p-3">{String(value)}</td>
                             <td className="p-3">{String(type)}</td>
+                            <td className="p-3">{String(value)}</td>
                             <td className="p-3">
                                 <button
                                     onClick={() => setEditing({key, value, type})}
@@ -182,6 +186,13 @@ export default function SettingsPage() {
                                 >
                                     Edit
                                 </button>
+                                <br/>
+                                <Link
+                                    to={`/admin/settings/${key}`}
+                                    className="text-indigo-600 hover:underline"
+                                >
+                                    Details
+                                </Link>
                                 <br/>
                                 <button
                                     onClick={() => handleDelete(key)}
@@ -203,6 +214,40 @@ export default function SettingsPage() {
                     onSave={handleSave}
                     onClose={() => setEditing(null)}
                 />
+            )}
+            {viewing && (
+                <div className="mt-8 p-6 border rounded-lg bg-gray-50">
+                    <h2 className="text-xl font-semibold mb-4">Setting: {viewing.key}</h2>
+
+                    <div className="space-y-2 text-sm">
+                        <p><strong>Key:</strong> {viewing.key}</p>
+                        <p><strong>Type:</strong> {viewing.type}</p>
+                        <p>
+                            <strong>Value:</strong> {typeof viewing.value === 'object' ? JSON.stringify(viewing.value) : String(viewing.value)}
+                        </p>
+                    </div>
+
+                    <div className="mt-4 flex gap-4 text-sm">
+                        <button
+                            onClick={() => setEditing(viewing)}
+                            className="text-blue-600 hover:underline"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            onClick={() => handleDelete(viewing.key)}
+                            className="text-red-600 hover:underline"
+                        >
+                            Delete
+                        </button>
+                        <button
+                            onClick={() => setViewing(null)}
+                            className="text-gray-600 hover:underline"
+                        >
+                            Back to list
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );
