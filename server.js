@@ -8,7 +8,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Test route
+// 🔌 Add your route
+const documentRoutes = require('./routes/documents');
+app.use('/documents', documentRoutes);  // <-- register it here
+
+// Health check
 app.get('/', (req, res) => {
     res.send({ message: '🚀 OpenArchive backend is live!' });
 });
