@@ -49,8 +49,8 @@ export const validateDocumentUpload = [
     .withMessage('Invalid document type'),
   body('retention_category')
     .optional()
-    .isIn(['3y', '5y', '10y', '30y', 'permanent'])
-    .withMessage('Invalid retention category'),
+    .isIn(['10y', '30y', 'permanent'])
+    .withMessage('Invalid retention category. Must be 10y, 30y, or permanent'),
   body('tags')
     .optional()
     .isArray({ max: 20 })
@@ -99,7 +99,7 @@ export const validateAccessRequest = [
     .withMessage('Valid email address is required'),
   body('requesterPhone')
     .optional()
-    .matches(/^(\+4|04|07)\d{8,9}$/)
+    .matches(/^(\+40|0040|0)[27-9]\d{7,8}$/)
     .withMessage('Invalid Romanian phone number format'),
   body('justification')
     .trim()
@@ -135,14 +135,23 @@ export const validateRegister = [
     .isLength({ min: 8 })
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
-  body('firstName')
+  body('full_name')
     .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('First name must be between 2 and 50 characters'),
-  body('lastName')
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Full name must be between 2 and 100 characters'),
+  body('role')
+    .optional()
+    .isIn(['clerk', 'archivist', 'citizen', 'media', 'inspector', 'admin'])
+    .withMessage('Invalid user role'),
+  body('institution')
+    .optional()
     .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Last name must be between 2 and 50 characters'),
+    .isLength({ max: 200 })
+    .withMessage('Institution name cannot exceed 200 characters'),
+  body('phone')
+    .optional()
+    .matches(/^(\+40|0040|0)[27-9]\d{7,8}$/)
+    .withMessage('Invalid Romanian phone number format. Use +40XXXXXXXXX, 0040XXXXXXXXX, or 0XXXXXXXXX'),
   handleValidationErrors
 ]
 

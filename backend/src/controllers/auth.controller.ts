@@ -126,6 +126,37 @@ export class AuthController {
   })
 
   /**
+   * Get user profile by ID (admin only or own profile)
+   */
+  getProfileById = asyncHandler(async (req: Request, res: Response) => {
+    const requestingUserId = req.userId!
+    const requestingUser = req.user!
+    const targetUserId = req.params.id
+
+    // Check authorization: user can only access their own profile unless they're admin
+    if (targetUserId !== requestingUserId && requestingUser.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only view your own profile unless you are an admin.'
+      })
+    }
+
+    const profile = await authService.getUserProfile(targetUserId)
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      data: profile
+    })
+  })
+
+  /**
    * Update user profile
    */
   updateProfile = asyncHandler(async (req: Request, res: Response) => {

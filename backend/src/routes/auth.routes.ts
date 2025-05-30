@@ -24,7 +24,8 @@ router.post('/refresh', authController.refreshToken)
 router.use(authenticateToken)
 
 router.post('/logout', authController.logout)
-router.get('/profile', authController.getProfile)
+router.get('/profile', authController.getProfile) // deprecated
+router.get('/profile/:id', validateUUID('id'), authController.getProfileById)
 router.put('/profile', authController.updateProfile)
 
 export default router 
