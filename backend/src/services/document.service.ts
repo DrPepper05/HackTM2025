@@ -1,4 +1,5 @@
-import { supabaseAdmin, withMonitoring, s3Service, generateS3Key, S3_BUCKETS } from '../config/supabase.config'
+import { supabaseAdmin, withMonitoring } from '../config/supabase.config'
+import { storageService, S3_BUCKETS, generateS3Key } from './storage.service'
 import { 
   Document, 
   DocumentFile, 
@@ -105,7 +106,7 @@ export class DocumentService {
         s3Key = generateS3Key(file.originalname, documentId!, 'original')
 
         // 5. Upload to S3 (mocked for now)
-        const uploadResult = await s3Service.uploadFile(
+        const uploadResult = await storageService.uploadFile(
           S3_BUCKETS.DOCUMENTS,
           s3Key,
           file.buffer,
@@ -116,9 +117,7 @@ export class DocumentService {
           }
         )
 
-        if (!uploadResult.success) {
-          throw new Error('Failed to upload file to S3')
-        }
+        // Upload successful if no error thrown
 
         // 6. Create file record
         const { data: fileRecord, error: fileError } = await supabaseAdmin
@@ -173,7 +172,7 @@ export class DocumentService {
         }
 
         if (s3Key) {
-          await s3Service.deleteFile(S3_BUCKETS.DOCUMENTS, s3Key)
+          await storageService.deleteFile(S3_BUCKETS.DOCUMENTS, s3Key)
         }
 
         throw error
@@ -368,10 +367,10 @@ export class DocumentService {
         const checksum = createHash('sha256').update(file.buffer).digest('hex')
 
         // Generate S3 key
-        const s3Key = generateS3Key(file.originalname, documentId, fileType)
+        const s3Key = generateS3Key(file.originalname, documentId, 'original')
 
         // Upload to S3 (mocked)
-        const uploadResult = await s3Service.uploadFile(
+        const uploadResult = await storageService.uploadFile(
         S3_BUCKETS.DOCUMENTS,
         s3Key,
         file.buffer,
@@ -382,9 +381,7 @@ export class DocumentService {
         }
         )
 
-        if (!uploadResult.success) {
-        throw new Error('Failed to upload file to S3')
-        }
+        // Upload successful if no error thrown
 
         // Create file record
         const { data, error } = await supabaseAdmin
@@ -440,7 +437,7 @@ export class DocumentService {
     }
 
     // Generate presigned URL from S3 (mocked)
-    const { url } = await s3Service.generatePresignedUrl(
+    const url = await storageService.generatePresignedUrl(
         file.storage_bucket,
         file.storage_key,
         expiresIn

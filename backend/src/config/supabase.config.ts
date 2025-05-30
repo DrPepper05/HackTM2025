@@ -1,3 +1,7 @@
+// Load environment variables first
+import dotenv from 'dotenv'
+dotenv.config()
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { Database } from '../types/database.types'
 
@@ -94,17 +98,6 @@ export function createUserClient(accessToken: string): SupabaseClient<Database> 
 }
 
 /**
- * S3 bucket names as constants (for future use)
- * These will be used when S3 is implemented
- */
-export const S3_BUCKETS = {
-  DOCUMENTS: 'openarchive-documents',
-  PUBLIC_DOCUMENTS: 'openarchive-public',
-  TEMP_UPLOADS: 'openarchive-temp',
-  ARCHIVE_TRANSFERS: 'openarchive-transfers'
-} as const
-
-/**
  * Common Supabase error codes
  */
 export const SUPABASE_ERRORS = {
@@ -154,56 +147,6 @@ export async function verifyUserRole(
 ): Promise<boolean> {
   const role = await getUserRole(userId)
   return role ? requiredRoles.includes(role) : false
-}
-
-// ============================================
-// S3 PATH HELPERS (For future S3 implementation)
-// ============================================
-
-/**
- * Generate a unique S3 key for a document file
- * Following pattern: year/month/documentId/fileType_timestamp_filename
- */
-export function generateS3Key(
-  fileName: string,
-  documentId: string,
-  fileType: 'original' | 'redacted' | 'ocr_text' | 'transfer' = 'original'
-): string {
-  const date = new Date()
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const timestamp = Date.now()
-  
-  // Clean filename - remove special characters but keep extension
-  const cleanName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
-  
-  return `${year}/${month}/${documentId}/${fileType}_${timestamp}_${cleanName}`
-}
-
-/**
- * Parse S3 key to extract metadata
- */
-export function parseS3Key(s3Key: string): {
-  year: string
-  month: string
-  documentId: string
-  fileType: string
-  timestamp: string
-  fileName: string
-} | null {
-  const pattern = /^(\d{4})\/(\d{2})\/([^/]+)\/(original|redacted|ocr_text|transfer)_(\d+)_(.+)$/
-  const match = s3Key.match(pattern)
-  
-  if (!match) return null
-  
-  return {
-    year: match[1],
-    month: match[2],
-    documentId: match[3],
-    fileType: match[4],
-    timestamp: match[5],
-    fileName: match[6]
-  }
 }
 
 // ============================================
@@ -342,46 +285,5 @@ export async function withMonitoring<T>(
   } finally {
     const duration = Date.now() - start
     logDatabaseOperation(operation, table, duration, success, error)
-  }
-}
-
-// ============================================
-// PLACEHOLDER INTERFACES FOR S3 (Future Implementation)
-// ============================================
-
-/**
- * Interface for S3 operations - to be implemented later
- */
-export interface IS3Service {
-  uploadFile(bucket: string, key: string, file: Buffer, metadata?: Record<string, string>): Promise<{ success: boolean; error?: any }>
-  downloadFile(bucket: string, key: string): Promise<{ data: Buffer | null; error?: any }>
-  deleteFile(bucket: string, key: string): Promise<{ success: boolean; error?: any }>
-  generatePresignedUrl(bucket: string, key: string, expiresIn?: number): Promise<{ url: string | null; error?: any }>
-  listFiles(bucket: string, prefix: string): Promise<{ files: string[]; error?: any }>
-}
-
-/**
- * Placeholder S3 service - returns mock responses for now
- */
-export const s3Service: IS3Service = {
-  async uploadFile() {
-    console.warn('S3 not implemented yet - using mock')
-    return { success: true }
-  },
-  async downloadFile() {
-    console.warn('S3 not implemented yet - using mock')
-    return { data: Buffer.from('mock file content') }
-  },
-  async deleteFile() {
-    console.warn('S3 not implemented yet - using mock')
-    return { success: true }
-  },
-  async generatePresignedUrl() {
-    console.warn('S3 not implemented yet - using mock')
-    return { url: 'https://mock-s3-url.com/file' }
-  },
-  async listFiles() {
-    console.warn('S3 not implemented yet - using mock')
-    return { files: [] }
   }
 }
