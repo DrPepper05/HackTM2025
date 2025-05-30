@@ -1,5 +1,7 @@
 import { supabaseAdmin, withMonitoring, verifyUserRole } from '../config/supabase.config'
 import { AccessRequest, AccessRequestStatus } from '../types/database.types'
+import { sendMail } from './email'
+import { format } from 'date-fns'
 
 export interface CreateAccessRequestDto {
   requesterName: string
@@ -407,21 +409,43 @@ export class AccessRequestService {
   /**
    * Private helper methods for email notifications (mock implementations)
    */
-  private async sendRequestConfirmationEmail(request: AccessRequest): Promise<void> {
-    // Mock email sending
-    console.log(`Sending confirmation email to ${request.requester_email} for request ${request.id}`)
-    
-    // Log email sent
-    await supabaseAdmin.rpc('create_audit_log', {
-      p_action: 'EMAIL_SENT',
-      p_entity_type: 'access_request',
-      p_entity_id: request.id,
-      p_details: {
-        email_type: 'confirmation',
-        recipient: request.requester_email
-      }
-    })
+  async sendRequestConfirmationEmail(accessRequest: AccessRequest) {
+    const timestamp = format(new Date(accessRequest.created_at), 'yyyy-MM-dd HH:mm:ss');
+    const documentId = accessRequest.document_id || 'N/A';
+
+    const html = `
+    <h2>Access Request Confirmation</h2>
+    <p>Hello ${accessRequest.requester_name},</p>
+    <p>Thank you for submitting an access request to OpenArchive.</p>
+    <p><strong>Document ID:</strong> ${documentId}</p>
+    <p><strong>Justification:</strong> ${accessRequest.justification}</p>
+    <p><strong>Status:</strong> ${accessRequest.status}</p>
+    <p><strong>Requested At:</strong> ${timestamp}</p>
+    <br/>
+    <p>You will receive an email once your request is approved or rejected.</p>
+    <p>— OpenArchive Team</p`;
+
+    await sendMail({
+      to: accessRequest.requester_email,
+      subject: 'Access Request Confirmation',
+      html
+    });
   }
+  // private async sendRequestConfirmationEmail(request: AccessRequest): Promise<void> {
+    // Mock email sending
+    // console.log(`Sending confirmation email to ${request.requester_email} for request ${request.id}`)
+    
+    // // Log email sent
+    // await supabaseAdmin.rpc('create_audit_log', {
+    //   p_action: 'EMAIL_SENT',
+    //   p_entity_type: 'access_request',
+    //   p_entity_id: request.id,
+    //   p_details: {
+    //     email_type: 'confirmation',
+    //     recipient: request.requester_email
+    //   }
+    // })
+  //}
 
   private async sendDecisionNotificationEmail(
     request: AccessRequest,
