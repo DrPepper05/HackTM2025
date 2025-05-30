@@ -1,0 +1,23 @@
+/* Main CSS file - imports all modular CSS files */
+
+/* Variables and reset first */
+@import './variables.css';
+@import './reset.css';
+
+/* Base styles */
+@import './base.css';
+@import './typography.css';
+
+/* Layout and components */
+@import './layout.css';
+@import './components.css';
+@import './navigation.css';
+@import './pages.css';
+
+/* Utilities */
+@import './responsive.css';
+@import './animations.css';
+@import './utilities.css';
+
+/* Dark mode (last to override other styles) */
+@import './dark-mode.css';
