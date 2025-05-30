@@ -1,11 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SettingsPage from './admin/pages/Settings';
+import Dashboard from "./admin/pages/Dashboard";
 
 function App() {
     return (
         <Router>
             <Routes>
+                <Route path="/admin" element={<Dashboard />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
                 <Route
                     path="*"
