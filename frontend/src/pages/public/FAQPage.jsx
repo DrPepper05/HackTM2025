@@ -1,274 +1,145 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Mail } from 'lucide-react'
 
 function FAQPage() {
   const { t } = useTranslation()
-  const [openFaqs, setOpenFaqs] = useState({})
+  const [openQuestions, setOpenQuestions] = useState({})
 
-  const toggleFaq = (id) => {
-    setOpenFaqs((prev) => ({
+  const toggleQuestion = (id) => {
+    setOpenQuestions((prev) => ({
       ...prev,
       [id]: !prev[id],
     }))
   }
 
-  const faqs = [
+  const faqCategories = [
     {
-      id: 'faq-1',
-      question: t('public.faq_question_1'),
-      answer: t('public.faq_answer_1'),
-      category: 'general',
+      id: 'general',
+      title: t('faq.categories.general'),
+      questions: [
+        {
+          id: 'what-is-openarchive',
+          question: t('faq.questions.what_is_openarchive'),
+          answer: t('faq.answers.what_is_openarchive'),
+        },
+        {
+          id: 'who-can-use',
+          question: t('faq.questions.who_can_use'),
+          answer: t('faq.answers.who_can_use'),
+        },
+        {
+          id: 'is-free',
+          question: t('faq.questions.is_free'),
+          answer: t('faq.answers.is_free'),
+        },
+      ],
     },
     {
-      id: 'faq-2',
-      question: t('public.faq_question_2'),
-      answer: t('public.faq_answer_2'),
-      category: 'general',
+      id: 'documents',
+      title: t('faq.categories.documents'),
+      questions: [
+        {
+          id: 'what-documents',
+          question: t('faq.questions.what_documents'),
+          answer: t('faq.answers.what_documents'),
+        },
+        {
+          id: 'how-to-search',
+          question: t('faq.questions.how_to_search'),
+          answer: t('faq.answers.how_to_search'),
+        },
+        {
+          id: 'document-formats',
+          question: t('faq.questions.document_formats'),
+          answer: t('faq.answers.document_formats'),
+        },
+      ],
     },
     {
-      id: 'faq-3',
-      question: t('public.faq_question_3'),
-      answer: t('public.faq_answer_3'),
-      category: 'general',
+      id: 'access',
+      title: t('faq.categories.access'),
+      questions: [
+        {
+          id: 'request-access',
+          question: t('faq.questions.request_access'),
+          answer: t('faq.answers.request_access'),
+        },
+        {
+          id: 'access-denied',
+          question: t('faq.questions.access_denied'),
+          answer: t('faq.answers.access_denied'),
+        },
+        {
+          id: 'response-time',
+          question: t('faq.questions.response_time'),
+          answer: t('faq.answers.response_time'),
+        },
+      ],
     },
-    {
-      id: 'faq-4',
-      question: t('public.faq_question_4'),
-      answer: t('public.faq_answer_4'),
-      category: 'access',
-    },
-    {
-      id: 'faq-5',
-      question: t('public.faq_question_5'),
-      answer: t('public.faq_answer_5'),
-      category: 'access',
-    },
-    {
-      id: 'faq-6',
-      question: t('public.faq_question_6'),
-      answer: t('public.faq_answer_6'),
-      category: 'access',
-    },
-    {
-      id: 'faq-7',
-      question: t('public.faq_question_7'),
-      answer: t('public.faq_answer_7'),
-      category: 'technical',
-    },
-    {
-      id: 'faq-8',
-      question: t('public.faq_question_8'),
-      answer: t('public.faq_answer_8'),
-      category: 'technical',
-    },
-    {
-      id: 'faq-9',
-      question: t('public.faq_question_9'),
-      answer: t('public.faq_answer_9'),
-      category: 'legal',
-    },
-    {
-      id: 'faq-10',
-      question: t('public.faq_question_10'),
-      answer: t('public.faq_answer_10'),
-      category: 'legal',
-    },
-  ]
-
-  const categories = [
-    { id: 'general', name: t('public.faq_category_general') },
-    { id: 'access', name: t('public.faq_category_access') },
-    { id: 'technical', name: t('public.faq_category_technical') },
-    { id: 'legal', name: t('public.faq_category_legal') },
   ]
 
   return (
-    <div className="bg-white">
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
-        <div className="mx-auto max-w-4xl divide-y divide-gray-900/10">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">
-            {t('public.faq_title')}
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            {t('public.faq_description')}
-          </p>
-
-          {/* Categories */}
-          <div className="mt-10 flex flex-wrap gap-4">
-            {categories.map((category) => (
-              <a
-                key={category.id}
-                href={`#${category.id}`}
-                className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200"
-              >
-                {category.name}
-              </a>
-            ))}
-          </div>
-
-          <div className="mt-10 space-y-6 divide-y divide-gray-900/10">
-            {/* General FAQs */}
-            <div id="general" className="pt-10">
-              <h2 className="text-2xl font-bold leading-10 tracking-tight text-gray-900">
-                {t('public.faq_category_general')}
-              </h2>
-              <dl className="mt-10 space-y-6 divide-y divide-gray-900/10">
-                {faqs
-                  .filter((faq) => faq.category === 'general')
-                  .map((faq) => (
-                    <div key={faq.id} className="pt-6">
-                      <dt>
-                        <button
-                          onClick={() => toggleFaq(faq.id)}
-                          className="flex w-full items-start justify-between text-left text-gray-900"
-                        >
-                          <span className="text-base font-semibold leading-7">{faq.question}</span>
-                          <span className="ml-6 flex h-7 items-center">
-                            {openFaqs[faq.id] ? (
-                              <ChevronUp className="h-6 w-6" aria-hidden="true" />
-                            ) : (
-                              <ChevronDown className="h-6 w-6" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
-                      </dt>
-                      {openFaqs[faq.id] && (
-                        <dd className="mt-2 pr-12">
-                          <p className="text-base leading-7 text-gray-600">{faq.answer}</p>
-                        </dd>
-                      )}
-                    </div>
-                  ))}
-              </dl>
-            </div>
-
-            {/* Access FAQs */}
-            <div id="access" className="pt-10">
-              <h2 className="text-2xl font-bold leading-10 tracking-tight text-gray-900">
-                {t('public.faq_category_access')}
-              </h2>
-              <dl className="mt-10 space-y-6 divide-y divide-gray-900/10">
-                {faqs
-                  .filter((faq) => faq.category === 'access')
-                  .map((faq) => (
-                    <div key={faq.id} className="pt-6">
-                      <dt>
-                        <button
-                          onClick={() => toggleFaq(faq.id)}
-                          className="flex w-full items-start justify-between text-left text-gray-900"
-                        >
-                          <span className="text-base font-semibold leading-7">{faq.question}</span>
-                          <span className="ml-6 flex h-7 items-center">
-                            {openFaqs[faq.id] ? (
-                              <ChevronUp className="h-6 w-6" aria-hidden="true" />
-                            ) : (
-                              <ChevronDown className="h-6 w-6" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
-                      </dt>
-                      {openFaqs[faq.id] && (
-                        <dd className="mt-2 pr-12">
-                          <p className="text-base leading-7 text-gray-600">{faq.answer}</p>
-                        </dd>
-                      )}
-                    </div>
-                  ))}
-              </dl>
-            </div>
-
-            {/* Technical FAQs */}
-            <div id="technical" className="pt-10">
-              <h2 className="text-2xl font-bold leading-10 tracking-tight text-gray-900">
-                {t('public.faq_category_technical')}
-              </h2>
-              <dl className="mt-10 space-y-6 divide-y divide-gray-900/10">
-                {faqs
-                  .filter((faq) => faq.category === 'technical')
-                  .map((faq) => (
-                    <div key={faq.id} className="pt-6">
-                      <dt>
-                        <button
-                          onClick={() => toggleFaq(faq.id)}
-                          className="flex w-full items-start justify-between text-left text-gray-900"
-                        >
-                          <span className="text-base font-semibold leading-7">{faq.question}</span>
-                          <span className="ml-6 flex h-7 items-center">
-                            {openFaqs[faq.id] ? (
-                              <ChevronUp className="h-6 w-6" aria-hidden="true" />
-                            ) : (
-                              <ChevronDown className="h-6 w-6" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
-                      </dt>
-                      {openFaqs[faq.id] && (
-                        <dd className="mt-2 pr-12">
-                          <p className="text-base leading-7 text-gray-600">{faq.answer}</p>
-                        </dd>
-                      )}
-                    </div>
-                  ))}
-              </dl>
-            </div>
-
-            {/* Legal FAQs */}
-            <div id="legal" className="pt-10">
-              <h2 className="text-2xl font-bold leading-10 tracking-tight text-gray-900">
-                {t('public.faq_category_legal')}
-              </h2>
-              <dl className="mt-10 space-y-6 divide-y divide-gray-900/10">
-                {faqs
-                  .filter((faq) => faq.category === 'legal')
-                  .map((faq) => (
-                    <div key={faq.id} className="pt-6">
-                      <dt>
-                        <button
-                          onClick={() => toggleFaq(faq.id)}
-                          className="flex w-full items-start justify-between text-left text-gray-900"
-                        >
-                          <span className="text-base font-semibold leading-7">{faq.question}</span>
-                          <span className="ml-6 flex h-7 items-center">
-                            {openFaqs[faq.id] ? (
-                              <ChevronUp className="h-6 w-6" aria-hidden="true" />
-                            ) : (
-                              <ChevronDown className="h-6 w-6" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
-                      </dt>
-                      {openFaqs[faq.id] && (
-                        <dd className="mt-2 pr-12">
-                          <p className="text-base leading-7 text-gray-600">{faq.answer}</p>
-                        </dd>
-                      )}
-                    </div>
-                  ))}
-              </dl>
-            </div>
-          </div>
-
-          {/* Contact section */}
-          <div className="mt-16 rounded-2xl bg-gray-50 p-8">
-            <h2 className="text-base font-semibold leading-7 text-gray-900">
-              {t('public.still_have_questions')}
-            </h2>
-            <p className="mt-6 text-base leading-7 text-gray-600">
-              {t('public.contact_description')}
-            </p>
-            <div className="mt-10 flex">
-              <Link
-                to="/contact"
-                className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                {t('public.contact_us')}
-              </Link>
-            </div>
+    <div className="public-home-page">
+      <section className="faq-header">
+        <div className="content-container">
+          <div className="section-header">
+            <h1 className="section-title">{t('faq.title')}</h1>
+            <p className="section-subtitle">{t('faq.subtitle')}</p>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section className="faq-content">
+        <div className="content-container">
+          <div className="faq-categories">
+            {faqCategories.map((category) => (
+              <div key={category.id} className="faq-category">
+                <h2 className="faq-category-title">{category.title}</h2>
+                <div className="faq-questions">
+                  {category.questions.map((faq) => (
+                    <div key={faq.id} className="faq-question">
+                      <button
+                        type="button"
+                        className="faq-question-button"
+                        onClick={() => toggleQuestion(faq.id)}
+                        aria-expanded={openQuestions[faq.id]}
+                      >
+                        <span className="faq-question-text">{faq.question}</span>
+                        <span className="faq-question-icon">
+                          {openQuestions[faq.id] ? (
+                            <ChevronUp className="icon" aria-hidden="true" />
+                          ) : (
+                            <ChevronDown className="icon" aria-hidden="true" />
+                          )}
+                        </span>
+                      </button>
+                      {openQuestions[faq.id] && (
+                        <div className="faq-answer">
+                          <p>{faq.answer}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="faq-contact">
+        <div className="content-container">
+          <div className="faq-contact-content">
+            <h2 className="faq-contact-title">{t('faq.contact_title')}</h2>
+            <p className="faq-contact-description">{t('faq.contact_description')}</p>
+            <a href="/public/contact" className="btn btn-primary">
+              <Mail className="icon" aria-hidden="true" />
+              {t('faq.contact_button')}
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

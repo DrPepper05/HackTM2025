@@ -130,107 +130,109 @@ function PublicSearchPage() {
   }
 
   return (
-    <div className="bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            {t('public.search_archives')}
-          </h1>
-          <p className="mt-2 text-lg text-gray-600">
-            {t('public.search_description')}
-          </p>
+    <div className="public-home-page">
+      <section className="search-header">
+        <div className="content-container">
+          <div className="section-header">
+            <h1 className="section-title">
+              {t('public.search_archives')}
+            </h1>
+            <p className="section-subtitle">
+              {t('public.search_description')}
+            </p>
+          </div>
 
           {/* Search form */}
-          <div className="mt-8">
-            <form onSubmit={handleSearch} className="flex w-full">
-              <div className="relative flex flex-grow items-stretch">
+          <div className="search-container">
+            <form onSubmit={handleSearch} className="search-form">
+              <div className="input-group">
                 <input
                   type="text"
                   name="search"
                   id="search"
-                  className="block w-full rounded-l-md border-0 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                  className="form-input"
                   placeholder={t('public.search_placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <button
                   type="button"
-                  className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-none bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-100"
+                  className="btn btn-secondary"
                   onClick={() => setFiltersOpen(!filtersOpen)}
                 >
-                  <Filter className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  <Filter className="icon" aria-hidden="true" />
                   {t('public.filters')}
                 </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                >
+                  <Search className="icon" aria-hidden="true" />
+                  {t('public.search')}
+                </button>
               </div>
-              <button
-                type="submit"
-                className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
-              >
-                <Search className="h-5 w-5" aria-hidden="true" />
-                {t('public.search')}
-              </button>
             </form>
           </div>
 
           {/* Filters panel */}
           {filtersOpen && (
-            <div className="mt-4 rounded-md border border-gray-300 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">{t('public.refine_search')}</h3>
+            <div className="filter-panel">
+              <div className="filter-panel-header">
+                <h3 className="filter-panel-title">{t('public.refine_search')}</h3>
                 <button
                   type="button"
-                  className="text-gray-400 hover:text-gray-500"
+                  className="btn-icon"
                   onClick={() => setFiltersOpen(false)}
                 >
                   <span className="sr-only">{t('common.close')}</span>
-                  <X className="h-5 w-5" aria-hidden="true" />
+                  <X className="icon" aria-hidden="true" />
                 </button>
               </div>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700">
+              <div className="filter-panel-content">
+                <div className="filter-group">
+                  <label htmlFor="dateFrom" className="form-label">
                     {t('public.date_from')}
                   </label>
-                  <div className="mt-1 flex rounded-md shadow-sm">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500">
-                      <Calendar className="h-4 w-4" aria-hidden="true" />
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <Calendar className="icon" aria-hidden="true" />
                     </span>
                     <input
                       type="date"
                       name="dateFrom"
                       id="dateFrom"
-                      className="block w-full rounded-none rounded-r-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="form-input"
                       value={filters.dateFrom}
                       onChange={handleFilterChange}
                     />
                   </div>
                 </div>
-                <div>
-                  <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700">
+                <div className="filter-group">
+                  <label htmlFor="dateTo" className="form-label">
                     {t('public.date_to')}
                   </label>
-                  <div className="mt-1 flex rounded-md shadow-sm">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500">
-                      <Calendar className="h-4 w-4" aria-hidden="true" />
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <Calendar className="icon" aria-hidden="true" />
                     </span>
                     <input
                       type="date"
                       name="dateTo"
                       id="dateTo"
-                      className="block w-full rounded-none rounded-r-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="form-input"
                       value={filters.dateTo}
                       onChange={handleFilterChange}
                     />
                   </div>
                 </div>
-                <div>
-                  <label htmlFor="documentType" className="block text-sm font-medium text-gray-700">
+                <div className="filter-group">
+                  <label htmlFor="documentType" className="form-label">
                     {t('public.document_type')}
                   </label>
                   <select
                     id="documentType"
                     name="documentType"
-                    className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                    className="form-select"
                     value={filters.documentType}
                     onChange={handleFilterChange}
                   >
@@ -242,14 +244,14 @@ function PublicSearchPage() {
                     <option value="certificat">Certificat</option>
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="institution" className="block text-sm font-medium text-gray-700">
+                <div className="filter-group">
+                  <label htmlFor="institution" className="form-label">
                     {t('public.institution')}
                   </label>
                   <select
                     id="institution"
                     name="institution"
-                    className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                    className="form-select"
                     value={filters.institution}
                     onChange={handleFilterChange}
                   >
@@ -261,17 +263,17 @@ function PublicSearchPage() {
                   </select>
                 </div>
               </div>
-              <div className="mt-4 flex justify-end space-x-3">
+              <div className="filter-panel-footer">
                 <button
                   type="button"
-                  className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="btn btn-text"
                   onClick={resetFilters}
                 >
                   {t('public.reset_filters')}
                 </button>
                 <button
                   type="button"
-                  className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+                  className="btn btn-primary"
                   onClick={applyFilters}
                 >
                   {t('public.apply_filters')}
@@ -279,97 +281,97 @@ function PublicSearchPage() {
               </div>
             </div>
           )}
-
-          {/* Search results */}
-          <div className="mt-8">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="loading-spinner"></div>
-              </div>
-            ) : searchQuery && searchResults.length > 0 ? (
-              <div>
-                <div className="mb-4 text-sm text-gray-500">
-                  {t('public.search_results_count', { count: totalResults })}
-                </div>
-                <ul className="divide-y divide-gray-200">
-                  {searchResults.map((result) => (
-                    <li key={result.id} className="py-4">
-                      <div className="flex flex-col space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <FileText className="h-5 w-5 text-gray-400" />
-                          <Link
-                            to={`/public/documents/${result.id}`}
-                            className="text-lg font-medium text-primary hover:underline"
-                          >
-                            {result.title}
-                          </Link>
-                        </div>
-                        <p className="text-sm text-gray-600">{result.summary}</p>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
-                          <span className="flex items-center gap-x-1">
-                            <span className="font-medium">{t('public.document_type')}:</span>
-                            <span>{result.documentType}</span>
-                          </span>
-                          <span className="flex items-center gap-x-1">
-                            <span className="font-medium">{t('public.institution')}:</span>
-                            <span>{result.institution}</span>
-                          </span>
-                          <span className="flex items-center gap-x-1">
-                            <span className="font-medium">{t('public.release_date')}:</span>
-                            <span>{new Date(result.releaseDate).toLocaleDateString()}</span>
-                          </span>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Pagination */}
-                <nav className="mt-8 flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">
-                  <div className="-mt-px flex w-0 flex-1">
-                    <button
-                      disabled={currentPage === 1}
-                      className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 disabled:opacity-50"
-                    >
-                      {t('public.previous')}
-                    </button>
-                  </div>
-                  <div className="hidden md:-mt-px md:flex">
-                    {[1].map((page) => (
-                      <button
-                        key={page}
-                        className="inline-flex items-center border-t-2 border-primary px-4 pt-4 text-sm font-medium text-primary"
-                        aria-current="page"
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="-mt-px flex w-0 flex-1 justify-end">
-                    <button
-                      disabled={true} // Only one page in our mock data
-                      className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 disabled:opacity-50"
-                    >
-                      {t('public.next')}
-                    </button>
-                  </div>
-                </nav>
-              </div>
-            ) : searchQuery ? (
-              <div className="rounded-md bg-yellow-50 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-yellow-800">{t('public.no_results')}</h3>
-                    <div className="mt-2 text-sm text-yellow-700">
-                      <p>{t('public.no_results_description')}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Search results */}
+      <section className="search-results">
+        <div className="content-container">
+          {isLoading ? (
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+            </div>
+          ) : searchQuery && searchResults.length > 0 ? (
+            <div>
+              <div className="search-results-count">
+                {t('public.search_results_count', { count: totalResults })}
+              </div>
+              <ul className="search-results-list">
+                {searchResults.map((result) => (
+                  <li key={result.id} className="search-result-item">
+                    <div className="search-result-content">
+                      <div className="search-result-header">
+                        <FileText className="icon" />
+                        <Link
+                          to={`/public/documents/${result.id}`}
+                          className="search-result-title"
+                        >
+                          {result.title}
+                        </Link>
+                      </div>
+                      <p className="search-result-description">{result.summary}</p>
+                      <div className="search-result-meta">
+                        <span className="search-result-meta-item">
+                          <span className="search-result-meta-label">{t('public.document_type')}:</span>
+                          <span>{result.documentType}</span>
+                        </span>
+                        <span className="search-result-meta-item">
+                          <span className="search-result-meta-label">{t('public.institution')}:</span>
+                          <span>{result.institution}</span>
+                        </span>
+                        <span className="search-result-meta-item">
+                          <span className="search-result-meta-label">{t('public.release_date')}:</span>
+                          <span>{new Date(result.releaseDate).toLocaleDateString()}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Pagination */}
+              <nav className="pagination">
+                <div className="pagination-prev">
+                  <button
+                    disabled={currentPage === 1}
+                    className="btn btn-text"
+                  >
+                    {t('public.previous')}
+                  </button>
+                </div>
+                <div className="pagination-pages">
+                  {[1].map((page) => (
+                    <button
+                      key={page}
+                      className="pagination-page pagination-page-active"
+                      aria-current="page"
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <div className="pagination-next">
+                  <button
+                    disabled={true} // Only one page in our mock data
+                    className="btn btn-text"
+                  >
+                    {t('public.next')}
+                  </button>
+                </div>
+              </nav>
+            </div>
+          ) : searchQuery ? (
+            <div className="alert alert-warning">
+              <div className="alert-content">
+                <h3 className="alert-title">{t('public.no_results')}</h3>
+                <div className="alert-description">
+                  <p>{t('public.no_results_description')}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </section>
     </div>
   )
 }
