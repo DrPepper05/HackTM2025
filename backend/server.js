@@ -12,6 +12,14 @@ app.use(express.json());
 const documentRoutes = require('./routes/documents');
 app.use('/documents', documentRoutes);  // <-- register it here
 
+const adminRoutes = require('./routes/admin/admin');
+app.use('/admin', adminRoutes);
+
+
+const adminSettingsRoutes = require('./routes/admin/settings');
+app.use('/admin/settings', adminSettingsRoutes);
+
+
 // Health check
 app.get('/', (req, res) => {
     res.send({ message: '🚀 OpenArchive backend is live!' });
