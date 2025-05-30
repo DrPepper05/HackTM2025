@@ -1,33 +1,34 @@
 {
-  "name": "openarchive-document-processor",
+  "name": "hacktm2025",
   "version": "1.0.0",
-  "description": "Document processing backend for OpenArchive project using AWS Textract",
-  "main": "dist/index.js",
+  "description": "This is the repository for HackTM2025 for the 5 AI-gents team",
+  "main": "index.js",
   "scripts": {
-    "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
-    "build": "tsc"
+    "start": "node server.js",
+    "dev": "node_modules/.bin/nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "@aws-sdk/client-textract": "^3.470.0",
-    "@supabase/supabase-js": "^2.39.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1",
-    "uuid": "^9.0.1"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/multer": "^1.4.11",
-    "@types/node": "^20.10.4",
-    "@types/uuid": "^9.0.7",
-    "nodemon": "^3.0.2",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.3.3"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DrPepper05/HackTM2025.git"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DrPepper05/HackTM2025/issues"
+  },
+  "homepage": "https://github.com/DrPepper05/HackTM2025#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
+    "aws-sdk": "^2.1411.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
 }
