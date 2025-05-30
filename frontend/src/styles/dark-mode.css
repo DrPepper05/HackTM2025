@@ -1,0 +1,292 @@
+/* Dark mode styles */
+
+/* Base dark mode variables */
+:root.dark {
+  /* Color palette - dark mode */
+  --primary-color: #4f8bff;
+  --primary-light: #6b9fff;
+  --primary-dark: #3a6fd9;
+  
+  --secondary-color: #6c757d;
+  --secondary-light: #868e96;
+  --secondary-dark: #495057;
+  
+  --accent-color: #ff9800;
+  --accent-light: #ffb74d;
+  --accent-dark: #f57c00;
+  
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #3b82f6;
+  
+  /* Text colors */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-disabled: #475569;
+  
+  /* Background colors */
+  --bg-primary: #1e293b;
+  --bg-secondary: #0f172a;
+  --bg-tertiary: #334155;
+  --bg-disabled: #1e293b;
+  
+  /* Border colors */
+  --border-color: #334155;
+  --border-color-light: #475569;
+  
+  /* Shadow */
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+}
+
+/* Dark mode specific component overrides */
+
+/* Cards */
+.dark .card {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.dark .card-header {
+  background-color: var(--bg-tertiary);
+  border-bottom-color: var(--border-color);
+}
+
+/* Buttons */
+.dark .btn-outline {
+  border-color: var(--border-color-light);
+}
+
+.dark .btn-ghost:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* Form elements */
+.dark .form-control {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark .form-control:focus {
+  border-color: var(--primary-color);
+  background-color: var(--bg-secondary);
+}
+
+.dark .form-control::placeholder {
+  color: var(--text-tertiary);
+}
+
+.dark .form-control:disabled,
+.dark .form-control[readonly] {
+  background-color: var(--bg-disabled);
+  color: var(--text-disabled);
+}
+
+/* Tables */
+.dark .table {
+  color: var(--text-primary);
+}
+
+.dark .table th {
+  background-color: var(--bg-tertiary);
+}
+
+.dark .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .table-hover tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.075);
+}
+
+/* Navigation */
+.dark .header {
+  background-color: var(--bg-primary);
+  border-bottom-color: var(--border-color);
+}
+
+.dark .sidebar {
+  background-color: var(--bg-secondary);
+  border-right-color: var(--border-color);
+}
+
+.dark .sidebar-item {
+  color: var(--text-secondary);
+}
+
+.dark .sidebar-item:hover,
+.dark .sidebar-item.active {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.dark .footer {
+  background-color: var(--bg-primary);
+  border-top-color: var(--border-color);
+}
+
+/* Dropdowns */
+.dark .dropdown-menu {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.dark .dropdown-item {
+  color: var(--text-primary);
+}
+
+.dark .dropdown-item:hover,
+.dark .dropdown-item:focus {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.dark .dropdown-divider {
+  border-top-color: var(--border-color);
+}
+
+/* Modals */
+.dark .modal-content {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.dark .modal-header {
+  border-bottom-color: var(--border-color);
+}
+
+.dark .modal-footer {
+  border-top-color: var(--border-color);
+}
+
+/* Alerts */
+.dark .alert {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.dark .alert-primary {
+  background-color: rgba(79, 139, 255, 0.2);
+  border-color: rgba(79, 139, 255, 0.3);
+  color: var(--primary-light);
+}
+
+.dark .alert-success {
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: var(--success-color);
+}
+
+.dark .alert-warning {
+  background-color: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--warning-color);
+}
+
+.dark .alert-error {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--error-color);
+}
+
+/* Badges */
+.dark .badge {
+  background-color: var(--bg-tertiary);
+}
+
+/* Tooltips */
+.dark .tooltip {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-md);
+}
+
+/* Progress bars */
+.dark .progress {
+  background-color: var(--bg-tertiary);
+}
+
+/* Tabs */
+.dark .tabs {
+  border-bottom-color: var(--border-color);
+}
+
+.dark .tab {
+  color: var(--text-secondary);
+}
+
+.dark .tab:hover {
+  color: var(--text-primary);
+}
+
+.dark .tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+/* Document-specific components */
+.dark .document-card {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.dark .document-icon {
+  background-color: rgba(79, 139, 255, 0.2);
+}
+
+.dark .document-tag {
+  background-color: var(--bg-tertiary);
+}
+
+.dark .upload-dropzone {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.dark .upload-dropzone:hover,
+.dark .upload-dropzone-active {
+  border-color: var(--primary-color);
+  background-color: rgba(79, 139, 255, 0.1);
+}
+
+/* Auth pages */
+.dark .auth-container {
+  background-color: var(--bg-secondary);
+}
+
+.dark .auth-content {
+  background-color: var(--bg-primary);
+}
+
+.dark .auth-social-button {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark .auth-social-button:hover {
+  background-color: var(--bg-primary);
+}
+
+/* Scrollbars */
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--border-color-light);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-tertiary);
+}
+
+/* Code blocks */
+.dark pre,
+.dark code {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
