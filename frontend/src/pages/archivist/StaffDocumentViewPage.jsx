@@ -60,7 +60,7 @@ function StaffDocumentViewPage() {
   const confidentialityLevels = [
     { id: 'public', name: 'Public' },
     { id: 'internal', name: 'Internal' },
-    { id: 'confidential', name: 'Confidential' },
+    { id: 'private', name: 'Private' },
     { id: 'restricted', name: 'Restricted' },
   ]
 
@@ -107,7 +107,7 @@ function StaffDocumentViewPage() {
             retentionCategory: doc.retention_category || '',
             retentionYears: getRetentionYears(doc.retention_category || ''),
             retentionEndDate: doc.retention_end_date || '',
-            confidentiality: doc.confidentiality_level || 'public',
+            confidentiality: doc.is_public ? 'public' : 'private',
             description: doc.description || '',
             tags: doc.tags || [],
             files: doc.document_files || [],
@@ -318,7 +318,7 @@ function StaffDocumentViewPage() {
         return 'bg-green-100 text-green-800'
       case 'internal':
         return 'bg-yellow-100 text-yellow-800'
-      case 'confidential':
+      case 'private':
         return 'bg-orange-100 text-orange-800'
       case 'restricted':
         return 'bg-red-100 text-red-800'
@@ -425,7 +425,7 @@ function StaffDocumentViewPage() {
               </div>
             </div>
           </div>
-          <div className="mt-4 flex flex-shrink-0 md:ml-4 md:mt-0">
+          <div className="mt-4 flex gap-2 flex-shrink-0 md:ml-4 md:mt-0">
             {isEditing ? (
               <>
                 <button
