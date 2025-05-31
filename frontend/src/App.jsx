@@ -25,7 +25,6 @@ const MyUploadsPage = lazy(() => import('./pages/clerk/MyUploadsPage'))
 // Archivist pages
 const IngestQueuePage = lazy(() => import('./pages/archivist/IngestQueuePage'))
 const RetentionQueuePage = lazy(() => import('./pages/archivist/RetentionQueuePage'))
-const TransferQueuePage = lazy(() => import('./pages/archivist/TransferQueuePage'))
 const AdvancedSearchPage = lazy(() => import('./pages/archivist/AdvancedSearchPage'))
 const DocumentReviewPage = lazy(() => import('./pages/archivist/DocumentReviewPage'))
 const StaffDocumentViewPage = lazy(() => import('./pages/archivist/StaffDocumentViewPage'))
@@ -121,11 +120,6 @@ function AppContent() {
             <Route path="/archivist/retention" element={
               <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
                 <RetentionQueuePage />
-              </RoleBasedRoute>
-            } />
-            <Route path="/archivist/transfer" element={
-              <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
-                <TransferQueuePage />
               </RoleBasedRoute>
             } />
             <Route path="/documents/search" element={

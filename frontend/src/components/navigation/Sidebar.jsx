@@ -38,7 +38,6 @@ function Sidebar({ sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed }) {
     ...(hasRole('archivist') ? [
       { name: t('nav.ingest_queue'), href: '/archivist/ingest', icon: Inbox },
       { name: t('nav.retention_alerts'), href: '/archivist/retention', icon: Clock },
-      { name: t('nav.transfer_queue'), href: '/archivist/transfer', icon: Send },
       { name: t('nav.advanced_search'), href: '/documents/search', icon: Search },
     ] : []),
     
