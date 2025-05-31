@@ -22,6 +22,7 @@ import {
   Pencil,
   Eye,
   Clock,
+  ChevronDown,
 } from 'lucide-react'
 
 function AuditLogPage() {
@@ -288,13 +289,13 @@ function AuditLogPage() {
 
         {/* Filters */}
         <div className="mb-8 rounded-lg bg-white p-6 shadow">
-          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             {/* Search */}
             <div>
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="search" className="mb-2 block text-sm font-medium text-gray-700">
                 {t('inspector.search')}
               </label>
-              <div className="relative mt-1 rounded-md shadow-sm">
+              <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </div>
@@ -302,7 +303,7 @@ function AuditLogPage() {
                   type="text"
                   name="search"
                   id="search"
-                  className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm"
+                  className="block h-10 w-full rounded-md border border-gray-300 bg-white pl-10 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary hover:border-gray-400"
                   placeholder={t('inspector.search_placeholder')}
                   value={searchTerm}
                   onChange={handleSearchChange}
@@ -312,10 +313,10 @@ function AuditLogPage() {
 
             {/* Date From */}
             <div>
-              <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="dateFrom" className="mb-2 block text-sm font-medium text-gray-700">
                 {t('inspector.date_from')}
               </label>
-              <div className="relative mt-1 rounded-md shadow-sm">
+              <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </div>
@@ -323,7 +324,7 @@ function AuditLogPage() {
                   type="date"
                   name="from"
                   id="dateFrom"
-                  className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm"
+                  className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary hover:border-gray-400"
                   value={dateRange.from}
                   onChange={handleDateChange}
                 />
@@ -332,10 +333,10 @@ function AuditLogPage() {
 
             {/* Date To */}
             <div>
-              <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="dateTo" className="mb-2 block text-sm font-medium text-gray-700">
                 {t('inspector.date_to')}
               </label>
-              <div className="relative mt-1 rounded-md shadow-sm">
+              <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </div>
@@ -343,7 +344,7 @@ function AuditLogPage() {
                   type="date"
                   name="to"
                   id="dateTo"
-                  className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm"
+                  className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary hover:border-gray-400"
                   value={dateRange.to}
                   onChange={handleDateChange}
                 />
@@ -352,67 +353,91 @@ function AuditLogPage() {
 
             {/* User Filter */}
             <div>
-              <label htmlFor="userFilter" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="userFilter" className="mb-2 block text-sm font-medium text-gray-700">
                 {t('inspector.filter_by_user')}
               </label>
-              <select
-                id="userFilter"
-                name="userFilter"
-                className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                value={selectedUser}
-                onChange={handleUserChange}
-              >
-                <option value="">{t('inspector.all_users')}</option>
-                {filterOptions.users.map((user) => (
-                  <option key={user} value={user}>
-                    {user}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <select
+                  id="userFilter"
+                  name="userFilter"
+                  className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-primary hover:border-gray-400"
+                  value={selectedUser}
+                  onChange={handleUserChange}
+                >
+                  <option value="">{t('inspector.all_users')}</option>
+                  {filterOptions.users.map((user) => (
+                    <option key={user} value={user}>
+                      {user}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                  <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             {/* Action Filter */}
             <div>
-              <label htmlFor="actionFilter" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="actionFilter" className="mb-2 block text-sm font-medium text-gray-700">
                 {t('inspector.filter_by_action')}
               </label>
-              <select
-                id="actionFilter"
-                name="actionFilter"
-                className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                value={selectedAction}
-                onChange={handleActionChange}
-              >
-                <option value="">{t('inspector.all_actions')}</option>
-                {filterOptions.actions.map((action) => (
-                  <option key={action} value={action}>
-                    {getActionLabel(action)}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Filter className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <select
+                  id="actionFilter"
+                  name="actionFilter"
+                  className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-primary hover:border-gray-400"
+                  value={selectedAction}
+                  onChange={handleActionChange}
+                >
+                  <option value="">{t('inspector.all_actions')}</option>
+                  {filterOptions.actions.map((action) => (
+                    <option key={action} value={action}>
+                      {getActionLabel(action)}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                  <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
             </div>
 
             {/* Entity Filter */}
             <div>
-              <label htmlFor="entityFilter" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="entityFilter" className="mb-2 block text-sm font-medium text-gray-700">
                 {t('inspector.filter_by_entity')}
               </label>
-              <select
-                id="entityFilter"
-                name="entityFilter"
-                className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                value={selectedEntity}
-                onChange={handleEntityChange}
-              >
-                <option value="">{t('inspector.all_entities')}</option>
-                {filterOptions.entities.map((entity) => (
-                  <option key={entity} value={entity}>
-                    {entity}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <select
+                  id="entityFilter"
+                  name="entityFilter"
+                  className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-primary hover:border-gray-400"
+                  value={selectedEntity}
+                  onChange={handleEntityChange}
+                >
+                  <option value="">{t('inspector.all_entities')}</option>
+                  {filterOptions.entities.map((entity) => (
+                    <option key={entity} value={entity}>
+                      {entity}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                  <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
             </div>
 
             {/* Reset Filters */}
@@ -420,7 +445,7 @@ function AuditLogPage() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="inline-flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 <RefreshCw className="-ml-1 mr-2 h-5 w-5 text-gray-400" aria-hidden="true" />
                 {t('inspector.reset_filters')}

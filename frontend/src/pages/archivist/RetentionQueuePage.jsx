@@ -509,7 +509,7 @@ function RetentionQueuePage() {
               <select
                 id="sort-direction"
                 name="sort-direction"
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-3 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
                 value={sortDirection}
                 onChange={(e) => setSortDirection(e.target.value)}
               >
@@ -525,12 +525,12 @@ function RetentionQueuePage() {
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <div className="overflow-hidden shadow-md ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
+                <table className="min-w-full divide-y divide-gray-300 table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
                       <th
                         scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                        className="w-1/3 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                       >
                         <button
                           type="button"
@@ -547,7 +547,7 @@ function RetentionQueuePage() {
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         <button
                           type="button"
@@ -564,7 +564,7 @@ function RetentionQueuePage() {
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         <button
                           type="button"
@@ -581,7 +581,7 @@ function RetentionQueuePage() {
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        className="w-1/12 px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         <button
                           type="button"
@@ -598,7 +598,7 @@ function RetentionQueuePage() {
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         <button
                           type="button"
@@ -613,7 +613,7 @@ function RetentionQueuePage() {
                           </span>
                         </button>
                       </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                      <th scope="col" className="w-1/12 relative py-3.5 pl-3 pr-4 sm:pr-6">
                         <span className="sr-only">{t('archivist.actions')}</span>
                       </th>
                     </tr>
@@ -631,29 +631,29 @@ function RetentionQueuePage() {
                     ) : (
                       sortedDocuments.map((document) => (
                         <tr key={document.id} className="hover:bg-gray-50">
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                          <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 break-words">
                             {document.title || 'Untitled'}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-3 py-4 text-sm text-gray-500 break-words">
                             {document.document_type || 'N/A'}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-3 py-4 text-sm text-gray-500 break-words">
                             {document.creator_info?.creator_name || document.creator || 'N/A'}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-3 py-4 text-sm text-gray-500">
                             <div className="flex items-center">
-                              <Clock className="mr-1.5 h-4 w-4 text-gray-400" />
+                              <Clock className="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" />
                               {formatDate(document.retention_end_date || document.created_at)}
                             </div>
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-3 py-4 text-sm text-gray-500">
                             <span
                               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeColor(document.status)}`}
                             >
                               {getStatusDisplayName(document.status)}
                             </span>
                           </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                          <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <div className="flex items-center justify-end space-x-2">
                               <button
                                 type="button"

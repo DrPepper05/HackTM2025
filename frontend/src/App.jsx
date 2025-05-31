@@ -6,7 +6,6 @@ import RoleBasedRoute from './components/auth/RoleBasedRoute'
 import Layout from './components/layout/Layout'
 import LoadingScreen from './components/ui/LoadingScreen'
 import PortalPage from "./pages/portal/PortalPage.jsx";
-import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider } from './contexts/AuthContext'
 
 // Lazy load pages for better performance
@@ -61,29 +60,28 @@ function AppContent() {
   }
 
   return (
-    <ThemeProvider>
-      <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
-          <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
-          <Route path="/forgot-password" element={!user ? <ForgotPasswordPage /> : <Navigate to="/dashboard" />} />
-          <Route path="/reset-password" element={!user ? <ResetPasswordPage /> : <Navigate to="/dashboard" />} />
-          
-          {/* Public pages */}
-          <Route path="/" element={<PublicHomePage />} />
-          <Route path="/search" element={<PublicSearchPage />} />
-          <Route path="/document/:id" element={<PublicDocumentPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/portal" element={<PortalPage />} />
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/forgot-password" element={!user ? <ForgotPasswordPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/reset-password" element={!user ? <ResetPasswordPage /> : <Navigate to="/dashboard" />} />
+        
+        {/* Public pages */}
+        <Route path="/" element={<PublicHomePage />} />
+        <Route path="/search" element={<PublicSearchPage />} />
+        <Route path="/document/:id" element={<PublicDocumentPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/portal" element={<PortalPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
-            
+
             {/* Clerk routes */}
             <Route path="/documents/upload" element={
               <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
@@ -157,7 +155,6 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>
-    </ThemeProvider>
   )
 }
 

@@ -324,31 +324,41 @@ function MyUploadsPage() {
         </div>
 
         {/* Search and filters */}
-        <div className="mt-8 sm:flex sm:items-center">
-          <div className="relative flex-grow">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-12 items-center">
+          {/* Search */}
+          <div className="relative sm:col-span-4">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('clerk.search_documents')}
+            </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <input
+                type="text"
+                name="search"
+                id="search"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                placeholder={t('clerk.search_documents')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              name="search"
-              id="search"
-              className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
-              placeholder="Search documents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
           </div>
 
-          <div className="mt-4 flex sm:ml-4 sm:mt-0">
-            <div className="relative flex-grow">
+          {/* Status filter */}
+          <div className="relative sm:col-span-2">
+            <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('clerk.status_filter')}
+            </label>
+            <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Filter className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
               <select
                 id="status-filter"
                 name="status-filter"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -359,15 +369,21 @@ function MyUploadsPage() {
                 ))}
               </select>
             </div>
+          </div>
 
-            <div className="relative ml-4 flex-grow">
+          {/* Date filter */}
+          <div className="relative sm:col-span-3">
+            <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('clerk.date_filter')}
+            </label>
+            <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Filter className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
               <select
                 id="date-filter"
                 name="date-filter"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               >
@@ -378,12 +394,18 @@ function MyUploadsPage() {
                 ))}
               </select>
             </div>
+          </div>
 
-            <div className="relative ml-4 flex-grow">
+          {/* Sort by */}
+          <div className="relative sm:col-span-3">
+            <label htmlFor="sort-by" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('clerk.sort_by')}
+            </label>
+            <div className="relative">
               <select
                 id="sort-by"
                 name="sort-by"
-                className="block w-full rounded-md border-0 py-1.5 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
@@ -421,32 +443,35 @@ function MyUploadsPage() {
                   </div>
                 </div>
               ) : (
-                <table className="min-w-full divide-y divide-gray-300">
+                <table className="min-w-full divide-y divide-gray-300 table-fixed">
                   <thead>
                     <tr>
                       <th
                         scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
+                        className="w-2/5 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
                       >
                         Document Title
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        className="w-1/5 px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         Document Type
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
                         Upload Date
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Status
+                        {t('clerk.status')}
+                      </th>
+                      <th scope="col" className="w-1/12 relative py-3.5 pl-3 pr-4 sm:pr-0">
+                        <span className="sr-only">{t('clerk.view')}</span>
                       </th>
                     </tr>
                   </thead>
@@ -454,23 +479,32 @@ function MyUploadsPage() {
                     {sortedDocuments.map((document) => {
                       const statusBadge = getStatusBadge(document.status)
                       return (
-                        <tr key={document.id}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                        <tr key={document.id} className="hover:bg-gray-50">
+                          <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 break-words">
                             {document.title}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-3 py-4 text-sm text-gray-500 break-words">
                             {document.documentTypeName}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-3 py-4 text-sm text-gray-500">
                             {formatDate(document.uploadDate)}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-3 py-4 text-sm text-gray-500">
                             <span
                               className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusBadge.color}`}
                             >
                               {statusBadge.icon}
                               {document.statusName}
                             </span>
+                          </td>
+                          <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                            <Link
+                              to={`/dashboard/clerk/document/${document.id}`}
+                              className="text-primary hover:text-primary-dark inline-flex items-center"
+                            >
+                              <Eye className="mr-1 h-4 w-4" />
+                              {t('clerk.view')}
+                            </Link>
                           </td>
                         </tr>
                       )
