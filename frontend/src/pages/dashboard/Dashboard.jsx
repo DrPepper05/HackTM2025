@@ -173,7 +173,6 @@ function Dashboard() {
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.welcome')}</h1>
-        <p className="text-gray-600">{t('dashboard.role_based_welcome', { role: t(`roles.${userRole}`) })}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

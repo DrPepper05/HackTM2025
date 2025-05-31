@@ -13,32 +13,32 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
   // Define navigation items based on user role
   const navigation = [
     // Common for all authenticated users
-    { name: t('navigation.dashboard'), href: '/dashboard', icon: Home },
+    { name: t('nav.dashboard'), href: '/dashboard', icon: Home },
     
     // Clerk navigation
     ...(hasRole('clerk') ? [
-      { name: t('navigation.upload_document'), href: '/documents/upload', icon: Upload },
-      { name: t('navigation.my_uploads'), href: '/documents/my-uploads', icon: FileText },
+      { name: t('nav.upload_document'), href: '/documents/upload', icon: Upload },
+      { name: t('nav.my_uploads'), href: '/documents/my-uploads', icon: FileText },
     ] : []),
     
     // Archivist navigation
     ...(hasRole('archivist') ? [
-      { name: t('navigation.ingest_queue'), href: '/archivist/ingest', icon: Inbox },
-      { name: t('navigation.retention_alerts'), href: '/archivist/retention', icon: Clock },
-      { name: t('navigation.transfer_queue'), href: '/archivist/transfer', icon: Send },
-      { name: t('navigation.advanced_search'), href: '/documents/search', icon: Search },
+      { name: t('nav.ingest_queue'), href: '/archivist/ingest', icon: Inbox },
+      { name: t('nav.retention_alerts'), href: '/archivist/retention', icon: Clock },
+      { name: t('nav.transfer_queue'), href: '/archivist/transfer', icon: Send },
+      { name: t('nav.advanced_search'), href: '/documents/search', icon: Search },
     ] : []),
     
     // Admin navigation
     ...(hasRole('admin') ? [
-      { name: t('navigation.user_management'), href: '/admin/users', icon: Users },
-      { name: t('navigation.system_health'), href: '/admin/system', icon: Shield },
+      { name: t('nav.user_management'), href: '/admin/users', icon: Users },
+      { name: t('nav.system_health'), href: '/admin/system', icon: Shield },
     ] : []),
     
     // Inspector/Auditor navigation
     ...(hasRole('inspector') ? [
-      { name: t('navigation.audit_logs'), href: '/inspector/audit-logs', icon: BarChart },
-      { name: t('navigation.inventory_reports'), href: '/inspector/reports', icon: FileText },
+      { name: t('nav.audit_logs'), href: '/inspector/audit-logs', icon: BarChart },
+      { name: t('nav.inventory_reports'), href: '/inspector/reports', icon: FileText },
     ] : []),
   ]
 

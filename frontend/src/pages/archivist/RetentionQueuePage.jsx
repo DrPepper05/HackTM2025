@@ -274,23 +274,23 @@ function RetentionQueuePage() {
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'due_for_review':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-300'
       case 'due_for_release':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800 border border-blue-300'
       case 'due_for_transfer':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-100 text-purple-800 border border-purple-300'
       case 'due_for_destruction':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800 border border-red-300'
       case 'reviewed':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800 border border-green-300'
       case 'released':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800 border border-green-300'
       case 'transfer_queue':
-        return 'bg-indigo-100 text-indigo-800'
+        return 'bg-indigo-100 text-indigo-800 border border-indigo-300'
       case 'destroyed':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800 border border-gray-300'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800 border border-gray-300'
     }
   }
 
@@ -302,7 +302,8 @@ function RetentionQueuePage() {
           <button
             type="button"
             onClick={() => handleAction(document, 'mark_reviewed')}
-            className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20 hover:bg-yellow-100"
+            className="inline-flex items-center rounded-md bg-yellow-50 px-3 py-1.5 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20 hover:bg-yellow-100 transition-colors"
+            title={t('archivist.mark_reviewed')}
           >
             <CheckCircle className="-ml-0.5 mr-1.5 h-4 w-4" />
             {t('archivist.mark_reviewed')}
@@ -313,7 +314,8 @@ function RetentionQueuePage() {
           <button
             type="button"
             onClick={() => handleAction(document, 'confirm_release')}
-            className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 hover:bg-blue-100"
+            className="inline-flex items-center rounded-md bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 hover:bg-blue-100 transition-colors"
+            title={t('archivist.confirm_release')}
           >
             <CheckCircle className="-ml-0.5 mr-1.5 h-4 w-4" />
             {t('archivist.confirm_release')}
@@ -324,7 +326,8 @@ function RetentionQueuePage() {
           <button
             type="button"
             onClick={() => handleAction(document, 'add_to_transfer')}
-            className="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20 hover:bg-purple-100"
+            className="inline-flex items-center rounded-md bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20 hover:bg-purple-100 transition-colors"
+            title={t('archivist.add_to_transfer')}
           >
             <Archive className="-ml-0.5 mr-1.5 h-4 w-4" />
             {t('archivist.add_to_transfer')}
@@ -335,7 +338,8 @@ function RetentionQueuePage() {
           <button
             type="button"
             onClick={() => handleAction(document, 'confirm_destruction')}
-            className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20 hover:bg-red-100"
+            className="inline-flex items-center rounded-md bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20 hover:bg-red-100 transition-colors"
+            title={t('archivist.confirm_destruction')}
           >
             <Trash2 className="-ml-0.5 mr-1.5 h-4 w-4" />
             {t('archivist.confirm_destruction')}
@@ -349,8 +353,11 @@ function RetentionQueuePage() {
   // Render loading state
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+      <div className="flex h-96 items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-primary"></div>
+          <p className="mt-4 text-lg font-medium text-gray-700">{t('common.loading')}</p>
+        </div>
       </div>
     )
   }
@@ -358,7 +365,7 @@ function RetentionQueuePage() {
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mb-8">
+        <div className="mb-8 border-b border-gray-200 pb-5">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
             {t('archivist.retention_queue')}
           </h2>
@@ -368,10 +375,13 @@ function RetentionQueuePage() {
         </div>
 
         {/* Filters and search */}
-        <div className="mb-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
+        <div className="mb-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 bg-gray-50 p-4 rounded-lg shadow-sm">
           {/* Search */}
           <div className="sm:col-span-2">
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.search_documents')}
+            </label>
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
@@ -389,10 +399,10 @@ function RetentionQueuePage() {
 
           {/* Date filter */}
           <div className="sm:col-span-1">
-            <label htmlFor="date-filter" className="sr-only">
+            <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.date_filter')}
             </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
@@ -414,10 +424,10 @@ function RetentionQueuePage() {
 
           {/* Status filter */}
           <div className="sm:col-span-1">
-            <label htmlFor="status-filter" className="sr-only">
+            <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.status_filter')}
             </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Filter className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
@@ -439,10 +449,10 @@ function RetentionQueuePage() {
 
           {/* Sort */}
           <div className="sm:col-span-1">
-            <label htmlFor="sort-by" className="sr-only">
+            <label htmlFor="sort-by" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.sort_by')}
             </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <ArrowUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
@@ -467,10 +477,10 @@ function RetentionQueuePage() {
 
           {/* Sort direction */}
           <div className="sm:col-span-1">
-            <label htmlFor="sort-direction" className="sr-only">
+            <label htmlFor="sort-direction" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.sort_direction')}
             </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <select
                 id="sort-direction"
                 name="sort-direction"
@@ -486,15 +496,15 @@ function RetentionQueuePage() {
         </div>
 
         {/* Results count */}
-        <div className="mb-4 text-sm text-gray-500">
+        <div className="mb-4 text-sm font-medium text-gray-700 bg-blue-50 p-2 rounded-md inline-block">
           {t('archivist.showing_results', { count: sortedDocuments.length })}
         </div>
 
         {/* Documents table */}
-        <div className="mt-8 flow-root">
+        <div className="mt-4 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+              <div className="overflow-hidden shadow-md ring-1 ring-black ring-opacity-5 sm:rounded-lg">
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead className="bg-gray-50">
                     <tr>
@@ -504,12 +514,12 @@ function RetentionQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
+                          className="group inline-flex items-center"
                           onClick={() => handleSort('title')}
                         >
                           {t('archivist.document_title')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'title' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'title' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'title' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -525,12 +535,12 @@ function RetentionQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
+                          className="group inline-flex items-center"
                           onClick={() => handleSort('documentType')}
                         >
                           {t('archivist.document_type')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'documentType' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'documentType' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'documentType' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -546,12 +556,12 @@ function RetentionQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
+                          className="group inline-flex items-center"
                           onClick={() => handleSort('creator')}
                         >
                           {t('archivist.document_creator')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'creator' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'creator' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'creator' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -567,12 +577,12 @@ function RetentionQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
+                          className="group inline-flex items-center"
                           onClick={() => handleSort('dueDate')}
                         >
                           {t('archivist.due_date')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'dueDate' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'dueDate' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'dueDate' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -588,12 +598,12 @@ function RetentionQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
+                          className="group inline-flex items-center"
                           onClick={() => handleSort('status')}
                         >
                           {t('archivist.status')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'status' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'status' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'status' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -620,7 +630,7 @@ function RetentionQueuePage() {
                       </tr>
                     ) : (
                       sortedDocuments.map((document) => (
-                        <tr key={document.id}>
+                        <tr key={document.id} className="hover:bg-gray-50">
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                             {document.title}
                           </td>
@@ -638,7 +648,7 @@ function RetentionQueuePage() {
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <span
-                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusBadgeColor(document.status)}`}
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeColor(document.status)}`}
                             >
                               {document.statusName}
                             </span>
@@ -648,7 +658,8 @@ function RetentionQueuePage() {
                               <button
                                 type="button"
                                 onClick={() => navigate(`/dashboard/archivist/document/${document.id}`)}
-                                className="text-primary hover:text-primary-dark"
+                                className="rounded-full p-1 text-primary hover:bg-gray-100 hover:text-primary-dark"
+                                title={t('common.view')}
                               >
                                 <Eye className="h-5 w-5" />
                               </button>
@@ -667,7 +678,7 @@ function RetentionQueuePage() {
 
         {/* Confirmation modal */}
         {showConfirmation && selectedDocument && (
-          <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="fixed inset-0 z-10 overflow-y-auto bg-gray-500 bg-opacity-75 transition-opacity">
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
               <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                 <div>
@@ -681,7 +692,7 @@ function RetentionQueuePage() {
                     )}
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-base font-semibold leading-6 text-gray-900">
+                    <h3 className="text-lg font-semibold leading-6 text-gray-900">
                       {selectedAction === 'mark_reviewed'
                         ? t('archivist.confirm_mark_reviewed')
                         : selectedAction === 'confirm_release'
@@ -706,15 +717,22 @@ function RetentionQueuePage() {
                 <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
                   <button
                     type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2"
+                    className="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2 transition-colors"
                     onClick={() => handleConfirmation(true)}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? t('archivist.submitting') : t('archivist.confirm')}
+                    {isSubmitting ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        {t('archivist.submitting')}
+                      </>
+                    ) : (
+                      t('archivist.confirm')
+                    )}
                   </button>
                   <button
                     type="button"
-                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0 transition-colors"
                     onClick={() => handleConfirmation(false)}
                     disabled={isSubmitting}
                   >

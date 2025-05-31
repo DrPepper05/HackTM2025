@@ -313,8 +313,11 @@ function TransferQueuePage() {
   // Render loading state
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+      <div className="flex h-96 items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-primary"></div>
+          <p className="mt-4 text-lg font-medium text-gray-700">{t('common.loading')}</p>
+        </div>
       </div>
     )
   }
@@ -322,7 +325,7 @@ function TransferQueuePage() {
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mb-8">
+        <div className="mb-8 border-b border-gray-200 pb-5">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
             {t('archivist.transfer_queue')}
           </h2>
@@ -365,10 +368,13 @@ function TransferQueuePage() {
         </div>
 
         {/* Filters and search */}
-        <div className="mb-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
+        <div className="mb-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 bg-gray-50 p-4 rounded-lg shadow-sm">
           {/* Search */}
           <div className="sm:col-span-2">
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.search_documents')}
+            </label>
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
@@ -386,10 +392,10 @@ function TransferQueuePage() {
 
           {/* Type filter */}
           <div className="sm:col-span-2">
-            <label htmlFor="type-filter" className="sr-only">
+            <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.type_filter')}
             </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Filter className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
@@ -412,10 +418,10 @@ function TransferQueuePage() {
 
           {/* Sort */}
           <div className="sm:col-span-1">
-            <label htmlFor="sort-by" className="sr-only">
+            <label htmlFor="sort-by" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.sort_by')}
             </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <ArrowUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
@@ -440,10 +446,10 @@ function TransferQueuePage() {
 
           {/* Sort direction */}
           <div className="sm:col-span-1">
-            <label htmlFor="sort-direction" className="sr-only">
+            <label htmlFor="sort-direction" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.sort_direction')}
             </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
+            <div className="relative rounded-md shadow-sm">
               <select
                 id="sort-direction"
                 name="sort-direction"
@@ -459,15 +465,15 @@ function TransferQueuePage() {
         </div>
 
         {/* Results count */}
-        <div className="mb-4 text-sm text-gray-500">
+        <div className="mb-4 text-sm font-medium text-gray-700 bg-blue-50 p-2 rounded-md inline-block">
           {t('archivist.showing_results', { count: sortedDocuments.length })}
         </div>
 
         {/* Documents table */}
-        <div className="mt-8 flow-root">
+        <div className="mt-4 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+              <div className="overflow-hidden shadow-md ring-1 ring-black ring-opacity-5 sm:rounded-lg">
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead className="bg-gray-50">
                     <tr>
@@ -490,7 +496,7 @@ function TransferQueuePage() {
                         >
                           {t('archivist.document_title')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'title' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'title' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'title' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -511,7 +517,7 @@ function TransferQueuePage() {
                         >
                           {t('archivist.document_type')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'documentType' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'documentType' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'documentType' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -532,7 +538,7 @@ function TransferQueuePage() {
                         >
                           {t('archivist.document_creator')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'creator' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'creator' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'creator' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -553,7 +559,7 @@ function TransferQueuePage() {
                         >
                           {t('archivist.added_date')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'addedDate' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'addedDate' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'addedDate' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -574,7 +580,7 @@ function TransferQueuePage() {
                         >
                           {t('archivist.retention_end')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'retentionEndDate' ? 'bg-gray-200 text-gray-900' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'retentionEndDate' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
                             {sortBy === 'retentionEndDate' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -609,7 +615,7 @@ function TransferQueuePage() {
                       sortedDocuments.map((document) => (
                         <tr
                           key={document.id}
-                          className={selectedDocuments.includes(document.id) ? 'bg-gray-50' : undefined}
+                          className={selectedDocuments.includes(document.id) ? 'bg-gray-50' : 'hover:bg-gray-50'}
                         >
                           <td className="relative px-7 sm:w-12 sm:px-6">
                             <input
@@ -636,7 +642,7 @@ function TransferQueuePage() {
                             {formatDate(document.retentionEndDate)}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
                               <FileText className="-ml-0.5 mr-1.5 h-4 w-4" />
                               {document.fileCount} {t('archivist.files')} ({formatFileSize(document.totalSize)})
                             </span>
@@ -645,7 +651,8 @@ function TransferQueuePage() {
                             <button
                               type="button"
                               onClick={() => navigate(`/dashboard/archivist/document/${document.id}`)}
-                              className="text-primary hover:text-primary-dark"
+                              className="rounded-full p-1 text-primary hover:bg-gray-100 hover:text-primary-dark"
+                              title={t('common.view')}
                             >
                               <Eye className="h-5 w-5" />
                             </button>
@@ -662,7 +669,7 @@ function TransferQueuePage() {
 
         {/* Export modal */}
         {showExportModal && (
-          <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="fixed inset-0 z-10 overflow-y-auto bg-gray-500 bg-opacity-75 transition-opacity">
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
               <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                 {!exportSuccess ? (
@@ -672,9 +679,9 @@ function TransferQueuePage() {
                         <Archive className="h-6 w-6 text-yellow-600" aria-hidden="true" />
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
-                        <h3 className="text-base font-semibold leading-6 text-gray-900">
-                          {t('archivist.confirm_export')}
-                        </h3>
+                        <h3 className="text-lg font-semibold leading-6 text-gray-900">
+                        {t('archivist.confirm_export')}
+                      </h3>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">
                             {t('archivist.confirm_export_description', {
@@ -687,13 +694,13 @@ function TransferQueuePage() {
                     <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
                       <button
                         type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2"
+                        className="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2 transition-colors"
                         onClick={() => handleExportConfirmation(true)}
                         disabled={isExporting}
                       >
                         {isExporting ? (
                           <>
-                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                             {t('archivist.exporting')}
                           </>
                         ) : (
@@ -702,7 +709,7 @@ function TransferQueuePage() {
                       </button>
                       <button
                         type="button"
-                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0 transition-colors"
                         onClick={() => handleExportConfirmation(false)}
                         disabled={isExporting}
                       >
@@ -716,7 +723,7 @@ function TransferQueuePage() {
                       <CheckCircle className="h-6 w-6 text-green-600" aria-hidden="true" />
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
-                      <h3 className="text-base font-semibold leading-6 text-gray-900">
+                      <h3 className="text-lg font-semibold leading-6 text-gray-900">
                         {t('archivist.export_success')}
                       </h3>
                       <div className="mt-2">
