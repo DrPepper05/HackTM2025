@@ -42,72 +42,84 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to create audit log with hash chain
--- In your PostgreSQL database (e.g., in setup_database.sql or a new migration)
--- Ensure the uuid-ossp extension is enabled if not already
--- In your setup_database.sql file or a new migration script
--- Ensure the uuid-ossp extension is enabled for uuid_generate_v4()
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-CREATE OR REPLACE FUNCTION public.create_audit_log(
-    -- **IMPORTANT: Parameters MUST be in this exact order as per the error message**
+CREATE OR REPLACE FUNCTION create_audit_log(
     p_action TEXT,
-    p_details JSONB,            -- This parameter is now second
-    p_entity_id UUID,
     p_entity_type TEXT,
-    p_ip_address INET DEFAULT NULL,
-    p_user_agent TEXT DEFAULT NULL,
-    p_user_email TEXT DEFAULT NULL,
-    p_user_id UUID DEFAULT NULL  -- This parameter is now last
+    p_entity_id UUID,
+    p_details JSONB DEFAULT '{}'
 )
-RETURNS UUID AS $$ -- The function will return the UUID of the newly created audit log
+RETURNS UUID AS $$
 DECLARE
-new_log_id UUID;
-    computed_hash TEXT;
-    last_hash TEXT;
+    v_user_id UUID;
+    v_user_email TEXT;
+    v_previous_hash TEXT;
+    v_current_content TEXT;
+    v_new_hash TEXT;
+    v_new_id UUID;
 BEGIN
-    -- Fetch the hash of the last log entry to maintain the blockchain-like integrity
-SELECT hash INTO last_hash
-FROM audit_logs
-ORDER BY timestamp DESC, created_at DESC
+    -- Get current user info
+    v_user_id := auth.uid();
+    
+    -- Get user email from profile
+    SELECT email INTO v_user_email
+    FROM user_profiles
+    WHERE id = v_user_id;
+    
+    -- Get the hash of the most recent audit log
+    SELECT hash INTO v_previous_hash
+    FROM audit_logs
+    ORDER BY timestamp DESC
     LIMIT 1;
-
--- Generate a new UUID for the log entry
-new_log_id := uuid_generate_v4();
-
-    -- Insert the new log entry into the audit_logs table
-INSERT INTO audit_logs (
-    id,
-    timestamp,
-    user_id,          -- Corresponds to p_user_id (now the last parameter)
-    user_email,       -- Corresponds to p_user_email
-    action,           -- Corresponds to p_action
-    entity_type,      -- Corresponds to p_entity_type
-    entity_id,        -- Corresponds to p_entity_id
-    details,          -- Corresponds to p_details (now the second parameter)
-    ip_address,       -- Corresponds to p_ip_address
-    user_agent,       -- Corresponds to p_user_agent
-    previous_hash,
-    hash,             -- This should be computed based on the final row data for true integrity
-    created_at
-) VALUES (
-             new_log_id,
-             NOW(),
-             p_user_id,        -- Use the p_user_id parameter
-             p_user_email,     -- Use the p_user_email parameter
-             p_action,         -- Use the p_action parameter
-             p_entity_type,    -- Use the p_entity_type parameter
-             p_entity_id,      -- Use the p_entity_id parameter
-             p_details,        -- Use the p_details parameter
-             p_ip_address,     -- Use the p_ip_address parameter
-             p_user_agent,     -- Use the p_user_agent parameter
-             last_hash,
-             'MOCK_HASH_FOR_HACKATHON_BUT_COMPUTE_THIS_IN_REAL_APP', -- Replace with your actual hash computation logic
-             NOW()
-         );
-
-RETURN new_log_id; -- Return the ID of the newly created log entry
+    
+    -- If no previous hash exists (first entry), use a genesis hash
+    IF v_previous_hash IS NULL THEN
+        v_previous_hash := encode(sha256('GENESIS_BLOCK_OPENARCHIVE'::bytea), 'hex');
+    END IF;
+    
+    -- Construct content to be hashed
+    v_current_content := json_build_object(
+        'timestamp', NOW(),
+        'user_id', v_user_id,
+        'user_email', v_user_email,
+        'action', p_action,
+        'entity_type', p_entity_type,
+        'entity_id', p_entity_id,
+        'details', p_details,
+        'previous_hash', v_previous_hash
+    )::TEXT;
+    
+    -- Generate hash
+    v_new_hash := encode(sha256(v_current_content::bytea), 'hex');
+    
+    -- Insert audit log
+    INSERT INTO audit_logs (
+        user_id,
+        user_email,
+        action,
+        entity_type,
+        entity_id,
+        details,
+        hash,
+        previous_hash,
+        ip_address,
+        user_agent
+    ) VALUES (
+        v_user_id,
+        v_user_email,
+        p_action,
+        p_entity_type,
+        p_entity_id,
+        p_details,
+        v_new_hash,
+        v_previous_hash,
+        current_setting('request.headers', true)::json->>'x-forwarded-for',
+        current_setting('request.headers', true)::json->>'user-agent'
+    )
+    RETURNING id INTO v_new_id;
+    
+    RETURN v_new_id;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to queue a processing task
 CREATE OR REPLACE FUNCTION queue_task(

@@ -10,6 +10,25 @@ import {
 } from '../types/database.types'
 import { createHash } from 'crypto'
 import { v4 as uuidv4 } from 'uuid'
+import { calculateChecksum } from '../utils/checksum.util'
+import { 
+  TextractClient,
+  DetectDocumentTextCommand
+} from '@aws-sdk/client-textract'
+
+// Create Textract client
+const textractClient = new TextractClient({
+  region: process.env.AWS_REGION || 'eu-central-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
+  }
+})
+
+// Extended Document type that includes related files
+interface DocumentWithFiles extends Document {
+  document_files?: DocumentFile[]
+}
 
 export interface CreateDocumentDto {
   title: string
@@ -241,7 +260,7 @@ export class DocumentService {
     /**
      * Get single document by ID
      */
-    async getDocumentById(documentId: string): Promise<Document | null> {
+    async getDocumentById(documentId: string): Promise<DocumentWithFiles | null> {
     return withMonitoring('get', 'documents', async () => {
         const { data, error } = await supabaseAdmin
         .from('documents')
@@ -253,7 +272,7 @@ export class DocumentService {
           if (error.code === 'PGRST116') return null 
           throw error
         }
-        return data
+        return data as DocumentWithFiles
     })
     }
 
@@ -448,8 +467,170 @@ export class DocumentService {
         } else {
           console.log('[DocumentService] "queue_task" RPC call successful. Response data:', JSON.stringify(data, null, 2));
         }
+
+        // Also queue for text extraction if this is a PDF or image
+        await this.queueTextExtraction(documentId);
       } catch (e) {
         console.error('[DocumentService] Exception in queueEnrichment:', e);
+      }
+    }
+
+    /**
+     * Queue document for AWS Textract text extraction
+     */
+    private async queueTextExtraction(documentId: string): Promise<void> {
+      try {
+        // Get document and file info - cast to DocumentWithFiles
+        const document = await this.getDocumentById(documentId) as DocumentWithFiles;
+        if (!document || !document.document_files?.length) {
+          console.log('[DocumentService] No document or files found for text extraction');
+          return;
+        }
+
+        const primaryFile = document.document_files.find((f: any) => f.file_type === 'original');
+        if (!primaryFile) {
+          console.log('[DocumentService] No original file found for text extraction');
+          return;
+        }
+
+        // Check if file type supports text extraction
+        const supportedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff'];
+        if (!supportedTypes.includes(primaryFile.mime_type || '')) {
+          console.log(`[DocumentService] File type ${primaryFile.mime_type} not supported for text extraction`);
+          return;
+        }
+
+        // Process text extraction asynchronously
+        this.processDocumentWithTextract(documentId, primaryFile.id);
+      } catch (error) {
+        console.error('[DocumentService] Error queueing text extraction:', error);
+      }
+    }
+
+    /**
+     * Process a document with AWS Textract asynchronously
+     * Compatible with the old documentService functionality
+     */
+    private async processDocumentWithTextract(documentId: string, fileId: string): Promise<void> {
+      try {
+        console.log(`[DocumentService] Starting Textract processing for document ${documentId}, file ${fileId}`);
+        
+        // 1. Get file info from database
+        const fileInfo = await supabaseAdmin
+          .from('document_files')
+          .select('*')
+          .eq('id', fileId)
+          .single();
+
+        if (fileInfo.error || !fileInfo.data) {
+          throw new Error('File not found in database');
+        }
+
+        const file = fileInfo.data;
+        
+        // 2. Download file from S3
+        const fileData = await storageService.downloadFile(file.storage_bucket, file.storage_key);
+        
+        // 3. Extract text using AWS Textract directly from buffer
+        console.log(`[DocumentService] Extracting text using Textract`);
+        const extractedText = await this.extractTextFromBuffer(fileData.data);
+
+        // 4. Get current document metadata
+        const currentDocument = await this.getDocumentById(documentId);
+        const currentMetadata = (currentDocument?.metadata as Record<string, any>) || {};
+
+        // 5. Update document with extracted text and mark as completed
+        await supabaseAdmin
+          .from('documents')
+          .update({
+            metadata: {
+              ...currentMetadata,
+              extracted_text: extractedText,
+              text_extraction_completed: true,
+              text_extraction_date: new Date().toISOString()
+            },
+            status: 'REGISTERED' // Move to registered status after successful processing
+          })
+          .eq('id', documentId);
+
+        // 6. Create audit log for text extraction
+        await supabaseAdmin.rpc('create_audit_log', {
+          p_action: 'DOCUMENT_TEXT_EXTRACTED',
+          p_entity_type: 'document',
+          p_entity_id: documentId,
+          p_details: {
+            file_id: fileId,
+            text_length: extractedText.length,
+            extraction_method: 'AWS_TEXTRACT'
+          }
+        });
+
+        console.log(`[DocumentService] Text extraction completed for document ${documentId}`);
+
+      } catch (error) {
+        console.error(`[DocumentService] Error processing document ${documentId} with Textract:`, error);
+        
+        // Get current document metadata for error update
+        const currentDocument = await this.getDocumentById(documentId);
+        const currentMetadata = (currentDocument?.metadata as Record<string, any>) || {};
+        
+        // Update document status to indicate processing failed
+        await supabaseAdmin
+          .from('documents')
+          .update({
+            status: 'PROCESSING_FAILED',
+            metadata: {
+              ...currentMetadata,
+              text_extraction_error: error instanceof Error ? error.message : 'Unknown error',
+              text_extraction_failed_date: new Date().toISOString()
+            }
+          })
+          .eq('id', documentId);
+
+        // Create audit log for failed processing
+        await supabaseAdmin.rpc('create_audit_log', {
+          p_action: 'DOCUMENT_TEXT_EXTRACTION_FAILED',
+          p_entity_type: 'document',
+          p_entity_id: documentId,
+          p_details: {
+            file_id: fileId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            extraction_method: 'AWS_TEXTRACT'
+          }
+        });
+      }
+    }
+
+    /**
+     * Extract text from buffer using AWS Textract
+     */
+    private async extractTextFromBuffer(buffer: Buffer): Promise<string> {
+      try {
+        // Prepare input for Textract
+        const command = new DetectDocumentTextCommand({
+          Document: {
+            Bytes: buffer
+          }
+        });
+
+        // Call Textract to detect text
+        const response = await textractClient.send(command);
+
+        // Process and concatenate the detected text blocks
+        let extractedText = '';
+        if (response.Blocks) {
+          // Filter for LINE type blocks and concatenate their text
+          extractedText = response.Blocks
+            .filter((block: any) => block.BlockType === 'LINE' && block.Text)
+            .map((block: any) => block.Text)
+            .join('\n');
+        }
+
+        return extractedText;
+      } catch (error: any) {
+        console.error('Error extracting text from buffer:', error);
+        const errorMessage = error.message || 'Unknown error';
+        throw new Error(`Failed to extract text: ${errorMessage}`);
       }
     }
 
@@ -572,6 +753,14 @@ export class DocumentService {
           pendingReview: pendingReview || 0,
           publicDocuments: publicDocs || 0
       }
+    }
+
+    /**
+     * Get documents by user ID (compatibility with old service)
+     */
+    async getDocumentsByUserId(userId: string): Promise<Document[]> {
+      const result = await this.getDocuments({ uploader_user_id: userId });
+      return result.documents;
     }
 }
 
