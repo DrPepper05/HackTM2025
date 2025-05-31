@@ -5,6 +5,8 @@ import documentRoutes from './document.routes';
 import searchRoutes from './search.routes';
 import adminRoutes from './admin.routes';
 import accessRequestRoutes from './access-request.routes'; // Import the new routes
+import inspectorRoutes from './inspector.routes';
+import userRoutes from './user.routes';
 
 const router = Router();
 
@@ -14,6 +16,8 @@ router.use('/documents', documentRoutes);
 router.use('/search', searchRoutes);
 router.use('/admin', adminRoutes);
 router.use('/access-requests', accessRequestRoutes); // Mount the new access request routes
+router.use('/inspector', inspectorRoutes);
+router.use('/admin', userRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

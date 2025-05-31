@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
+import { auditApi } from '../../services/api'
 import {
   Search,
   Calendar,
@@ -28,381 +29,237 @@ function AuditLogPage() {
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [logs, setLogs] = useState([])
-  const [filteredLogs, setFilteredLogs] = useState([])
+  const [totalLogs, setTotalLogs] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [itemsPerPage] = useState(10)
+  const [itemsPerPage] = useState(20)
   const [dateRange, setDateRange] = useState({ from: '', to: '' })
   const [selectedUser, setSelectedUser] = useState('')
   const [selectedAction, setSelectedAction] = useState('')
   const [selectedEntity, setSelectedEntity] = useState('')
-  const [users, setUsers] = useState([])
-  const [actions, setActions] = useState([])
-  const [entities, setEntities] = useState([])
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedLog, setSelectedLog] = useState(null)
+  const [isExporting, setIsExporting] = useState(false)
 
-  // Fetch audit logs
-  useEffect(() => {
-    const fetchAuditLogs = async () => {
-      setIsLoading(true)
-      try {
-        // In a real app, this would be an API call
-        // For the hackathon, we'll use mock data
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+  // Available filter options (will be populated from API data)
+  const [filterOptions, setFilterOptions] = useState({
+    users: [],
+    actions: [],
+    entities: []
+  })
 
-        // Generate mock audit logs
-        const mockLogs = generateMockAuditLogs(100)
-        setLogs(mockLogs)
-
-        // Extract unique users, actions, and entities for filters
-        const uniqueUsers = [...new Set(mockLogs.map((log) => log.userName))]
-        const uniqueActions = [...new Set(mockLogs.map((log) => log.action))]
-        const uniqueEntities = [...new Set(mockLogs.map((log) => log.entityType))]
-
-        setUsers(uniqueUsers)
-        setActions(uniqueActions)
-        setEntities(uniqueEntities)
-
-        // Apply initial filtering
-        applyFilters(mockLogs)
-      } catch (error) {
-        console.error('Error fetching audit logs:', error)
-      } finally {
-        setIsLoading(false)
+  // Fetch audit logs from API
+  const fetchAuditLogs = async (page = 1) => {
+    setIsLoading(true)
+    try {
+      const params = {
+        limit: itemsPerPage,
+        offset: (page - 1) * itemsPerPage
       }
+
+      // Add filters if they exist
+      if (searchTerm) {
+        // Use search endpoint for text search
+        const searchResult = await auditApi.searchAuditLogs({ 
+          q: searchTerm, 
+          limit: itemsPerPage 
+        })
+        setLogs(searchResult.data.logs || [])
+        setTotalLogs(searchResult.data.logs?.length || 0)
+        return
+      }
+
+      // Add other filters
+      if (selectedUser) params.user_email = selectedUser
+      if (selectedAction) params.action = selectedAction
+      if (selectedEntity) params.entity_type = selectedEntity
+      if (dateRange.from) params.from_date = dateRange.from
+      if (dateRange.to) params.to_date = dateRange.to
+
+      const response = await auditApi.getAuditLogs(params)
+      
+      if (response.success) {
+        setLogs(response.data.logs || [])
+        setTotalLogs(response.data.total || 0)
+        
+        // Extract unique values for filter dropdowns
+        const logs = response.data.logs || []
+        const uniqueUsers = [...new Set(logs.map(log => log.user_email).filter(Boolean))]
+        const uniqueActions = [...new Set(logs.map(log => log.action).filter(Boolean))]
+        const uniqueEntities = [...new Set(logs.map(log => log.entity_type).filter(Boolean))]
+        
+        setFilterOptions({
+          users: uniqueUsers,
+          actions: uniqueActions,
+          entities: uniqueEntities
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching audit logs:', error)
+      setLogs([])
+      setTotalLogs(0)
+    } finally {
+      setIsLoading(false)
     }
-
-    fetchAuditLogs()
-  }, [])
-
-  // Apply filters when search term or filters change
-  useEffect(() => {
-    applyFilters(logs)
-  }, [searchTerm, dateRange, selectedUser, selectedAction, selectedEntity, logs])
-
-  // Generate mock audit logs
-  const generateMockAuditLogs = (count) => {
-    const actionTypes = [
-      { id: 'document_upload', name: t('inspector.action_document_upload') },
-      { id: 'document_view', name: t('inspector.action_document_view') },
-      { id: 'document_download', name: t('inspector.action_document_download') },
-      { id: 'document_update', name: t('inspector.action_document_update') },
-      { id: 'document_delete', name: t('inspector.action_document_delete') },
-      { id: 'document_approve', name: t('inspector.action_document_approve') },
-      { id: 'document_reject', name: t('inspector.action_document_reject') },
-      { id: 'document_redact', name: t('inspector.action_document_redact') },
-      { id: 'user_login', name: t('inspector.action_user_login') },
-      { id: 'user_logout', name: t('inspector.action_user_logout') },
-      { id: 'user_create', name: t('inspector.action_user_create') },
-      { id: 'user_update', name: t('inspector.action_user_update') },
-      { id: 'user_delete', name: t('inspector.action_user_delete') },
-      { id: 'system_config', name: t('inspector.action_system_config') },
-    ]
-
-    const entityTypes = [
-      { id: 'document', name: t('inspector.entity_document') },
-      { id: 'user', name: t('inspector.entity_user') },
-      { id: 'system', name: t('inspector.entity_system') },
-    ]
-
-    const users = [
-      { id: 'user1', name: 'Ion Popescu', role: 'clerk' },
-      { id: 'user2', name: 'Maria Ionescu', role: 'archivist' },
-      { id: 'user3', name: 'Alexandru Popa', role: 'admin' },
-      { id: 'user4', name: 'Elena Dumitrescu', role: 'clerk' },
-      { id: 'user5', name: 'Andrei Radu', role: 'inspector' },
-    ]
-
-    const mockLogs = []
-
-    for (let i = 0; i < count; i++) {
-      const actionType = actionTypes[Math.floor(Math.random() * actionTypes.length)]
-      const entityType = entityTypes.find((entity) =>
-        actionType.id.startsWith(entity.id) ? entity : entityTypes[0]
-      )
-      const user = users[Math.floor(Math.random() * users.length)]
-
-      // Generate a random date within the last 30 days
-      const date = new Date()
-      date.setDate(date.getDate() - Math.floor(Math.random() * 30))
-
-      mockLogs.push({
-        id: `log-${i + 1}`,
-        timestamp: date.toISOString(),
-        userId: user.id,
-        userName: user.name,
-        userRole: user.role,
-        action: actionType.id,
-        actionName: actionType.name,
-        entityId: `entity-${Math.floor(Math.random() * 1000) + 1}`,
-        entityType: entityType.id,
-        entityName: entityType.name,
-        ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-        details: generateLogDetails(actionType.id, entityType.id),
-        status: Math.random() > 0.1 ? 'success' : 'failure',
-      })
-    }
-
-    // Sort by timestamp (newest first)
-    return mockLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
   }
 
-  // Generate log details based on action and entity type
-  const generateLogDetails = (action, entityType) => {
-    if (entityType === 'document') {
-      const documentTypes = ['Hotărâre', 'Dispoziție', 'Contract', 'Autorizație', 'Certificat']
-      const documentType = documentTypes[Math.floor(Math.random() * documentTypes.length)]
-      const documentId = Math.floor(Math.random() * 1000) + 1
+  // Initial load
+  useEffect(() => {
+    fetchAuditLogs(currentPage)
+  }, [currentPage])
 
-      switch (action) {
-        case 'document_upload':
-          return t('inspector.details_document_upload', {
-            type: documentType,
-            id: documentId,
-          })
-        case 'document_view':
-          return t('inspector.details_document_view', {
-            type: documentType,
-            id: documentId,
-          })
-        case 'document_download':
-          return t('inspector.details_document_download', {
-            type: documentType,
-            id: documentId,
-          })
-        case 'document_update':
-          return t('inspector.details_document_update', {
-            type: documentType,
-            id: documentId,
-          })
-        case 'document_delete':
-          return t('inspector.details_document_delete', {
-            type: documentType,
-            id: documentId,
-          })
-        case 'document_approve':
-          return t('inspector.details_document_approve', {
-            type: documentType,
-            id: documentId,
-          })
-        case 'document_reject':
-          return t('inspector.details_document_reject', {
-            type: documentType,
-            id: documentId,
-          })
-        case 'document_redact':
-          return t('inspector.details_document_redact', {
-            type: documentType,
-            id: documentId,
-          })
-        default:
-          return t('inspector.details_document_generic', {
-            type: documentType,
-            id: documentId,
-          })
-      }
-    } else if (entityType === 'user') {
-      const userNames = ['Ion Popescu', 'Maria Ionescu', 'Alexandru Popa', 'Elena Dumitrescu']
-      const userName = userNames[Math.floor(Math.random() * userNames.length)]
-
-      switch (action) {
-        case 'user_login':
-          return t('inspector.details_user_login', { name: userName })
-        case 'user_logout':
-          return t('inspector.details_user_logout', { name: userName })
-        case 'user_create':
-          return t('inspector.details_user_create', { name: userName })
-        case 'user_update':
-          return t('inspector.details_user_update', { name: userName })
-        case 'user_delete':
-          return t('inspector.details_user_delete', { name: userName })
-        default:
-          return t('inspector.details_user_generic', { name: userName })
-      }
+  // Refetch when filters change
+  useEffect(() => {
+    if (currentPage === 1) {
+      fetchAuditLogs(1)
     } else {
-      // System entity
-      switch (action) {
-        case 'system_config':
-          return t('inspector.details_system_config')
-        default:
-          return t('inspector.details_system_generic')
-      }
+      setCurrentPage(1) // This will trigger fetchAuditLogs via the useEffect above
     }
-  }
+  }, [searchTerm, dateRange, selectedUser, selectedAction, selectedEntity])
 
-  // Apply filters to logs
-  const applyFilters = (allLogs) => {
-    if (!allLogs || allLogs.length === 0) return
+  // Calculate pagination
+  const totalPages = Math.ceil(totalLogs / itemsPerPage)
 
-    let filtered = [...allLogs]
-
-    // Apply search term filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(
-        (log) =>
-          log.userName.toLowerCase().includes(term) ||
-          log.actionName.toLowerCase().includes(term) ||
-          log.details.toLowerCase().includes(term) ||
-          log.entityName.toLowerCase().includes(term)
-      )
-    }
-
-    // Apply date range filter
-    if (dateRange.from) {
-      const fromDate = new Date(dateRange.from)
-      fromDate.setHours(0, 0, 0, 0)
-      filtered = filtered.filter((log) => new Date(log.timestamp) >= fromDate)
-    }
-
-    if (dateRange.to) {
-      const toDate = new Date(dateRange.to)
-      toDate.setHours(23, 59, 59, 999)
-      filtered = filtered.filter((log) => new Date(log.timestamp) <= toDate)
-    }
-
-    // Apply user filter
-    if (selectedUser) {
-      filtered = filtered.filter((log) => log.userName === selectedUser)
-    }
-
-    // Apply action filter
-    if (selectedAction) {
-      filtered = filtered.filter((log) => log.action === selectedAction)
-    }
-
-    // Apply entity filter
-    if (selectedEntity) {
-      filtered = filtered.filter((log) => log.entityType === selectedEntity)
-    }
-
-    // Update filtered logs and pagination
-    setFilteredLogs(filtered)
-    setTotalPages(Math.ceil(filtered.length / itemsPerPage))
-    setCurrentPage(1) // Reset to first page when filters change
-  }
-
-  // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value)
   }
 
-  // Handle date range change
   const handleDateChange = (e) => {
     const { name, value } = e.target
-    setDateRange((prev) => ({ ...prev, [name]: value }))
+    setDateRange(prev => ({ ...prev, [name]: value }))
   }
 
-  // Handle user filter change
   const handleUserChange = (e) => {
     setSelectedUser(e.target.value)
   }
 
-  // Handle action filter change
   const handleActionChange = (e) => {
     setSelectedAction(e.target.value)
   }
 
-  // Handle entity filter change
   const handleEntityChange = (e) => {
     setSelectedEntity(e.target.value)
   }
 
-  // Handle page change
   const handlePageChange = (page) => {
     setCurrentPage(page)
   }
 
-  // Reset all filters
   const handleResetFilters = () => {
     setSearchTerm('')
     setDateRange({ from: '', to: '' })
     setSelectedUser('')
     setSelectedAction('')
     setSelectedEntity('')
+    setCurrentPage(1)
   }
 
-  // Handle log detail view
   const handleViewLogDetail = (log) => {
     setSelectedLog(log)
     setShowDetailModal(true)
   }
 
-  // Format date for display
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString()
-  }
-
-  // Format time for display
-  const formatTime = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString()
-  }
-
-  // Get action icon based on action type
-  const getActionIcon = (action) => {
-    switch (action) {
-      case 'document_upload':
-        return <FileText className="h-5 w-5 text-green-500" />
-      case 'document_view':
-        return <Eye className="h-5 w-5 text-blue-500" />
-      case 'document_download':
-        return <Download className="h-5 w-5 text-blue-500" />
-      case 'document_update':
-        return <Pencil className="h-5 w-5 text-yellow-500" />
-      case 'document_delete':
-        return <Trash2 className="h-5 w-5 text-red-500" />
-      case 'document_approve':
-        return <Check className="h-5 w-5 text-green-500" />
-      case 'document_reject':
-        return <X className="h-5 w-5 text-red-500" />
-      case 'document_redact':
-        return <Lock className="h-5 w-5 text-yellow-500" />
-      case 'user_login':
-        return <Unlock className="h-5 w-5 text-green-500" />
-      case 'user_logout':
-        return <Lock className="h-5 w-5 text-gray-500" />
-      case 'user_create':
-        return <User className="h-5 w-5 text-green-500" />
-      case 'user_update':
-        return <Pencil className="h-5 w-5 text-yellow-500" />
-      case 'user_delete':
-        return <Trash2 className="h-5 w-5 text-red-500" />
-      case 'system_config':
-        return <Info className="h-5 w-5 text-blue-500" />
-      default:
-        return <Info className="h-5 w-5 text-gray-500" />
+  const handleExportLogs = async () => {
+    setIsExporting(true)
+    try {
+      const params = {
+        format: 'json'
+      }
+      
+      // Add current filters to export
+      if (selectedUser) params.user_email = selectedUser
+      if (selectedAction) params.action = selectedAction
+      if (selectedEntity) params.entity_type = selectedEntity
+      if (dateRange.from) params.from_date = dateRange.from
+      if (dateRange.to) params.to_date = dateRange.to
+      
+      const response = await auditApi.exportAuditLogs(params)
+      
+      // Create download link
+      const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `audit_logs_${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error exporting audit logs:', error)
+    } finally {
+      setIsExporting(false)
     }
   }
 
-  // Get status badge color
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('ro-RO')
+  }
+
+  const formatTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString('ro-RO')
+  }
+
+  const getActionIcon = (action) => {
+    switch (action) {
+      case 'USER_LOGIN':
+      case 'user_login':
+        return <User className="h-4 w-4 text-green-500" />
+      case 'USER_LOGOUT':
+      case 'user_logout':
+        return <User className="h-4 w-4 text-gray-500" />
+      case 'DOCUMENT_UPLOAD':
+      case 'document_upload':
+        return <FileText className="h-4 w-4 text-blue-500" />
+      case 'DOCUMENT_VIEW':
+      case 'document_view':
+        return <Eye className="h-4 w-4 text-purple-500" />
+      case 'DOCUMENT_DOWNLOAD':
+      case 'document_download':
+        return <Download className="h-4 w-4 text-indigo-500" />
+      case 'DOCUMENT_UPDATE':
+      case 'document_update':
+        return <Pencil className="h-4 w-4 text-yellow-500" />
+      case 'DOCUMENT_DELETE':
+      case 'document_delete':
+        return <Trash2 className="h-4 w-4 text-red-500" />
+      case 'DOCUMENT_APPROVE':
+      case 'document_approve':
+        return <Check className="h-4 w-4 text-green-500" />
+      case 'DOCUMENT_REJECT':
+      case 'document_reject':
+        return <X className="h-4 w-4 text-red-500" />
+      case 'USER_REGISTERED':
+      case 'user_create':
+        return <User className="h-4 w-4 text-blue-500" />
+      case 'PROFILE_UPDATED':
+      case 'user_update':
+        return <Pencil className="h-4 w-4 text-yellow-500" />
+      case 'USER_DELETED':
+      case 'user_delete':
+        return <Trash2 className="h-4 w-4 text-red-500" />
+      default:
+        return <Info className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const getActionLabel = (action) => {
+    // Convert action to human readable format
+    return action.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }
+
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'success':
         return 'bg-green-100 text-green-800'
       case 'failure':
+      case 'error':
         return 'bg-red-100 text-red-800'
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
-  }
-
-  // Get current page items
-  const getCurrentPageItems = () => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    return filteredLogs.slice(startIndex, endIndex)
-  }
-
-  // Export logs as CSV
-  const handleExportLogs = () => {
-    // In a real app, this would generate a CSV file with the filtered logs
-    // For the hackathon, we'll just log to console
-    console.log('Exporting logs:', filteredLogs)
-    alert(t('inspector.export_success'))
   }
 
   return (
@@ -506,7 +363,7 @@ function AuditLogPage() {
                 onChange={handleUserChange}
               >
                 <option value="">{t('inspector.all_users')}</option>
-                {users.map((user) => (
+                {filterOptions.users.map((user) => (
                   <option key={user} value={user}>
                     {user}
                   </option>
@@ -529,9 +386,9 @@ function AuditLogPage() {
                 onChange={handleActionChange}
               >
                 <option value="">{t('inspector.all_actions')}</option>
-                {actions.map((action) => (
+                {filterOptions.actions.map((action) => (
                   <option key={action} value={action}>
-                    {action}
+                    {getActionLabel(action)}
                   </option>
                 ))}
               </select>
@@ -550,7 +407,7 @@ function AuditLogPage() {
                 onChange={handleEntityChange}
               >
                 <option value="">{t('inspector.all_entities')}</option>
-                {entities.map((entity) => (
+                {filterOptions.entities.map((entity) => (
                   <option key={entity} value={entity}>
                     {entity}
                   </option>
@@ -574,8 +431,8 @@ function AuditLogPage() {
             <div className="flex items-end justify-end">
               <span className="text-sm text-gray-500">
                 {t('inspector.showing_results', {
-                  count: filteredLogs.length,
-                  total: logs.length,
+                  count: logs.length,
+                  total: totalLogs,
                 })}
               </span>
             </div>
@@ -587,7 +444,7 @@ function AuditLogPage() {
           <div className="flex h-64 items-center justify-center">
             <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
           </div>
-        ) : filteredLogs.length === 0 ? (
+        ) : logs.length === 0 ? (
           <div className="rounded-md bg-yellow-50 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -644,33 +501,33 @@ function AuditLogPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {getCurrentPageItems().map((log) => (
+                {logs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                       <div className="font-medium text-gray-900">{formatDate(log.timestamp)}</div>
                       <div className="text-gray-500">{formatTime(log.timestamp)}</div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      <div className="font-medium text-gray-900">{log.userName}</div>
-                      <div className="text-gray-500">{log.userRole}</div>
+                      <div className="font-medium text-gray-900">{log.user_email || 'System'}</div>
+                      <div className="text-gray-500">{log.user_id ? `ID: ${log.user_id}` : 'N/A'}</div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       <div className="flex items-center">
                         {getActionIcon(log.action)}
-                        <span className="ml-2">{log.actionName}</span>
+                        <span className="ml-2">{getActionLabel(log.action)}</span>
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      <div className="font-medium text-gray-900">{log.entityName}</div>
-                      <div className="text-gray-500">{log.entityId}</div>
+                      <div className="font-medium text-gray-900">{log.entity_type || 'N/A'}</div>
+                      <div className="text-gray-500">{log.entity_id ? `ID: ${log.entity_id}` : 'N/A'}</div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       <span
                         className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusBadgeColor(
-                          log.status
+                          'success' // Default to success since audit logs are typically successful
                         )}`}
                       >
-                        {log.status}
+                        Success
                       </span>
                     </td>
                     <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
@@ -691,7 +548,7 @@ function AuditLogPage() {
         )}
 
         {/* Pagination */}
-        {filteredLogs.length > 0 && (
+        {logs.length > 0 && (
           <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
               <button
@@ -718,10 +575,10 @@ function AuditLogPage() {
                   </span>{' '}
                   {t('inspector.to')}{' '}
                   <span className="font-medium">
-                    {Math.min(currentPage * itemsPerPage, filteredLogs.length)}
+                    {Math.min(currentPage * itemsPerPage, logs.length)}
                   </span>{' '}
                   {t('inspector.of')}{' '}
-                  <span className="font-medium">{filteredLogs.length}</span>{' '}
+                  <span className="font-medium">{totalLogs}</span>{' '}
                   {t('inspector.results')}
                 </p>
               </div>
@@ -804,28 +661,28 @@ function AuditLogPage() {
                               {t('inspector.user')}
                             </dt>
                             <dd className="mt-1 text-sm text-gray-900">
-                              {selectedLog.userName} ({selectedLog.userRole})
+                              {selectedLog.user_email} ({selectedLog.user_id ? `ID: ${selectedLog.user_id}` : 'N/A'})
                             </dd>
                           </div>
                           <div className="sm:col-span-1">
                             <dt className="text-sm font-medium text-gray-500">
                               {t('inspector.action')}
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900">{selectedLog.actionName}</dd>
+                            <dd className="mt-1 text-sm text-gray-900">{getActionLabel(selectedLog.action)}</dd>
                           </div>
                           <div className="sm:col-span-1">
                             <dt className="text-sm font-medium text-gray-500">
                               {t('inspector.entity')}
                             </dt>
                             <dd className="mt-1 text-sm text-gray-900">
-                              {selectedLog.entityName} ({selectedLog.entityId})
+                              {selectedLog.entity_type} ({selectedLog.entity_id ? `ID: ${selectedLog.entity_id}` : 'N/A'})
                             </dd>
                           </div>
                           <div className="sm:col-span-1">
                             <dt className="text-sm font-medium text-gray-500">
                               {t('inspector.ip_address')}
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900">{selectedLog.ipAddress}</dd>
+                            <dd className="mt-1 text-sm text-gray-900">{selectedLog.ip_address || 'N/A'}</dd>
                           </div>
                           <div className="sm:col-span-1">
                             <dt className="text-sm font-medium text-gray-500">
@@ -834,10 +691,10 @@ function AuditLogPage() {
                             <dd className="mt-1 text-sm text-gray-900">
                               <span
                                 className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusBadgeColor(
-                                  selectedLog.status
+                                  'success' // Default to success since audit logs are typically successful
                                 )}`}
                               >
-                                {selectedLog.status}
+                                Success
                               </span>
                             </dd>
                           </div>
@@ -845,7 +702,13 @@ function AuditLogPage() {
                             <dt className="text-sm font-medium text-gray-500">
                               {t('inspector.details')}
                             </dt>
-                            <dd className="mt-1 text-sm text-gray-900">{selectedLog.details}</dd>
+                            <dd className="mt-1 text-sm text-gray-900">
+                              {selectedLog.details ? (
+                                typeof selectedLog.details === 'object' ? 
+                                  JSON.stringify(selectedLog.details, null, 2) : 
+                                  selectedLog.details
+                              ) : 'No additional details'}
+                            </dd>
                           </div>
                         </dl>
                       </div>

@@ -168,23 +168,37 @@ export const collectionsApi = {
 }
 
 export const searchApi = {
-  search: (params) => apiService.get('/api/v1/search', params),
+  search: (params) => apiService.post('/api/v1/search/documents', { 
+    query: params.query || '',
+    filters: {},
+    sort: { field: 'created_at', order: 'desc' },
+    pagination: { limit: params.limit || 20, offset: params.offset || 0 }
+  }),
+  publicSearch: (params) => apiService.get('/api/v1/search/public', params),
   advancedSearch: (data) => apiService.post('/api/v1/search/advanced', data),
   getSuggestions: (query) => apiService.get('/api/v1/search/suggestions', { query }),
 }
 
 export const usersApi = {
-  getUsers: (params) => apiService.get('/api/v1/users', params),
-  getUser: (id) => apiService.get(`/api/v1/users/${id}`),
-  updateUser: (id, data) => apiService.put(`/api/v1/users/${id}`, data),
-  deleteUser: (id) => apiService.delete(`/api/v1/users/${id}`),
-  getUserStatistics: () => apiService.get('/api/v1/users/statistics'),
+  getUsers: (params) => apiService.get('/api/v1/admin/users', params),
+  getUser: (id) => apiService.get(`/api/v1/admin/users/${id}`),
+  createUser: (data) => apiService.post('/api/v1/admin/users', data),
+  updateUser: (id, data) => apiService.put(`/api/v1/admin/users/${id}`, data),
+  deleteUser: (id) => apiService.delete(`/api/v1/admin/users/${id}`),
+  getUserStatistics: () => apiService.get('/api/v1/admin/users/statistics'),
+  getInstitutions: () => apiService.get('/api/v1/admin/users/institutions'),
 }
 
 export const auditApi = {
-  getAuditLogs: (params) => apiService.get('/api/v1/audit', params),
-  getEntityAuditLogs: (entityType, entityId) => 
-    apiService.get(`/api/v1/audit/${entityType}/${entityId}`),
+  getAuditLogs: (params) => apiService.get('/api/v1/inspector/audit-logs', params),
+  exportAuditLogs: (params) => apiService.get('/api/v1/inspector/audit-logs/export', params),
+  getAuditStatistics: (params) => apiService.get('/api/v1/inspector/audit-logs/statistics', params),
+  verifyIntegrity: () => apiService.get('/api/v1/inspector/audit-logs/integrity-check'),
+  getComplianceReport: (params) => apiService.get('/api/v1/inspector/audit-logs/compliance-report', params),
+  getUserAuditTrail: (userId, params) => apiService.get(`/api/v1/inspector/audit-logs/user/${userId}`, params),
+  getEntityAuditTrail: (entityType, entityId) => apiService.get(`/api/v1/inspector/audit-logs/entity/${entityType}/${entityId}`),
+  searchAuditLogs: (params) => apiService.get('/api/v1/inspector/audit-logs/search', params),
+  getCriticalEvents: (params) => apiService.get('/api/v1/inspector/audit-logs/critical-events', params),
 }
 
 export const systemApi = {
