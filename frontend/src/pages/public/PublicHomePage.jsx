@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { 
@@ -12,9 +12,31 @@ import {
   Globe
 } from 'lucide-react'
 
+const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
+
 function PublicHomePage() {
   const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState('')
+  const [documentCount, setDocumentCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDocumentCount = async () => {
+      try {
+        const response = await fetch(`${SERVER_URL}/api/v1/public/documents/count`)
+        const data = await response.json()
+        if (data.success) {
+          setDocumentCount(data.data.total)
+        }
+      } catch (error) {
+        console.error('Error fetching document count:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDocumentCount()
+  }, [])
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -117,8 +139,14 @@ function PublicHomePage() {
             {/* Statistics */}
             <div className="mt-12 text-white">
               <div className="inline-block px-6 py-2 bg-white/10 rounded-full">
-                <span className="font-bold text-2xl">311,097</span>
-                <span className="ml-2 text-sky-100">Documents Available</span>
+                {isLoading ? (
+                  <span className="font-bold text-2xl">Loading...</span>
+                ) : (
+                  <>
+                    <span className="font-bold text-2xl">{documentCount.toLocaleString()}</span>
+                    <span className="ml-2 text-sky-100">Documents Available</span>
+                  </>
+                )}
               </div>
             </div>
           </div>

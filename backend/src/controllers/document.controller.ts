@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { documentService, enrichmentService, lifecycleService } from '../services'
 import { asyncHandler } from '../middleware'
 import multer from 'multer'
+import { supabaseAdmin } from '../config/supabase.config'
 
 // Configure multer for file uploads
 const upload = multer({
@@ -35,54 +36,6 @@ export class DocumentController {
    * Create new document with file upload
    */
   createDocument = asyncHandler(async (req: Request, res: Response) => {
-    // const userId = req.userId!
-    
-    // // Handle file upload first
-    // await new Promise<void>((resolve, reject) => {
-    //   upload(req, res, (err) => {
-    //     if (err) reject(err)
-    //     else resolve()
-    //   })
-    // })
-
-    // const file = req.file as Express.Multer.File
-    // if (!file) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: 'No file uploaded'
-    //   })
-    // }
-
-    // const {
-    //   title,
-    //   description,
-    //   document_type,
-    //   retention_category,
-    //   tags,
-    //   creation_date,
-    //   is_public = false
-    // } = req.body
-
-    // // Parse tags if they come as string
-    // const parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags
-
-    // const metadata = {
-    //   title,
-    //   description,
-    //   document_type,
-    //   retention_category,
-    //   tags: parsedTags,
-    //   creation_date,
-    //   is_public
-    // }
-
-    // const document = await documentService.createDocument(file, metadata, userId)
-
-    // res.status(201).json({
-    //   success: true,
-    //   message: 'Document created successfully',
-    //   data: document
-    // })
     try {
       const userId = req.userId!;
       console.log('🔐 User ID:', userId);
@@ -371,6 +324,59 @@ export class DocumentController {
 //       data: result
 //     })
 //   })
+
+  /**
+   * Get document count statistics
+   */
+  getDocumentCount = asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const { data: documents, error } = await supabaseAdmin
+        .from('documents')
+        .select('status, document_type, is_public');
+
+      if (error) {
+        throw error;
+      }
+
+      const stats = {
+        total: documents.length,
+        byStatus: {} as Record<string, number>,
+        byType: {} as Record<string, number>,
+        public: 0,
+        private: 0
+      };
+
+      documents.forEach((doc: { status?: string; document_type?: string; is_public?: boolean }) => {
+        // Count by status
+        if (doc.status) {
+          stats.byStatus[doc.status] = (stats.byStatus[doc.status] || 0) + 1;
+        }
+
+        // Count by document type
+        if (doc.document_type) {
+          stats.byType[doc.document_type] = (stats.byType[doc.document_type] || 0) + 1;
+        }
+
+        // Count public vs private
+        if (doc.is_public) {
+          stats.public++;
+        } else {
+          stats.private++;
+        }
+      });
+
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      console.error('Error getting document count:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get document count'
+      });
+    }
+  });
 }
 
 export const documentController = new DocumentController() 

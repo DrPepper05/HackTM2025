@@ -10,6 +10,9 @@ import {
 
 const router = Router();
 
+// Public routes (no authentication required)
+// router.get('/statistics/count', documentController.getDocumentCount);
+
 // All document routes require authentication
 router.use(authenticateToken);
 
@@ -25,8 +28,5 @@ router.put('/:id', validateUUID('id'), requireStaff, documentController.updateDo
 router.post('/:documentId/enrich', validateUUID('documentId'), requireStaff, documentController.processEnrichment);
 router.post('/:documentId/redact', validateUUID('documentId'), requireStaff, documentController.generateRedacted);
 router.post('/:documentId/lifecycle', validateUUID('documentId'), requireStaff, documentController.scheduleLifecycleAction);
-
-// Statistics
-router.get('/stats/overview', requireStaff, documentController.getStatistics); // Assuming getStatistics is also staff-only
 
 export default router;

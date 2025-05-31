@@ -7,8 +7,12 @@ import adminRoutes from './admin.routes';
 import accessRequestRoutes from './access-request.routes'; // Import the new routes
 import inspectorRoutes from './inspector.routes';
 import userRoutes from './user.routes';
+import publicRoutes from './public.routes';
 
 const router = Router();
+
+// Public routes (no authentication required)
+router.use('/public', publicRoutes);
 
 // Mount routes
 router.use('/auth', authRoutes);
