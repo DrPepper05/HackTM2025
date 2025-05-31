@@ -136,12 +136,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       {/* Desktop sidebar */}
       <div className="hidden md:block md:w-64 md:flex-shrink-0 h-full">
         <div className="flex h-full flex-col bg-slate-800">
-          <div className="flex h-16 flex-shrink-0 items-center px-4">
-            <Link to="/dashboard" className="flex items-center">
-              <FolderArchive className="text-sky-500 mr-3 h-8 w-8" />
-              <span className="text-xl font-bold text-white">OpenArchive</span>
-            </Link>
-          </div>
+          
           <div className="flex flex-1 flex-col overflow-y-auto">
             <nav className="flex-1 space-y-1 px-2 py-4">
               {navigation.map((item) => {

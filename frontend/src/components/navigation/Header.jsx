@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Menu, Bell, Search, User, LogOut, Settings } from 'lucide-react'
+import { Menu, Bell, User, LogOut, Settings, FolderArchive } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import LanguageSwitcher from './LanguageSwitcher'
 
 function Header({ toggleSidebar }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { user, signOut, userRole } = useAuth()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -28,34 +28,29 @@ function Header({ toggleSidebar }) {
           <Menu className="h-6 w-6" aria-hidden="true" />
         </button>
 
-        {/* Logo */}
-        <div className="flex md:hidden">
+        {/* Logo and App Name */}
+        {/* <div className="flex items-center">
           <Link to="/dashboard" className="flex items-center">
             <span className="text-xl font-bold text-sky-600">OpenArchive</span>
           </Link>
-        </div>
+        </div> */}
 
-        {/* Search */}
-        <div className="hidden flex-1 md:flex md:max-w-md lg:max-w-lg">
-          <div className="w-full">
-            <label htmlFor="search" className="sr-only">{t('common.search')}</label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              </div>
-              <input
-                id="search"
-                name="search"
-                className="block w-full rounded-md border-0 bg-gray-50 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6"
-                placeholder={t('common.search')}
-                type="search"
-              />
-            </div>
-          </div>
+        <div className="flex h-16 flex-shrink-0 items-center px-4">
+            <Link to="/dashboard" className="flex items-center">
+              <FolderArchive className="text-sky-600 mr-3 h-8 w-8" />
+              <span className="text-xl font-bold text-gray-800">OpenArchive</span>
+            </Link>
         </div>
 
         {/* Right section */}
         <div className="flex items-center gap-3">
+          {/* User Role Badge */}
+          <div className="hidden md:block">
+            <span className="inline-flex items-center rounded-md bg-sky-100 px-2.5 py-0.5 text-sm font-medium text-sky-800 capitalize">
+              {t(`roles.${userRole}`)}
+            </span>
+          </div>
+          
           {/* Language switcher */}
           <LanguageSwitcher />
 

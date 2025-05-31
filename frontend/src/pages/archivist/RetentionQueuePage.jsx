@@ -495,11 +495,6 @@ function RetentionQueuePage() {
           </div>
         </div>
 
-        {/* Results count */}
-        <div className="mb-4 text-sm font-medium text-gray-700 bg-blue-50 p-2 rounded-md inline-block">
-          {t('archivist.showing_results', { count: sortedDocuments.length })}
-        </div>
-
         {/* Documents table */}
         <div className="mt-4 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
