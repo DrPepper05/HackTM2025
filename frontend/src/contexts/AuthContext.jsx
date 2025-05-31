@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [userRole, setUserRole] = useState(null)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // Token management functions
   const saveSession = (sessionData) => {
@@ -22,6 +23,7 @@ export function AuthProvider({ children }) {
     setSession(null)
     setUser(null)
     setUserRole(null)
+    setIsLoggingOut(false)
   }
 
   const getStoredSession = () => {
@@ -42,6 +44,11 @@ export function AuthProvider({ children }) {
 
   // API helper with auth headers
   const apiCall = useCallback(async (endpoint, options = {}) => {
+    // If we're already logging out, don't make API calls that could trigger another logout
+    if (isLoggingOut && endpoint !== '/api/v1/auth/logout') {
+      throw new Error('User is being logged out')
+    }
+
     const storedSession = getStoredSession()
     
     const config = {
@@ -62,6 +69,11 @@ export function AuthProvider({ children }) {
 
     // Handle 401 errors (token expired/invalid)
     if (response.status === 401) {
+      // Prevent cascading logout calls
+      if (isLoggingOut) {
+        throw new Error('Session expired. Please login again.')
+      }
+
       // Try to refresh token if we have a refresh token
       if (storedSession?.refresh_token) {
         const refreshResult = await refreshToken()
@@ -82,7 +94,7 @@ export function AuthProvider({ children }) {
     }
 
     return result
-  }, [])
+  }, [isLoggingOut])
 
   // Load user profile
   const loadUserProfile = useCallback(async () => {
@@ -228,9 +240,26 @@ export function AuthProvider({ children }) {
   }
 
   const signOut = async () => {
+    // Prevent multiple logout calls
+    if (isLoggingOut) {
+      return { error: null }
+    }
+
+    setIsLoggingOut(true)
+    
     try {
-      // Call backend logout endpoint
-      await apiCall('/api/v1/auth/logout', { method: 'POST' })
+      // Call backend logout endpoint using direct fetch to avoid cascading with apiCall
+      const storedSession = getStoredSession()
+      if (storedSession?.access_token) {
+        await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${storedSession.access_token}`
+          }
+        })
+        // Don't throw errors from logout endpoint - just continue to clear session
+      }
     } catch (error) {
       // Even if backend call fails, clear local session
       console.error('Logout error:', error)
@@ -347,19 +376,22 @@ export function AuthProvider({ children }) {
 
   // Auto-refresh token when it's about to expire
   useEffect(() => {
-    if (!session || !session.expires_at) return
+    if (!session || !session.expires_at || isLoggingOut) return
 
     const timeToExpiry = session.expires_at - Date.now()
     const refreshTime = Math.max(timeToExpiry - 300000, 60000) // Refresh 5 mins before expiry, min 1 min
 
     const refreshTimer = setTimeout(() => {
-      refreshToken().catch(error => {
-        console.error('Auto token refresh failed:', error)
-      })
+      // Don't refresh if we're already logging out
+      if (!isLoggingOut) {
+        refreshToken().catch(error => {
+          console.error('Auto token refresh failed:', error)
+        })
+      }
     }, refreshTime)
 
     return () => clearTimeout(refreshTimer)
-  }, [session])
+  }, [session, isLoggingOut])
 
   return (
     <AuthContext.Provider

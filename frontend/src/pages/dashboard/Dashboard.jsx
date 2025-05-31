@@ -81,7 +81,7 @@ function Dashboard() {
         {
           title: t('dashboard.ingest_queue'),
           description: t('dashboard.ingest_queue_desc'),
-          icon: InBox,
+          icon: Inbox,
           link: '/archivist/ingest',
           color: 'bg-purple-500',
           count: stats?.ingestQueue,
