@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Initialize the Supabase client
-const supabaseUrl = import.meta.env.SUPABASE_URL
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
-    'Missing Supabase credentials. Please set SUPABASE_URL and SUPABASE_KEY in your .env file.'
+    'Missing Supabase credentials. Please set VITE_SUPABASE_URL and VITE_SUPABASE_KEY in your .env file.'
   )
 }
 

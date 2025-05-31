@@ -7,7 +7,7 @@ function PublicLayout() {
   const { t } = useTranslation()
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex flex-col bg-gray-50">
       <PublicHeader />
       
       {/* Main content */}

@@ -91,9 +91,11 @@ function App() {
           
           {/* Archivist routes */}
           <Route path="/archivist/ingest" element={
-            <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
-              <IngestQueuePage />
-            </RoleBasedRoute>
+            <IngestQueuePage />
+
+            // <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
+            //   <IngestQueuePage />
+            // </RoleBasedRoute>
           } />
           <Route path="/archivist/review/:id" element={
             <RoleBasedRoute allowedRoles={['archivist', 'admin']}>

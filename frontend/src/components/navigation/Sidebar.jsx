@@ -46,7 +46,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
     <>
       {/* Mobile sidebar */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-40 md:hidden" onClose={setSidebarOpen}>
+        <Dialog as="div" className="relative z-50 md:hidden" onClose={setSidebarOpen}>
           <Transition.Child
             as={Fragment}
             enter="transition-opacity ease-linear duration-300"
@@ -59,7 +59,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             <div className="fixed inset-0 bg-gray-600 bg-opacity-75" />
           </Transition.Child>
 
-          <div className="fixed inset-0 z-40 flex">
+          <div className="fixed inset-0 z-50 flex">
             <Transition.Child
               as={Fragment}
               enter="transition ease-in-out duration-300 transform"
@@ -78,6 +78,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   leave="ease-in-out duration-300"
                   leaveFrom="opacity-100"
                   leaveTo="opacity-0"
+                  show={sidebarOpen}
                 >
                   <div className="absolute top-0 right-0 -mr-12 pt-2">
                     <button
@@ -94,7 +95,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 {/* Logo */}
                 <div className="flex flex-shrink-0 items-center px-4">
                   <Link to="/dashboard" className="flex items-center">
-                    <FolderArchive className="text-sky-600 mr-3 h-8 w-8" />
+                    <FolderArchive className="text-sky-500 mr-3 h-8 w-8" />
                     <span className="text-xl font-bold text-white">OpenArchive</span>
                   </Link>
                 </div>
@@ -108,10 +109,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                         <Link
                           key={item.name}
                           to={item.href}
-                          className={`group flex items-center px-2 py-2 text-base font-medium rounded-lg ${isActive
+                          className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${isActive
                             ? 'bg-sky-600 text-white'
-                            : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                          }`}
+                            : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
                           onClick={() => setSidebarOpen(false)}
                         >
                           <item.icon
@@ -134,11 +134,11 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       </Transition.Root>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
-        <div className="flex min-h-0 flex-1 flex-col bg-slate-800">
+      <div className="hidden md:block md:w-64 md:flex-shrink-0 h-full">
+        <div className="flex h-full flex-col bg-slate-800">
           <div className="flex h-16 flex-shrink-0 items-center px-4">
             <Link to="/dashboard" className="flex items-center">
-              <FolderArchive className="text-sky-600 mr-3 h-8 w-8" />
+              <FolderArchive className="text-sky-500 mr-3 h-8 w-8" />
               <span className="text-xl font-bold text-white">OpenArchive</span>
             </Link>
           </div>
@@ -150,10 +150,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-lg ${isActive
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive
                       ? 'bg-sky-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                    }`}
+                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
                   >
                     <item.icon
                       className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}

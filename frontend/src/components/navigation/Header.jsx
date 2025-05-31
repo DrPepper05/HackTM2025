@@ -5,7 +5,7 @@ import { Menu, Bell, Search, User, LogOut, Settings } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import LanguageSwitcher from './LanguageSwitcher'
 
-function Header({ setSidebarOpen }) {
+function Header({ toggleSidebar }) {
   const { t, i18n } = useTranslation()
   const { user, signOut, userRole } = useAuth()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -16,13 +16,13 @@ function Header({ setSidebarOpen }) {
   }
 
   return (
-    <header className="bg-white shadow-md">
-      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+    <header className="bg-white shadow-sm z-10">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
         {/* Mobile menu button */}
         <button
           type="button"
-          className="md:hidden"
-          onClick={() => setSidebarOpen(true)}
+          className="md:hidden rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"
+          onClick={toggleSidebar}
         >
           <span className="sr-only">{t('navigation.open_sidebar')}</span>
           <Menu className="h-6 w-6" aria-hidden="true" />
@@ -63,7 +63,7 @@ function Header({ setSidebarOpen }) {
           <div className="relative">
             <button
               type="button"
-              className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2"
+              className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
               onClick={() => setNotificationsOpen(!notificationsOpen)}
             >
               <span className="sr-only">{t('common.notifications')}</span>
@@ -77,7 +77,7 @@ function Header({ setSidebarOpen }) {
 
             {/* Notifications dropdown */}
             {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+              <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
                 <div className="px-4 py-2 text-sm font-medium text-gray-700">
                   {t('common.notifications')}
                 </div>
@@ -109,7 +109,7 @@ function Header({ setSidebarOpen }) {
           <div className="relative">
             <button
               type="button"
-              className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2"
+              className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
             >
               <span className="sr-only">{t('navigation.open_user_menu')}</span>
@@ -120,7 +120,7 @@ function Header({ setSidebarOpen }) {
 
             {/* User dropdown */}
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+              <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
                 <div className="px-4 py-2 text-sm text-gray-700">
                   <div className="font-medium">{user?.email}</div>
                   <div className="text-xs text-gray-500 capitalize">{t(`roles.${userRole}`)}</div>
@@ -128,7 +128,7 @@ function Header({ setSidebarOpen }) {
                 <div className="border-t border-gray-100">
                   <Link
                     to="/profile"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <User className="mr-3 h-4 w-4" />
@@ -136,14 +136,14 @@ function Header({ setSidebarOpen }) {
                   </Link>
                   <Link
                     to="/settings"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <Settings className="mr-3 h-4 w-4" />
                     {t('navigation.settings')}
                   </Link>
                   <button
-                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => {
                       setUserMenuOpen(false)
                       handleSignOut()
