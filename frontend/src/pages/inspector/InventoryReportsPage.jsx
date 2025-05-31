@@ -16,6 +16,7 @@ import {
   FileDigit,
   FileCog,
   FileSpreadsheet,
+  ChevronDown,
 } from 'lucide-react'
 
 function InventoryReportsPage() {
@@ -316,16 +317,16 @@ function InventoryReportsPage() {
 
               {/* Report Type Selection */}
               <div className="mt-6">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   {t('inspector.report_type')}
                 </label>
                 <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {reportTypes.map((type) => (
                     <div
                       key={type.id}
-                      className={`relative flex cursor-pointer rounded-lg border p-4 shadow-sm focus:outline-none ${
+                      className={`relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm hover:border-gray-400 focus:outline-none ${
                         reportType === type.id
-                          ? 'border-primary ring-2 ring-primary'
+                          ? 'border-primary ring-1 ring-primary'
                           : 'border-gray-300'
                       }`}
                       onClick={() => handleReportTypeChange(type.id)}
@@ -334,25 +335,11 @@ function InventoryReportsPage() {
                         <div className="flex items-center">
                           <div className="flex-shrink-0">{type.icon}</div>
                           <div className="ml-4 text-sm">
-                            <p
-                              className={`font-medium ${reportType === type.id ? 'text-primary' : 'text-gray-900'
-                                }`}
-                            >
+                            <p className={`font-medium ${reportType === type.id ? 'text-primary' : 'text-gray-900'}`}>
                               {type.name}
                             </p>
                             <p className="text-gray-500">{type.description}</p>
                           </div>
-                        </div>
-                        <div
-                          className={`h-5 w-5 rounded-full border flex items-center justify-center ${
-                            reportType === type.id
-                              ? 'border-primary bg-primary'
-                              : 'border-gray-300'
-                          }`}
-                        >
-                          {reportType === type.id && (
-                            <div className="h-2.5 w-2.5 rounded-full bg-white"></div>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -361,15 +348,15 @@ function InventoryReportsPage() {
               </div>
 
               {/* Filters */}
-              <div className="mt-6">
-                <h4 className="text-sm font-medium text-gray-700">{t('inspector.filters')}</h4>
-                <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="mt-8">
+                <h4 className="mb-4 text-sm font-medium text-gray-700">{t('inspector.filters')}</h4>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   {/* Date From */}
                   <div>
-                    <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="dateFrom" className="mb-2 block text-sm font-medium text-gray-700">
                       {t('inspector.date_from')}
                     </label>
-                    <div className="relative mt-1 rounded-md shadow-sm">
+                    <div className="relative">
                       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
@@ -377,7 +364,7 @@ function InventoryReportsPage() {
                         type="date"
                         name="from"
                         id="dateFrom"
-                        className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm"
+                        className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary hover:border-gray-400"
                         value={dateRange.from}
                         onChange={handleDateChange}
                       />
@@ -386,10 +373,10 @@ function InventoryReportsPage() {
 
                   {/* Date To */}
                   <div>
-                    <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="dateTo" className="mb-2 block text-sm font-medium text-gray-700">
                       {t('inspector.date_to')}
                     </label>
-                    <div className="relative mt-1 rounded-md shadow-sm">
+                    <div className="relative">
                       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
@@ -397,7 +384,7 @@ function InventoryReportsPage() {
                         type="date"
                         name="to"
                         id="dateTo"
-                        className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm"
+                        className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-3 text-sm shadow-sm focus:border-primary focus:ring-primary hover:border-gray-400"
                         value={dateRange.to}
                         onChange={handleDateChange}
                       />
@@ -406,52 +393,65 @@ function InventoryReportsPage() {
 
                   {/* Fund Filter */}
                   <div>
-                    <label htmlFor="fundFilter" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="fundFilter" className="mb-2 block text-sm font-medium text-gray-700">
                       {t('inspector.filter_by_fund')}
                     </label>
-                    <select
-                      id="fundFilter"
-                      name="fundFilter"
-                      className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                      value={selectedFund}
-                      onChange={handleFundChange}
-                    >
-                      <option value="">{t('inspector.all_funds')}</option>
-                      {funds.map((fund) => (
-                        <option key={fund.id} value={fund.id}>
-                          {fund.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      </div>
+                      <select
+                        id="fundFilter"
+                        name="fundFilter"
+                        className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-primary hover:border-gray-400"
+                        value={selectedFund}
+                        onChange={handleFundChange}
+                      >
+                        <option value="">{t('inspector.all_funds')}</option>
+                        {funds.map((fund) => (
+                          <option key={fund.id} value={fund.id}>
+                            {fund.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                        <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Retention Category Filter */}
                   <div>
-                    <label
-                      htmlFor="retentionFilter"
-                      className="block text-sm font-medium text-gray-700"
-                    >
+                    <label htmlFor="retentionFilter" className="mb-2 block text-sm font-medium text-gray-700">
                       {t('inspector.filter_by_retention')}
                     </label>
-                    <select
-                      id="retentionFilter"
-                      name="retentionFilter"
-                      className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                      value={selectedRetention}
-                      onChange={handleRetentionChange}
-                    >
-                      <option value="">{t('inspector.all_retention_categories')}</option>
-                      {retentionCategories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <Clock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      </div>
+                      <select
+                        id="retentionFilter"
+                        name="retentionFilter"
+                        className="block h-10 w-full appearance-none rounded-md border border-gray-300 bg-white pl-10 pr-10 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-primary hover:border-gray-400"
+                        value={selectedRetention}
+                        onChange={handleRetentionChange}
+                      >
+                        <option value="">{t('inspector.all_retention_categories')}</option>
+                        {retentionCategories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                        <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Include Options */}
-                <div className="mt-4 space-y-4">
+                <div className="mt-6 space-y-4">
                   <div className="relative flex items-start">
                     <div className="flex h-5 items-center">
                       <input
@@ -485,19 +485,17 @@ function InventoryReportsPage() {
                       <label htmlFor="includeStatistics" className="font-medium text-gray-700">
                         {t('inspector.include_statistics')}
                       </label>
-                      <p className="text-gray-500">
-                        {t('inspector.include_statistics_description')}
-                      </p>
+                      <p className="text-gray-500">{t('inspector.include_statistics_description')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Reset Filters */}
-                <div className="mt-4">
+                <div className="mt-6">
                   <button
                     type="button"
                     onClick={handleResetFilters}
-                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    className="inline-flex h-10 items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   >
                     <RefreshCw className="-ml-1 mr-2 h-5 w-5 text-gray-400" aria-hidden="true" />
                     {t('inspector.reset_filters')}
@@ -506,17 +504,17 @@ function InventoryReportsPage() {
               </div>
 
               {/* Export Format */}
-              <div className="mt-6">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="mt-8">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   {t('inspector.export_format')}
                 </label>
                 <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                   {exportFormats.map((format) => (
                     <div
                       key={format.id}
-                      className={`relative flex cursor-pointer rounded-lg border p-4 shadow-sm focus:outline-none ${
+                      className={`relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm hover:border-gray-400 focus:outline-none ${
                         selectedFormat === format.id
-                          ? 'border-primary ring-2 ring-primary'
+                          ? 'border-primary ring-1 ring-primary'
                           : 'border-gray-300'
                       }`}
                       onClick={() => handleFormatChange(format.id)}
@@ -524,10 +522,7 @@ function InventoryReportsPage() {
                       <div className="flex w-full flex-col items-center justify-center">
                         <div className="flex-shrink-0">{format.icon}</div>
                         <div className="mt-2 text-center">
-                          <p
-                            className={`text-sm font-medium ${selectedFormat === format.id ? 'text-primary' : 'text-gray-900'
-                              }`}
-                          >
+                          <p className={`text-sm font-medium ${selectedFormat === format.id ? 'text-primary' : 'text-gray-900'}`}>
                             {format.name}
                           </p>
                         </div>
@@ -538,12 +533,12 @@ function InventoryReportsPage() {
               </div>
 
               {/* Generate Button */}
-              <div className="mt-6">
+              <div className="mt-8">
                 <button
                   type="button"
                   onClick={handleGenerateReport}
                   disabled={isLoading}
-                  className="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+                  className="inline-flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
                 >
                   {isLoading ? (
                     <>
@@ -573,55 +568,52 @@ function InventoryReportsPage() {
 
               <div className="mt-6 flow-root">
                 <ul role="list" className="-my-5 divide-y divide-gray-200">
-                  {generatedReports.length > 0
-                    ? generatedReports.map((report) => (
-                        <li key={report.id} className="py-4">
-                          <div className="flex items-center space-x-4">
-                            <div className="flex-shrink-0">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100">
-                                {getFormatIcon(report.format)}
-                              </div>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-gray-900">
-                                {report.name}
-                              </p>
-                              <p className="truncate text-sm text-gray-500">
-                                {formatDate(report.createdAt)} • {report.size}
-                              </p>
-                            </div>
-                            <div>
-                              <a
-                                href={report.url}
-                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                              >
-                                <Download className="h-5 w-5" aria-hidden="true" />
-                                <span className="sr-only">{t('inspector.download')}</span>
-                              </a>
-                            </div>
-                          </div>
-                        </li>
-                      ))
-                    : (
-                      <div className="rounded-md bg-yellow-50 p-4">
-                        <div className="flex">
+                  {generatedReports.length > 0 ? (
+                    generatedReports.map((report) => (
+                      <li key={report.id} className="py-4">
+                        <div className="flex items-center space-x-4">
                           <div className="flex-shrink-0">
-                            <AlertTriangle
-                              className="h-5 w-5 text-yellow-400"
-                              aria-hidden="true"
-                            />
-                          </div>
-                          <div className="ml-3">
-                            <h3 className="text-sm font-medium text-yellow-800">
-                              {t('inspector.no_reports_found')}
-                            </h3>
-                            <div className="mt-2 text-sm text-yellow-700">
-                              <p>{t('inspector.no_reports_found_description')}</p>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-100">
+                              {getFormatIcon(report.format)}
                             </div>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-gray-900">
+                              {report.name}
+                            </p>
+                            <p className="truncate text-sm text-gray-500">
+                              {formatDate(report.createdAt)} • {report.size}
+                            </p>
+                          </div>
+                          <div>
+                            <a
+                              href={report.url}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                            >
+                              <Download className="h-5 w-5" aria-hidden="true" />
+                              <span className="sr-only">{t('inspector.download')}</span>
+                            </a>
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <div className="rounded-md bg-yellow-50 p-3">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <AlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                        </div>
+                        <div className="ml-2">
+                          <h3 className="text-sm font-medium text-yellow-800">
+                            {t('inspector.no_reports_found')}
+                          </h3>
+                          <div className="mt-1 text-sm text-yellow-700">
+                            <p>{t('inspector.no_reports_found_description')}</p>
                           </div>
                         </div>
                       </div>
-                    )}
+                    </div>
+                  )}
                 </ul>
               </div>
             </div>

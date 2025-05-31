@@ -6,7 +6,6 @@ import RoleBasedRoute from './components/auth/RoleBasedRoute'
 import Layout from './components/layout/Layout'
 import LoadingScreen from './components/ui/LoadingScreen'
 import PortalPage from "./pages/portal/PortalPage.jsx";
-import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider } from './contexts/AuthContext'
 
 // Lazy load pages for better performance
@@ -25,7 +24,6 @@ const MyUploadsPage = lazy(() => import('./pages/clerk/MyUploadsPage'))
 // Archivist pages
 const IngestQueuePage = lazy(() => import('./pages/archivist/IngestQueuePage'))
 const RetentionQueuePage = lazy(() => import('./pages/archivist/RetentionQueuePage'))
-const TransferQueuePage = lazy(() => import('./pages/archivist/TransferQueuePage'))
 const AdvancedSearchPage = lazy(() => import('./pages/archivist/AdvancedSearchPage'))
 const DocumentReviewPage = lazy(() => import('./pages/archivist/DocumentReviewPage'))
 const StaffDocumentViewPage = lazy(() => import('./pages/archivist/StaffDocumentViewPage'))
@@ -63,30 +61,28 @@ function AppContent() {
   }
 
   return (
-    <ThemeProvider>
-      <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
-          <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
-          <Route path="/forgot-password" element={!user ? <ForgotPasswordPage /> : <Navigate to="/dashboard" />} />
-          <Route path="/reset-password" element={!user ? <ResetPasswordPage /> : <Navigate to="/dashboard" />} />
-          
-          {/* Public pages */}
-          <Route path="/" element={<PublicHomePage />} />
-          <Route path="/search" element={<PublicSearchPage />} />
-          <Route path="/document/:id" element={<PublicDocumentPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/request" element={<PrivateFileRequestPage />} />
-          <Route path="/portal" element={<PortalPage />} />
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/forgot-password" element={!user ? <ForgotPasswordPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/reset-password" element={!user ? <ResetPasswordPage /> : <Navigate to="/dashboard" />} />
+        
+        {/* Public pages */}
+        <Route path="/" element={<PublicHomePage />} />
+        <Route path="/search" element={<PublicSearchPage />} />
+        <Route path="/document/:id" element={<PublicDocumentPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/portal" element={<PortalPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
-            
+
             {/* Clerk routes */}
             <Route path="/documents/upload" element={
               <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
@@ -125,11 +121,6 @@ function AppContent() {
                 <RetentionQueuePage />
               </RoleBasedRoute>
             } />
-            <Route path="/archivist/transfer" element={
-              <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
-                <TransferQueuePage />
-              </RoleBasedRoute>
-            } />
             <Route path="/documents/search" element={
               <RoleBasedRoute allowedRoles={['archivist', 'admin', 'inspector']}>
                 <AdvancedSearchPage />
@@ -165,7 +156,6 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>
-    </ThemeProvider>
   )
 }
 

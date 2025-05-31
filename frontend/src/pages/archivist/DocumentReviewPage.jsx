@@ -171,7 +171,7 @@ function DocumentReviewPage() {
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
       // Navigate back to the ingest queue
-      navigate('/archivist/ingest')
+      navigate('/dashboard/archivist/ingest-queue')
     } catch (error) {
       console.error('Error submitting review:', error)
       setIsSubmitting(false)

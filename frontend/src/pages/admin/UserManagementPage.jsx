@@ -373,65 +373,90 @@ function UserManagementPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
             {/* Search */}
             <div>
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="search"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 {t('admin.search')}
               </label>
-              <div className="relative mt-1 rounded-md shadow-sm">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                </div>
+              <div className="relative">
                 <input
                   type="text"
                   name="search"
                   id="search"
-                  className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm"
+                  className="block w-full rounded-lg border-gray-300 pl-10 pr-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                   placeholder={t('admin.search_placeholder')}
                   value={searchTerm}
                   onChange={handleSearchChange}
                 />
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
               </div>
             </div>
 
             {/* Role Filter */}
             <div>
-              <label htmlFor="roleFilter" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="roleFilter"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 {t('admin.filter_by_role')}
               </label>
-              <select
-                id="roleFilter"
-                name="roleFilter"
-                className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                value={roleFilter}
-                onChange={handleRoleFilterChange}
-              >
-                <option value="">{t('admin.all_roles')}</option>
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="roleFilter"
+                  name="roleFilter"
+                  className="block w-full appearance-none rounded-lg border-gray-300 pl-10 pr-10 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
+                  value={roleFilter}
+                  onChange={handleRoleFilterChange}
+                >
+                  <option value="">{t('admin.all_roles')}</option>
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Shield className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
             </div>
 
             {/* Institution Filter */}
             <div>
-              <label htmlFor="institutionFilter" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="institutionFilter"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 {t('admin.filter_by_institution')}
               </label>
-              <select
-                id="institutionFilter"
-                name="institutionFilter"
-                className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                value={institutionFilter}
-                onChange={handleInstitutionFilterChange}
-              >
-                <option value="">{t('admin.all_institutions')}</option>
-                {institutions.map((institution) => (
-                  <option key={institution.id} value={institution.id}>
-                    {institution.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="institutionFilter"
+                  name="institutionFilter"
+                  className="block w-full appearance-none rounded-lg border-gray-300 pl-10 pr-10 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
+                  value={institutionFilter}
+                  onChange={handleInstitutionFilterChange}
+                >
+                  <option value="">{t('admin.all_institutions')}</option>
+                  {institutions.map((institution) => (
+                    <option key={institution.id} value={institution.id}>
+                      {institution.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Building className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
             </div>
 
             {/* Reset Filters */}
@@ -439,7 +464,7 @@ function UserManagementPage() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="inline-flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 <RefreshCw className="-ml-1 mr-2 h-5 w-5 text-gray-400" aria-hidden="true" />
                 {t('admin.reset_filters')}
@@ -676,18 +701,28 @@ function UserManagementPage() {
                 <div className="mt-5 sm:mt-4">
                   <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                     <div className="sm:col-span-3">
-                      <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="full_name"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.name')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="text"
                           name="full_name"
                           id="full_name"
-                          className={`block w-full rounded-md ${formErrors.full_name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full rounded-lg ${
+                            formErrors.full_name
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-4 py-2 text-sm`}
                           value={newUser.full_name}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Users className={`h-5 w-5 ${formErrors.full_name ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.full_name && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.full_name}</p>
                         )}
@@ -695,18 +730,28 @@ function UserManagementPage() {
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="email"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.email')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="email"
                           name="email"
                           id="email"
-                          className={`block w-full rounded-md ${formErrors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full rounded-lg ${
+                            formErrors.email
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-4 py-2 text-sm`}
                           value={newUser.email}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Mail className={`h-5 w-5 ${formErrors.email ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.email && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.email}</p>
                         )}
@@ -714,30 +759,43 @@ function UserManagementPage() {
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="phone"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.phone')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="text"
                           name="phone"
                           id="phone"
-                          className="block w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
+                          className="block w-full rounded-lg border-gray-300 pl-10 pr-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                           value={newUser.phone}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Phone className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
                       </div>
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="role"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.role')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <select
                           id="role"
                           name="role"
-                          className={`block w-full rounded-md ${formErrors.role ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full appearance-none rounded-lg ${
+                            formErrors.role
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-10 py-2 text-sm`}
                           value={newUser.role}
                           onChange={handleInputChange}
                         >
@@ -748,6 +806,12 @@ function UserManagementPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Shield className={`h-5 w-5 ${formErrors.role ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDown className={`h-5 w-5 ${formErrors.role ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.role && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.role}</p>
                         )}
@@ -757,15 +821,19 @@ function UserManagementPage() {
                     <div className="sm:col-span-3">
                       <label
                         htmlFor="institution"
-                        className="block text-sm font-medium text-gray-700"
+                        className="mb-1 block text-sm font-medium text-gray-700"
                       >
                         {t('admin.institution')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <select
                           id="institution"
                           name="institution"
-                          className={`block w-full rounded-md ${formErrors.institution ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full appearance-none rounded-lg ${
+                            formErrors.institution
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-10 py-2 text-sm`}
                           value={newUser.institution}
                           onChange={handleInputChange}
                         >
@@ -776,6 +844,12 @@ function UserManagementPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Building className={`h-5 w-5 ${formErrors.institution ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDown className={`h-5 w-5 ${formErrors.institution ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.institution && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.institution}</p>
                         )}
@@ -849,18 +923,28 @@ function UserManagementPage() {
                 <div className="mt-5 sm:mt-4">
                   <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                     <div className="sm:col-span-3">
-                      <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="full_name"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.name')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="text"
                           name="full_name"
                           id="full_name"
-                          className={`block w-full rounded-md ${formErrors.full_name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full rounded-lg ${
+                            formErrors.full_name
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-4 py-2 text-sm`}
                           value={newUser.full_name}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Users className={`h-5 w-5 ${formErrors.full_name ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.full_name && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.full_name}</p>
                         )}
@@ -868,18 +952,28 @@ function UserManagementPage() {
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="email"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.email')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="email"
                           name="email"
                           id="email"
-                          className={`block w-full rounded-md ${formErrors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full rounded-lg ${
+                            formErrors.email
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-4 py-2 text-sm`}
                           value={newUser.email}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Mail className={`h-5 w-5 ${formErrors.email ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.email && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.email}</p>
                         )}
@@ -887,30 +981,43 @@ function UserManagementPage() {
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="phone"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.phone')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="text"
                           name="phone"
                           id="phone"
-                          className="block w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
+                          className="block w-full rounded-lg border-gray-300 pl-10 pr-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                           value={newUser.phone}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Phone className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
                       </div>
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="role"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.role')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <select
                           id="role"
                           name="role"
-                          className={`block w-full rounded-md ${formErrors.role ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full appearance-none rounded-lg ${
+                            formErrors.role
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-10 py-2 text-sm`}
                           value={newUser.role}
                           onChange={handleInputChange}
                         >
@@ -921,6 +1028,12 @@ function UserManagementPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Shield className={`h-5 w-5 ${formErrors.role ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDown className={`h-5 w-5 ${formErrors.role ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.role && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.role}</p>
                         )}
@@ -930,15 +1043,19 @@ function UserManagementPage() {
                     <div className="sm:col-span-3">
                       <label
                         htmlFor="institution"
-                        className="block text-sm font-medium text-gray-700"
+                        className="mb-1 block text-sm font-medium text-gray-700"
                       >
                         {t('admin.institution')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <select
                           id="institution"
                           name="institution"
-                          className={`block w-full rounded-md ${formErrors.institution ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full appearance-none rounded-lg ${
+                            formErrors.institution
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-10 py-2 text-sm`}
                           value={newUser.institution}
                           onChange={handleInputChange}
                         >
@@ -949,6 +1066,12 @@ function UserManagementPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Building className={`h-5 w-5 ${formErrors.institution ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDown className={`h-5 w-5 ${formErrors.institution ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.institution && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.institution}</p>
                         )}

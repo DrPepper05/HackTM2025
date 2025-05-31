@@ -59,9 +59,7 @@ function StaffDocumentViewPage() {
   // Confidentiality levels for dropdown
   const confidentialityLevels = [
     { id: 'public', name: 'Public' },
-    { id: 'internal', name: 'Internal' },
     { id: 'private', name: 'Private' },
-    { id: 'restricted', name: 'Restricted' },
   ]
 
   // Fetch document data
@@ -161,15 +159,14 @@ function StaffDocumentViewPage() {
   // Helper function to get status display name
   const getStatusName = (status) => {
     const statusMap = {
-      'draft': 'Draft',
-      'under_review': 'Under Review',
-      'approved': 'Approved',
-      'rejected': 'Rejected',
-      'archived': 'Archived',
+      'INGESTING': 'Ingesting',
+      'REGISTERED': 'Registered',
       'ACTIVE_STORAGE': 'Active Storage',
-      'active_storage': 'Active Storage',
-      'pending': 'Pending',
-      'published': 'Published'
+      'REVIEW': 'Review',
+      'DESTROY': 'Destroy',
+      'AWAITING_TRANSFER': 'Awaiting Transfer',
+      'TRANSFERRED': 'Transferred',
+      'NEEDS_CLASSIFICATION': 'Needs Classification'
     }
     return statusMap[status] || status || 'Unknown'
   }
@@ -332,12 +329,8 @@ function StaffDocumentViewPage() {
     switch (level) {
       case 'public':
         return 'bg-green-100 text-green-800'
-      case 'internal':
-        return 'bg-yellow-100 text-yellow-800'
       case 'private':
         return 'bg-orange-100 text-orange-800'
-      case 'restricted':
-        return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -455,7 +448,7 @@ function StaffDocumentViewPage() {
                 <button
                   type="button"
                   onClick={handleSaveDocument}
-                  className="ml-3 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <Save className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
                   {t('common.save')}
@@ -474,7 +467,7 @@ function StaffDocumentViewPage() {
                 <button
                   type="button"
                   onClick={handleEditToggle}
-                  className="ml-3 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <Pencil className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
                   {t('common.edit')}
@@ -542,28 +535,14 @@ function StaffDocumentViewPage() {
                     </label>
                     {isEditing ? (
                       <div className="mt-2">
-                        <select
-                          id="documentType"
+                        <input
+                          type="text"
                           name="documentType"
-                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                          id="documentType"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
                           value={editedDocument.documentType}
-                          onChange={(e) => {
-                            const selectedType = documentTypes.find(
-                              (type) => type.id === e.target.value
-                            )
-                            setEditedDocument({
-                              ...editedDocument,
-                              documentType: e.target.value,
-                              documentTypeName: selectedType ? selectedType.name : '',
-                            })
-                          }}
-                        >
-                          {documentTypes.map((type) => (
-                            <option key={type.id} value={type.id}>
-                              {type.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={handleInputChange}
+                        />
                       </div>
                     ) : (
                       <div className="mt-2 text-sm text-gray-900">{document.documentTypeName}</div>
@@ -637,23 +616,23 @@ function StaffDocumentViewPage() {
                         value={editedDocument.status}
                         onChange={handleInputChange}
                       >
-                        <option value="draft">Draft</option>
-                        <option value="under_review">Under Review</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="published">Published</option>
+                        <option value="INGESTING">Ingesting</option>
+                        <option value="REGISTERED">Registered</option>
                         <option value="ACTIVE_STORAGE">Active Storage</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="archived">Archived</option>
+                        <option value="REVIEW">Review</option>
+                        <option value="DESTROY">Destroy</option>
+                        <option value="AWAITING_TRANSFER">Awaiting Transfer</option>
+                        <option value="TRANSFERRED">Transferred</option>
+                        <option value="NEEDS_CLASSIFICATION">Needs Classification</option>
                       </select>
                     </div>
                   ) : (
                     <div className="mt-2">
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        document.status === 'approved' || document.status === 'ACTIVE_STORAGE' || document.status === 'active_storage' || document.status === 'published' ? 'bg-green-100 text-green-800' :
-                        document.status === 'under_review' || document.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        document.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        document.status === 'archived' ? 'bg-gray-100 text-gray-800' :
+                        document.status === 'REGISTERED' || document.status === 'ACTIVE_STORAGE' || document.status === 'TRANSFERRED' ? 'bg-green-100 text-green-800' :
+                        document.status === 'REVIEW' || document.status === 'NEEDS_CLASSIFICATION' ? 'bg-yellow-100 text-yellow-800' :
+                        document.status === 'DESTROY' ? 'bg-red-100 text-red-800' :
+                        document.status === 'AWAITING_TRANSFER' ? 'bg-purple-100 text-purple-800' :
                         'bg-blue-100 text-blue-800'
                       }`}>
                         {document.statusName}
