@@ -39,14 +39,14 @@ function Layout() {
   }
 
   return (
-    <div className="min-h-screen h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen h-screen flex flex-col">
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header toggleSidebar={toggleSidebar} />
       </div>
       
       {/* Content area with padding for fixed header */}
-      <div className="flex flex-1 pt-16"> {/* Add padding-top to account for fixed header height */}
+      <div className="flex flex-1 pt-16 bg-slate-50">
         {/* Fixed Sidebar - now with full height */}
         <div className="hidden md:block fixed left-0 top-16 bottom-0 z-40 h-full">
           <div className="h-full">

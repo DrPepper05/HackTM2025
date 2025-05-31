@@ -205,180 +205,204 @@ function IngestQueuePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="mb-8">
-        <div className="flex items-center mb-4">
-          <Inbox className="h-8 w-8 text-purple-500 mr-3" />
-          <h1 className="text-2xl font-bold text-gray-900">{t('archivist.ingest_queue')}</h1>
+    <div className="bg-white">
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-8">
+          <div className="flex items-center mb-4">
+            <Inbox className="h-8 w-8 text-purple-500 mr-3" />
+            <h1 className="text-2xl font-bold text-gray-900">{t('archivist.ingest_queue')}</h1>
+          </div>
+          <p className="text-gray-600 max-w-3xl">{t('archivist.ingest_queue_description')}</p>
         </div>
-        <p className="text-gray-600 max-w-3xl">{t('archivist.ingest_queue_description')}</p>
-      </div>
 
-      {/* Search and filters */}
-      <div className="bg-white rounded-lg shadow mb-6 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        {/* Search and filters */}
+        <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-12 items-center bg-gray-50 p-4 rounded-lg shadow-sm">
+          {/* Search */}
+          <div className="relative sm:col-span-4">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.search_documents')}
+            </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <input
+                type="text"
+                name="search"
+                id="search"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                placeholder={t('archivist.search_documents')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              name="search"
-              id="search"
-              className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-gray-900 placeholder:text-gray-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 sm:text-sm"
-              placeholder={t('archivist.search_documents')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          {/* Date filter */}
+          <div className="relative sm:col-span-3">
+            <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.date_filter')}
+            </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <select
+                id="date-filter"
+                name="date-filter"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+              >
+                {dateOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
             </div>
-            <select
-              id="date-filter"
-              name="date-filter"
-              className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-gray-900 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 sm:text-sm"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-            >
-              {dateOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          {/* Document type filter */}
+          <div className="relative sm:col-span-3">
+            <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.document_type')}
+            </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <select
+                id="type-filter"
+                name="type-filter"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                {typeOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
             </div>
-            <select
-              id="type-filter"
-              name="type-filter"
-              className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-gray-900 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 sm:text-sm"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-            >
-              {typeOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <ArrowUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          {/* Sort by */}
+          <div className="relative sm:col-span-2">
+            <label htmlFor="sort-by" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.sort_by')}
+            </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <ArrowUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <select
+                id="sort-by"
+                name="sort-by"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
             </div>
-            <select
-              id="sort-by"
-              name="sort-by"
-              className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-gray-900 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 sm:text-sm"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              {sortOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
-      </div>
 
-      {/* Documents table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
-          </div>
-        ) : sortedDocuments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-            <FileText className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('archivist.no_documents')}</h3>
-            <p className="text-gray-500 max-w-md">{t('archivist.no_documents_description')}</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('archivist.document_title')}
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('archivist.document_type')}
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('archivist.uploaded_by')}
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('archivist.upload_date')}
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('archivist.status')}
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('archivist.actions')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedDocuments.map((document) => {
-                  const statusBadge = getStatusBadge(document.status)
-                  return (
-                    <tr key={document.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {document.title}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {document.documentTypeName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <User className="h-4 w-4 text-gray-400 mr-2" />
-                          {document.uploadedBy}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(document.uploadDate)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center">
-                          {statusBadge.icon}
-                          <span className="ml-2">{t(`archivist.status_${document.status}`)}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-3">
-                          <Link 
-                            to={`/dashboard/archivist/document/${document.id}`}
-                            className="text-sky-600 hover:text-sky-900 flex items-center"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            {t('archivist.view')}
-                          </Link>
-                          <Link 
-                            to={`/dashboard/archivist/document/${document.id}/review`}
-                            className="text-green-600 hover:text-green-900 flex items-center"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            {t('archivist.review')}
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {/* Documents table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+            </div>
+          ) : sortedDocuments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <FileText className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('archivist.no_documents')}</h3>
+              <p className="text-gray-500 max-w-md">{t('archivist.no_documents_description')}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-300 table-fixed">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.document_title')}
+                    </th>
+                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.document_type')}
+                    </th>
+                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.uploaded_by')}
+                    </th>
+                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.upload_date')}
+                    </th>
+                    <th scope="col" className="w-1/12 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.status')}
+                    </th>
+                    <th scope="col" className="w-1/12 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.actions')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedDocuments.map((document) => {
+                    const statusBadge = getStatusBadge(document.status)
+                    return (
+                      <tr key={document.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900 break-words">
+                          {document.title}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 break-words">
+                          {document.documentTypeName}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 break-words">
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 text-gray-400 flex-shrink-0 mr-2" />
+                            {document.uploadedBy}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {formatDate(document.uploadDate)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            {statusBadge.icon}
+                            <span className="ml-2">{t(`archivist.status_${document.status}`)}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-3">
+                            <Link 
+                              to={`/dashboard/archivist/document/${document.id}`}
+                              className="text-primary hover:text-primary-dark inline-flex items-center"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              {t('archivist.view')}
+                            </Link>
+                            <Link 
+                              to={`/dashboard/archivist/document/${document.id}/review`}
+                              className="text-green-600 hover:text-green-900 inline-flex items-center"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              {t('archivist.review')}
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

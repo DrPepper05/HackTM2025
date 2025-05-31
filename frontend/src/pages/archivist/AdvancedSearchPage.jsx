@@ -449,7 +449,7 @@ function AdvancedSearchPage() {
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-transparent">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
@@ -486,16 +486,13 @@ function AdvancedSearchPage() {
                 {t('archivist.basic_search_description')}
               </p>
 
-              <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                {/* Text search */}
-                <div className="sm:col-span-6">
-                  <label
-                    htmlFor="query"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+              <div className="mt-6 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-12 items-center bg-gray-50 p-4 rounded-lg shadow-sm">
+                {/* Search */}
+                <div className="relative sm:col-span-12">
+                  <label htmlFor="query" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.search_query')}
                   </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
+                  <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
@@ -503,15 +500,15 @@ function AdvancedSearchPage() {
                       type="text"
                       name="query"
                       id="query"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       placeholder={t('archivist.search_query_placeholder')}
                       value={searchParams.query}
                       onChange={handleInputChange}
                     />
                   </div>
                 </div>
-                  </div>
-                </div>
+              </div>
+            </div>
 
             {/* Advanced Boolean Search */}
             <div className="border-b border-gray-900/10 pb-12">
@@ -522,49 +519,51 @@ function AdvancedSearchPage() {
                 {t('archivist.boolean_search_description')}
               </p>
 
-              <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
                 {/* Must contain all */}
                 <div>
-                  <label
-                    htmlFor="mustContainAll"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="mustContainAll" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.must_contain_all')}
                   </label>
                   <div className="mt-2">
                     <div className="flex">
+                      <div className="relative flex-1">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
                         <input
-                        type="text"
-                        value={mustContainAllInput}
-                        onChange={(e) => setMustContainAllInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            handleArrayInput(mustContainAllInput, setMustContainAllInput, 'mustContainAll')
-                          }
-                        }}
-                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
-                        placeholder={t('archivist.enter_terms_comma_separated')}
-                      />
+                          type="text"
+                          value={mustContainAllInput}
+                          onChange={(e) => setMustContainAllInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleArrayInput(mustContainAllInput, setMustContainAllInput, 'mustContainAll')
+                            }
+                          }}
+                          className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                          placeholder={t('archivist.enter_terms_comma_separated')}
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => handleArrayInput(mustContainAllInput, setMustContainAllInput, 'mustContainAll')}
-                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
-                      </div>
+                    </div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {searchParams.mustContainAll.map((term, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700"
+                          className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20"
                         >
                           {term}
                           <button
                             type="button"
                             onClick={() => removeFromArray(term, 'mustContainAll')}
-                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500"
+                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:bg-blue-500 focus:text-white focus:outline-none"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -576,46 +575,48 @@ function AdvancedSearchPage() {
 
                 {/* Must contain any */}
                 <div>
-                  <label
-                    htmlFor="mustContainAny"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="mustContainAny" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.must_contain_any')}
-                        </label>
+                  </label>
                   <div className="mt-2">
                     <div className="flex">
-                      <input
-                        type="text"
-                        value={mustContainAnyInput}
-                        onChange={(e) => setMustContainAnyInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            handleArrayInput(mustContainAnyInput, setMustContainAnyInput, 'mustContainAny')
-                          }
-                        }}
-                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
-                        placeholder={t('archivist.enter_terms_comma_separated')}
-                      />
+                      <div className="relative flex-1">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
+                        <input
+                          type="text"
+                          value={mustContainAnyInput}
+                          onChange={(e) => setMustContainAnyInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleArrayInput(mustContainAnyInput, setMustContainAnyInput, 'mustContainAny')
+                            }
+                          }}
+                          className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                          placeholder={t('archivist.enter_terms_comma_separated')}
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => handleArrayInput(mustContainAnyInput, setMustContainAnyInput, 'mustContainAny')}
-                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
-                      </div>
+                    </div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {searchParams.mustContainAny.map((term, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700"
+                          className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
                         >
                           {term}
                           <button
                             type="button"
                             onClick={() => removeFromArray(term, 'mustContainAny')}
-                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-green-400 hover:bg-green-200 hover:text-green-500"
+                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-green-400 hover:bg-green-200 hover:text-green-500 focus:bg-green-500 focus:text-white focus:outline-none"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -627,31 +628,33 @@ function AdvancedSearchPage() {
 
                 {/* Must not contain */}
                 <div>
-                  <label
-                    htmlFor="mustNotContain"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="mustNotContain" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.must_not_contain')}
                   </label>
                   <div className="mt-2">
                     <div className="flex">
-                      <input
-                        type="text"
-                        value={mustNotContainInput}
-                        onChange={(e) => setMustNotContainInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            handleArrayInput(mustNotContainInput, setMustNotContainInput, 'mustNotContain')
-                          }
-                        }}
-                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
-                        placeholder={t('archivist.enter_terms_comma_separated')}
-                      />
+                      <div className="relative flex-1">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
+                        <input
+                          type="text"
+                          value={mustNotContainInput}
+                          onChange={(e) => setMustNotContainInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleArrayInput(mustNotContainInput, setMustNotContainInput, 'mustNotContain')
+                            }
+                          }}
+                          className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                          placeholder={t('archivist.enter_terms_comma_separated')}
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => handleArrayInput(mustNotContainInput, setMustNotContainInput, 'mustNotContain')}
-                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -660,13 +663,13 @@ function AdvancedSearchPage() {
                       {searchParams.mustNotContain.map((term, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700"
+                          className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20"
                         >
                           {term}
                           <button
                             type="button"
                             onClick={() => removeFromArray(term, 'mustNotContain')}
-                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-red-400 hover:bg-red-200 hover:text-red-500"
+                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-red-400 hover:bg-red-200 hover:text-red-500 focus:bg-red-500 focus:text-white focus:outline-none"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -678,18 +681,18 @@ function AdvancedSearchPage() {
 
                 {/* Exact phrase */}
                 <div>
-                  <label
-                    htmlFor="exactPhrase"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="exactPhrase" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.exact_phrase')}
                   </label>
-                  <div className="mt-2">
+                  <div className="relative mt-2">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
                     <input
                       type="text"
                       name="exactPhrase"
                       id="exactPhrase"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       placeholder={t('archivist.exact_phrase_placeholder')}
                       value={searchParams.exactPhrase}
                       onChange={handleInputChange}
@@ -708,20 +711,20 @@ function AdvancedSearchPage() {
                 {t('archivist.filters_description')}
               </p>
 
-              <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+              <div className="mt-10 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-6">
                 {/* Document Type */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="documentType"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.document_type')}
                   </label>
-                  <div className="mt-2">
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
                     <select
                       id="documentType"
                       name="documentType"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.documentType}
                       onChange={handleInputChange}
                     >
@@ -736,13 +739,10 @@ function AdvancedSearchPage() {
 
                 {/* Creator */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="creator"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="creator" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.document_creator')}
                   </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
+                  <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
@@ -750,7 +750,7 @@ function AdvancedSearchPage() {
                       type="text"
                       name="creator"
                       id="creator"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       placeholder={t('archivist.document_creator_placeholder')}
                       value={searchParams.creator}
                       onChange={handleInputChange}
@@ -760,13 +760,10 @@ function AdvancedSearchPage() {
 
                 {/* Date From */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="dateFrom"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.date_from')}
                   </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
+                  <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
@@ -774,7 +771,7 @@ function AdvancedSearchPage() {
                       type="date"
                       name="dateFrom"
                       id="dateFrom"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.dateFrom}
                       onChange={handleInputChange}
                     />
@@ -783,13 +780,10 @@ function AdvancedSearchPage() {
 
                 {/* Date To */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="dateTo"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.date_to')}
                   </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
+                  <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
@@ -797,7 +791,7 @@ function AdvancedSearchPage() {
                       type="date"
                       name="dateTo"
                       id="dateTo"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.dateTo}
                       onChange={handleInputChange}
                     />
@@ -806,17 +800,17 @@ function AdvancedSearchPage() {
 
                 {/* Retention Category */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="retentionCategory"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="retentionCategory" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.retention_category')}
                   </label>
-                  <div className="mt-2">
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Clock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
                     <select
                       id="retentionCategory"
                       name="retentionCategory"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.retentionCategory}
                       onChange={handleInputChange}
                     >
@@ -832,17 +826,17 @@ function AdvancedSearchPage() {
 
                 {/* Confidentiality */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="confidentiality"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="confidentiality" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.confidentiality')}
                   </label>
-                  <div className="mt-2">
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
                     <select
                       id="confidentiality"
                       name="confidentiality"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.confidentiality}
                       onChange={handleInputChange}
                     >
@@ -857,17 +851,17 @@ function AdvancedSearchPage() {
 
                 {/* Status */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="status"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.status')}
                   </label>
-                  <div className="mt-2">
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Info className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
                     <select
                       id="status"
                       name="status"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.status}
                       onChange={handleInputChange}
                     >
@@ -882,49 +876,38 @@ function AdvancedSearchPage() {
 
                 {/* Tags */}
                 <div className="sm:col-span-6">
-                  <label htmlFor="tags" className="block text-sm font-medium leading-6 text-gray-900">
+                  <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.tags')}
                   </label>
-                  <div className="mt-2">
-                    <div className="flex">
-                      <div className="relative flex-1 rounded-md shadow-sm">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <Tag className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      </div>
-                      <input
-                        type="text"
-                          name="tags"
-                          id="tags"
-                          className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
-                          placeholder={t('archivist.add_tag_placeholder')}
-                        value={tagInput}
-                        onChange={handleTagInputChange}
-                        onKeyDown={handleTagInputKeyDown}
-                      />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleAddTag}
-                        className="ml-3 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                      >
-                        <Plus className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                        {t('archivist.add_tag')}
-                      </button>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Tag className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
+                    <input
+                      type="text"
+                      name="tags"
+                      id="tags"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                      placeholder={t('archivist.add_tag_placeholder')}
+                      value={tagInput}
+                      onChange={handleTagInputChange}
+                      onKeyDown={handleTagInputKeyDown}
+                    />
+                  </div>
                     
-                    {/* Display added tags */}
+                  {/* Display added tags */}
                   {searchParams.tags.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {searchParams.tags.map((tag, index) => (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {searchParams.tags.map((tag, index) => (
                         <span
-                            key={index}
-                            className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
+                          key={index}
+                          className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-300"
                         >
                           {tag}
                           <button
                             type="button"
                             onClick={() => handleRemoveTag(tag)}
-                              className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-500 focus:bg-gray-500 focus:text-white focus:outline-none"
+                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-500"
                           >
                             <span className="sr-only">{t('archivist.remove_tag')}</span>
                             <X className="h-3 w-3" aria-hidden="true" />
@@ -934,11 +917,10 @@ function AdvancedSearchPage() {
                     </div>
                   )}
                 </div>
-              </div>
 
                 {/* Semantic search toggle */}
                 <div className="sm:col-span-6">
-                  <div className="relative flex items-start">
+                  <div className="relative flex items-center">
                     <div className="flex h-6 items-center">
                       <input
                         id="useSemanticSearch"
@@ -949,11 +931,11 @@ function AdvancedSearchPage() {
                         onChange={handleInputChange}
                       />
                     </div>
-                    <div className="ml-3 text-sm leading-6">
-                      <label htmlFor="useSemanticSearch" className="font-medium text-gray-900">
+                    <div className="ml-2">
+                      <label htmlFor="useSemanticSearch" className="text-sm font-medium text-gray-700">
                         {t('archivist.use_semantic_search')}
                       </label>
-                      <p className="text-gray-500">{t('archivist.use_semantic_search_help')}</p>
+                      <p className="text-sm text-gray-500">{t('archivist.use_semantic_search_help')}</p>
                     </div>
                   </div>
                 </div>

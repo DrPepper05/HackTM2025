@@ -40,15 +40,15 @@ function TransferQueuePage() {
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'transfer_queue':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20'
       case 'archived':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20'
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-600/20'
       case 'rejected':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20'
     }
   }
 
@@ -371,13 +371,13 @@ function TransferQueuePage() {
         </div>
 
         {/* Filters and search */}
-        <div className="mb-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 bg-gray-50 p-4 rounded-lg shadow-sm">
+        <div className="mb-8 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-12 items-center bg-gray-50 p-4 rounded-lg shadow-sm">
           {/* Search */}
-          <div className="sm:col-span-2">
+          <div className="relative sm:col-span-4">
             <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.search_documents')}
             </label>
-            <div className="relative rounded-md shadow-sm">
+            <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
@@ -385,7 +385,7 @@ function TransferQueuePage() {
                 type="text"
                 name="search"
                 id="search"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 placeholder={t('archivist.search_documents')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -394,18 +394,18 @@ function TransferQueuePage() {
           </div>
 
           {/* Type filter */}
-          <div className="sm:col-span-2">
+          <div className="relative sm:col-span-4">
             <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.type_filter')}
             </label>
-            <div className="relative rounded-md shadow-sm">
+            <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Filter className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
               <select
                 id="type-filter"
                 name="type-filter"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
               >
@@ -419,19 +419,19 @@ function TransferQueuePage() {
             </div>
           </div>
 
-          {/* Sort */}
-          <div className="sm:col-span-1">
+          {/* Sort by */}
+          <div className="relative sm:col-span-2">
             <label htmlFor="sort-by" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.sort_by')}
             </label>
-            <div className="relative rounded-md shadow-sm">
+            <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <ArrowUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
               <select
                 id="sort-by"
                 name="sort-by"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 value={sortBy}
                 onChange={(e) => {
                   setSortBy(e.target.value)
@@ -448,15 +448,15 @@ function TransferQueuePage() {
           </div>
 
           {/* Sort direction */}
-          <div className="sm:col-span-1">
+          <div className="relative sm:col-span-2">
             <label htmlFor="sort-direction" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.sort_direction')}
             </label>
-            <div className="relative rounded-md shadow-sm">
+            <div className="relative">
               <select
                 id="sort-direction"
                 name="sort-direction"
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 value={sortDirection}
                 onChange={(e) => setSortDirection(e.target.value)}
               >
@@ -472,163 +472,66 @@ function TransferQueuePage() {
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <div className="overflow-hidden shadow-md ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
+                <table className="min-w-full divide-y divide-gray-300 table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th
-                        scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                      >
-                        <button
-                          type="button"
-                          className="group inline-flex items-center"
-                          onClick={() => handleSort('title')}
-                        >
-                          {t('archivist.document_title')}
-                          <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'title' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
-                          >
-                            {sortBy === 'title' && sortDirection === 'asc' ? (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            ) : (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
+                      <th scope="col" className="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('archivist.document_title')}
                       </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        <button
-                          type="button"
-                          className="group inline-flex items-center"
-                          onClick={() => handleSort('documentType')}
-                        >
-                          {t('archivist.document_type')}
-                          <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'documentType' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
-                          >
-                            {sortBy === 'documentType' && sortDirection === 'asc' ? (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            ) : (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
+                      <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('archivist.document_type')}
                       </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        <button
-                          type="button"
-                          className="group inline-flex items-center"
-                          onClick={() => handleSort('creator')}
-                        >
-                          {t('archivist.document_creator')}
-                          <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'creator' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
-                          >
-                            {sortBy === 'creator' && sortDirection === 'asc' ? (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            ) : (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
+                      <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('archivist.document_creator')}
                       </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        <button
-                          type="button"
-                          className="group inline-flex items-center"
-                          onClick={() => handleSort('dueDate')}
-                        >
-                          {t('archivist.due_date')}
-                          <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'dueDate' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
-                          >
-                            {sortBy === 'dueDate' && sortDirection === 'asc' ? (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            ) : (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
+                      <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('archivist.retention_end')}
                       </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        <button
-                          type="button"
-                          className="group inline-flex items-center"
-                          onClick={() => handleSort('status')}
-                        >
-                          {t('archivist.status')}
-                          <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'status' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
-                          >
-                            {sortBy === 'status' && sortDirection === 'asc' ? (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            ) : (
-                              <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
-                            )}
-                          </span>
-                        </button>
+                      <th scope="col" className="w-1/12 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('archivist.status')}
                       </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                        <span className="sr-only">{t('archivist.actions')}</span>
+                      <th scope="col" className="w-1/12 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('archivist.actions')}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {sortedDocuments.length === 0 ? (
                       <tr>
-                        <td
-                          colSpan="6"
-                          className="py-10 text-center text-sm font-medium text-gray-500"
-                        >
+                        <td colSpan="6" className="py-10 text-center text-sm font-medium text-gray-500">
                           {t('archivist.no_documents_found')}
                         </td>
                       </tr>
                     ) : (
                       sortedDocuments.map((document) => (
                         <tr key={document.id} className="hover:bg-gray-50">
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900 break-words">
                             {document.title}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm text-gray-500 break-words">
                             {document.documentTypeName}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm text-gray-500 break-words">
                             {document.creator}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <Clock className="mr-1.5 h-4 w-4 text-gray-400" />
-                              {formatDate(document.dueDate)}
-                            </div>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            {formatDate(document.retentionEndDate)}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeColor(document.status)}`}
-                            >
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap ${getStatusBadgeColor(document.status)}`}>
                               {document.statusName}
                             </span>
                           </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <div className="flex items-center justify-end space-x-2">
+                          <td className="px-6 py-4 text-right text-sm font-medium">
+                            <div className="flex justify-end space-x-3">
                               <button
                                 type="button"
                                 onClick={() => navigate(`/dashboard/archivist/document/${document.id}`)}
-                                className="rounded-full p-1 text-primary hover:bg-gray-100 hover:text-primary-dark"
+                                className="text-primary hover:text-primary-dark inline-flex items-center"
                                 title={t('common.view')}
                               >
-                                <Eye className="h-5 w-5" />
+                                <Eye className="h-4 w-4 mr-1" />
+                                {t('archivist.view')}
                               </button>
                               {getActionButton(document)}
                             </div>

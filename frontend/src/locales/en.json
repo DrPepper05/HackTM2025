@@ -136,7 +136,9 @@
     "audit_logs": "Audit Logs",
     "inventory_reports": "Inventory Reports",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "open_sidebar": "Open sidebar",
+    "close_sidebar": "Close sidebar"
   },
   "roles": {
     "clerk": "Clerk",
@@ -582,7 +584,14 @@
     "email": "Email",
     "role": "Role",
     "institution": "Institution",
-    "last_login": "Last Login"
+    "last_login": "Last Login",
+    "edit_user": "Edit User",
+    "edit_user_description": "Update user information and permissions",
+    "select_institution": "Select Institution",
+    "select_role": "Select Role",
+    "cancel": "Cancel",
+    "save_changes": "Save Changes",
+    "phone": "Phone Number"
   },
   "public": {
     "hero_title": "Access Public Records with Ease",
@@ -602,9 +611,7 @@
       "access_title": "Public Access",
       "access_desc": "Access publicly available documents instantly, with options to request access to restricted materials.",
       "compliance_title": "Legal Compliance",
-      "compliance_desc": "All documents are managed in accordance with Romania's Law 16/1996 and the latest digital archiving norms.",
-      "preservation_title": "Digital Preservation",
-      "preservation_desc": "Documents are preserved in digital format ensuring long-term accessibility and historical record keeping."
+      "compliance_desc": "All documents are managed in accordance with Romania's Law 16/1996 and the latest digital archiving norms."
     },
     "faq": {
       "title": "Frequently Asked Questions",
@@ -770,7 +777,8 @@
     "developed_by": "Developed by",
     "navigation": "Navigation",
     "legal": "Legal",
-    "connect": "Connect"
+    "connect": "Connect",
+    "description": "A modern platform for archiving and accessing historical documents"
   },
   "inspector": {
     "no_reports_found": "No reports found",
@@ -850,6 +858,13 @@
       "document_files": "Document Files",
       "retention_policies": "Retention Policies",
       "transfer_records": "Transfer Records"
-    }
+    },
+    "no_logs_found": "No Audit Logs Found",
+    "no_logs_found_description": "There are no audit logs matching your search criteria. Try adjusting your filters or search terms.",
+    "retention_permanent": "Permanent",
+    "retention_cs": "Current Session",
+    "retention_c": "Current",
+    "retention_ci": "Current + 1 year",
+    "retention_cf": "Current + Financial year"
   }
 }
