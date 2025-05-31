@@ -1,478 +1,276 @@
-import { supabaseAdmin, withMonitoring } from '../config/supabase.config'
-import { documentService } from './document.service'
-import { queueService } from './queue.service'
-import { Document, DocumentFile, RetentionCategory } from '../types/database.types'
+import { supabaseAdmin, withMonitoring } from '../config/supabase.config';
+import { documentService } from './document.service';
+import { queueService } from './queue.service';
+import { Document, DocumentFile, RetentionCategory, Json } from '../types/database.types'; // Added Json import
+import { storageService } from './storage.service';
 
+// AWS SDK Imports
+import { TextractClient, AnalyzeDocumentCommand } from '@aws-sdk/client-textract';
+// Import LanguageCode type from comprehend client
+import { ComprehendClient, DetectPiiEntitiesCommand, LanguageCode } from '@aws-sdk/client-comprehend';
+import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+
+// Interfaces (remain the same)
 export interface EnrichmentResult {
-  suggestedTitle?: string
-  predictedRetention?: RetentionCategory
-  detectedPII: PIIDetection[]
-  extractedText?: string
-  confidence: number
-  metadata: Record<string, any>
+  suggestedTitle?: string;
+  predictedRetention?: RetentionCategory;
+  detectedPII: PIIDetection[];
+  extractedText?: string;
+  confidence: number;
+  metadata: Record<string, any>;
 }
 
 export interface PIIDetection {
-  type: 'PERSONAL_ID' | 'EMAIL' | 'PHONE' | 'ADDRESS' | 'NAME' | 'FINANCIAL'
-  value: string
-  confidence: number
-  position: { start: number; end: number }
-  suggestions?: {
-    redactWith: string
-    category: 'FULL_REDACT' | 'PARTIAL_REDACT' | 'MASK'
-  }
+  type: 'PERSONAL_ID' | 'EMAIL' | 'PHONE' | 'ADDRESS' | 'NAME' | 'FINANCIAL' | 'OTHER';
+  value: string;
+  confidence: number;
+  position: { start: number; end: number };
 }
 
-export interface OCRResult {
-  text: string
-  confidence: number
-  metadata: {
-    language: string
-    pageCount: number
-    processingTime: number
-  }
-}
-
-// Type for document with joined files
 type DocumentWithFiles = Document & {
-  document_files?: DocumentFile[]
-}
+  document_files?: DocumentFile[];
+};
+
+// Initialize AWS Clients
+const awsRegion = process.env.AWS_REGION || 'eu-central-1';
+const textractClient = new TextractClient({ region: awsRegion });
+const comprehendClient = new ComprehendClient({ region: awsRegion });
+const bedrockClient = new BedrockRuntimeClient({ region: awsRegion });
+
+const piiTypeMap: Record<string, PIIDetection['type']> = {
+    'NAME': 'NAME',
+    'ADDRESS': 'ADDRESS',
+    'EMAIL': 'EMAIL',
+    'PHONE': 'PHONE',
+    'PIN': 'PERSONAL_ID',
+    'BANK_ACCOUNT_NUMBER': 'FINANCIAL',
+    'CREDIT_DEBIT_NUMBER': 'FINANCIAL',
+    'PASSPORT_NUMBER': 'PERSONAL_ID',
+    'SSN': 'PERSONAL_ID',
+    // AWS Comprehend PII types for Romanian often include AWS_ prefix or specifics
+    'RO_PASSPORT_NUMBER': 'PERSONAL_ID',
+    'RO_IDENTITY_CARD_NUMBER': 'PERSONAL_ID',
+    'RO_CNP': 'PERSONAL_ID', // Cod Numeric Personal
+    'RO_PHONE_NUMBER': 'PHONE',
+    // Add more mappings as needed based on Comprehend's output for Romanian
+};
 
 export class EnrichmentService {
-  /**
-   * Process a document for enrichment
-   */
   async enrichDocument(documentId: string): Promise<EnrichmentResult> {
-    return withMonitoring('enrich', 'documents', async () => {
-      // Get document and its files
-      const document = await documentService.getDocumentById(documentId) as DocumentWithFiles
-      if (!document) {
-        throw new Error('Document not found')
+    return withMonitoring('enrich_aws', 'documents', async () => {
+      const document = (await documentService.getDocumentById(documentId)) as DocumentWithFiles;
+      if (!document) throw new Error('Document not found');
+
+      const originalFile = document.document_files?.find(f => f.file_type === 'original');
+      if (!originalFile) throw new Error('Original file not found for document');
+
+      const { data: fileBuffer } = await storageService.downloadFile(
+        originalFile.storage_bucket,
+        originalFile.storage_key,
+      );
+
+      const ocrText = await this._performOCR(fileBuffer);
+      if (!ocrText) {
+        await this.updateDocumentWithError(documentId, 'Textract returned no text.');
+        throw new Error('OCR extraction failed or returned no text.');
       }
 
-      // Process all original files
-      const enrichmentResults: EnrichmentResult[] = []
-      
-      if (document.document_files) {
-        for (const file of document.document_files) {
-          if (file.file_type === 'original') {
-            const result = await this.processFile(documentId, file.id)
-            enrichmentResults.push(result)
-          }
-        }
-      }
+      await this.updateOcrResult(originalFile.id, ocrText);
 
-      // Combine results
-      const finalResult = this.combineEnrichmentResults(enrichmentResults)
+      const [piiDetections, aiAnalysis] = await Promise.all([
+        this._detectPII(ocrText),
+        this._analyzeTextWithAI(ocrText),
+      ]);
 
-      // Update document with enrichment results
-      await this.updateDocumentWithEnrichment(documentId, finalResult)
+      const finalResult: EnrichmentResult = {
+        suggestedTitle: aiAnalysis.title,
+        predictedRetention: aiAnalysis.retention_category as RetentionCategory,
+        detectedPII: piiDetections,
+        extractedText: ocrText,
+        confidence: aiAnalysis.confidence,
+        metadata: {
+          fileId: originalFile.id,
+          documentTypeFromAI: aiAnalysis.document_type,
+          language: 'ro',
+        },
+      };
 
-      // Log enrichment completion
+      await this.updateDocumentWithEnrichment(documentId, finalResult);
+
       await supabaseAdmin.rpc('create_audit_log', {
         p_action: 'DOCUMENT_ENRICHED',
         p_entity_type: 'document',
         p_entity_id: documentId,
-        p_details: {
-          suggested_title: finalResult.suggestedTitle,
-          predicted_retention: finalResult.predictedRetention,
-          pii_count: finalResult.detectedPII.length,
-          confidence: finalResult.confidence
-        }
-      })
+        p_details: { provider: 'aws', ...finalResult },
+      });
 
-      return finalResult
-    })
+      return finalResult;
+    });
   }
 
-  /**
-   * Process individual file for OCR and analysis
-   */
-  async processFile(documentId: string, fileId: string): Promise<EnrichmentResult> {
-    // In a real implementation, this would:
-    // 1. Download file from S3
-    // 2. Run OCR (Tesseract, AWS Textract, etc.)
-    // 3. Run AI analysis for title/retention prediction
-    // 4. Run PII detection algorithms
+  private async _performOCR(fileBuffer: Buffer): Promise<string> {
+    console.log('Performing OCR with AWS Textract...');
+    const command = new AnalyzeDocumentCommand({
+      Document: { Bytes: fileBuffer },
+      FeatureTypes: ['FORMS', 'TABLES'],
+    });
 
-    // Mock implementation for hackathon
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate processing
-
-    const mockOCRText = this.generateMockOCRText()
-    const piiDetections = this.detectPII(mockOCRText)
-    const suggestedTitle = this.generateTitleSuggestion(mockOCRText)
-    const predictedRetention = this.predictRetentionCategory(mockOCRText)
-
-    // Store OCR text in file record
-    await supabaseAdmin
-      .from('document_files')
-      .update({
-        ocr_text: mockOCRText,
-        ocr_confidence: 0.95,
-        processing_metadata: {
-          processed_at: new Date().toISOString(),
-          engine: 'mock-ocr',
-          language: 'ro'
-        }
-      })
-      .eq('id', fileId)
-
-    return {
-      suggestedTitle,
-      predictedRetention,
-      detectedPII: piiDetections,
-      extractedText: mockOCRText,
-      confidence: 0.85,
-      metadata: {
-        fileId,
-        processingEngine: 'mock-ai',
-        language: 'romanian'
-      }
-    }
+    const response = await textractClient.send(command);
+    return response.Blocks?.filter(block => block.BlockType === 'LINE')
+                           .map(block => block.Text || '')
+                           .join('\n') || '';
   }
 
-  /**
-   * Queue document for enrichment
-   */
-  async queueDocumentEnrichment(documentId: string, priority: number = 5): Promise<string> {
-    return queueService.enqueueTask({
-      type: 'DOCUMENT_ENRICHMENT',
-      payload: { documentId },
-      priority
-    })
-  }
+  private async _detectPII(text: string): Promise<PIIDetection[]> {
+    console.log('Detecting PII with AWS Comprehend...');
+    const textToAnalyze = text.substring(0, 4999);
+    
+    const command = new DetectPiiEntitiesCommand({
+      Text: textToAnalyze,
+      // FIX: Use the imported LanguageCode enum from the SDK
+      // For Romanian, the value is 'ro'. The SDK should have a member for it.
+      // If LanguageCode.RO doesn't exist, then 'ro' as LanguageCode might be necessary if the enum isn't comprehensive
+      // or the string literal type requires it. Let's try explicitly using 'ro' and ensure it's a valid member of the LanguageCode type.
+      LanguageCode: 'ro' as LanguageCode,
+    });
 
-  /**
-   * Generate redacted version of document
-   */
-  async generateRedactedVersion(
-    documentId: string,
-    piiToRedact: string[] = ['PERSONAL_ID', 'EMAIL', 'PHONE']
-  ): Promise<string> {
-    return withMonitoring('redact', 'document_files', async () => {
-      const document = await documentService.getDocumentById(documentId) as DocumentWithFiles
-      if (!document) {
-        throw new Error('Document not found')
-      }
+    const response = await comprehendClient.send(command);
 
-      // Get original file with OCR text
-      const originalFile = document.document_files?.find((f: DocumentFile) => f.file_type === 'original')
-      if (!originalFile?.ocr_text) {
-        throw new Error('No OCR text available for redaction')
-      }
-
-      // Apply redaction
-      const redactedText = this.applyRedaction(originalFile.ocr_text, piiToRedact)
-
-      // Create redacted file record
-      const redactedBuffer = Buffer.from(redactedText, 'utf-8')
-      
-      const redactedFile = await documentService.addDocumentFile(
-        documentId,
-        {
-          buffer: redactedBuffer,
-          originalname: `redacted_${originalFile.file_name}`,
-          mimetype: 'text/plain',
-          size: redactedBuffer.length
-        },
-        'redacted',
-        'system'
+    return (response.Entities || [])
+      .filter(entity => 
+        entity.Type !== undefined &&
+        entity.BeginOffset !== undefined &&
+        entity.EndOffset !== undefined
       )
-
-      return redactedFile.id
-    })
+      .map((entity): PIIDetection => ({
+        type: piiTypeMap[entity.Type!] || 'OTHER', // entity.Type! is safe due to filter
+        value: textToAnalyze.substring(entity.BeginOffset!, entity.EndOffset!), // Safe due to filter
+        confidence: entity.Score || 0,
+        position: {
+          start: entity.BeginOffset!, // Safe due to filter
+          end: entity.EndOffset!,   // Safe due to filter
+        },
+      }));
   }
 
-  /**
-   * Extract and classify document metadata
-   */
-  async extractMetadata(text: string): Promise<Record<string, any>> {
-    // Mock metadata extraction
-    const metadata: Record<string, any> = {
-      wordCount: text.split(' ').length,
-      language: 'romanian',
-      extractedDates: this.extractDates(text),
-      extractedNumbers: this.extractNumbers(text),
-      documentStructure: {
-        hasHeader: text.includes('\n'),
-        hasFooter: false,
-        pageCount: 1
-      }
-    }
+  private async _analyzeTextWithAI(text: string): Promise<{ title: string; retention_category: string; document_type: string; confidence: number; }> {
+    console.log('Analyzing text with Amazon Bedrock (Claude)...');
+    const prompt = `\n\nHuman: Analizează acest text extras dintr-un document oficial românesc și returnează un obiect JSON valid. Text:
+---
+${text.substring(0, 20000)} 
+---
+Returnează un obiect JSON cu următoarele câmpuri:
+1. "title": Un titlu scurt și sugestiv (max 15 cuvinte).
+2. "document_type": Clasifică documentul în una din categoriile: 'contract', 'decision', 'report', 'correspondence', 'legal', 'financial', 'other'.
+3. "retention_category": Prezice perioada de retenție. Alege una dintre: '10y', '30y', 'permanent'.
+4. "confidence": Un scor de încredere (între 0.0 și 1.0) pentru predicțiile tale.
 
-    // Try to extract contract/legal document specific info
-    if (this.isContract(text)) {
-      metadata.documentType = 'contract'
-      metadata.contractParties = this.extractContractParties(text)
-    } else if (this.isDecision(text)) {
-      metadata.documentType = 'decision'
-      metadata.decisionNumber = this.extractDecisionNumber(text)
-    }
+Asigură-te că output-ul este doar obiectul JSON, fără text adițional.
 
-    return metadata
-  }
+\n\nAssistant:`;
 
-  /**
-   * Private helper methods
-   */
-  private generateMockOCRText(): string {
-    const templates = [
-      `CONTRACT DE ACHIZIȚIE PUBLICĂ
-Nr. 12345/2024
-Data: 15.03.2024
+    const command = new InvokeModelCommand({
+        modelId: 'anthropic.claude-v2:1',
+        contentType: 'application/json',
+        accept: 'application/json',
+        body: JSON.stringify({
+            prompt: prompt,
+            max_tokens_to_sample: 1000,
+            temperature: 0.1,
+        }),
+    });
 
-Contractant: PRIMĂRIA MUNICIPIULUI BUCUREȘTI
-CUI: 4267205
-Adresa: Bd. Regina Elisabeta nr. 47, Sector 5, București
-
-Furnizor: SC EXAMPLE SRL
-CUI: 8765432
-Adresa: Str. Exemplu nr. 10, Sector 1, București
-
-Obiectul contractului: Achiziție materiale de curățenie
-Valoare: 50.000 RON (fără TVA)`,
-
-      `HOTĂRÂRE
-Nr. 245/2024
-Data: 20.03.2024
-
-Consiliul Local al Municipiului Cluj-Napoca
-
-În temeiul art. 123 din Legea 215/2001
-HOTĂRĂȘTE:
-
-Art. 1. Se aprobă bugetul local pentru anul 2024
-Art. 2. Hotărârea intră în vigoare la data adoptării
-
-Primar: Ion POPESCU`,
-
-      `RAPORT DE ACTIVITATE
-Data: 01.04.2024
-Departament: Resurse Umane
-
-Activități desfășurate în luna martie 2024:
-- Recrutare personal nou: 5 persoane
-- Evaluări anuale: 25 persoane  
-- Formare profesională: 15 cursanți
-
-Contact: hr@example.ro
-Telefon: 0721123456`
-    ]
-
-    return templates[Math.floor(Math.random() * templates.length)]
-  }
-
-  private detectPII(text: string): PIIDetection[] {
-    const detections: PIIDetection[] = []
-
-    // Romanian CNP pattern
-    const cnpPattern = /\b\d{13}\b/g
-    let match
-    while ((match = cnpPattern.exec(text)) !== null) {
-      detections.push({
-        type: 'PERSONAL_ID',
-        value: match[0],
-        confidence: 0.95,
-        position: { start: match.index, end: match.index + match[0].length },
-        suggestions: {
-          redactWith: 'XXX-XXX-XXX',
-          category: 'FULL_REDACT'
+    const response = await bedrockClient.send(command);
+    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+    
+    try {
+        // Attempt to find JSON within the completion, as Claude sometimes adds leading/trailing text
+        const jsonMatch = responseBody.completion.match(/\{[\s\S]*\}/);
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]);
         }
-      })
+        throw new Error("No valid JSON object found in Bedrock completion.");
+    } catch (e) {
+        console.error("Failed to parse Bedrock response as JSON. Raw completion:", responseBody.completion, "Error:", e);
+        // Fallback if parsing fails, to prevent crashing the entire process
+        return {
+            title: "AI Analysis Failed",
+            document_type: "other",
+            retention_category: "10y",
+            confidence: 0.1
+        };
     }
-
-    // Email pattern
-    const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g
-    while ((match = emailPattern.exec(text)) !== null) {
-      detections.push({
-        type: 'EMAIL',
-        value: match[0],
-        confidence: 0.90,
-        position: { start: match.index, end: match.index + match[0].length },
-        suggestions: {
-          redactWith: 'email@redacted.ro',
-          category: 'PARTIAL_REDACT'
-        }
-      })
-    }
-
-    // Romanian phone pattern
-    const phonePattern = /\b(\+4|04|07)\d{8,9}\b/g
-    while ((match = phonePattern.exec(text)) !== null) {
-      detections.push({
-        type: 'PHONE',
-        value: match[0],
-        confidence: 0.85,
-        position: { start: match.index, end: match.index + match[0].length },
-        suggestions: {
-          redactWith: '07XX-XXX-XXX',
-          category: 'MASK'
-        }
-      })
-    }
-
-    return detections
   }
 
-  private generateTitleSuggestion(text: string): string {
-    const firstLines = text.split('\n').slice(0, 3)
+  private async updateDocumentWithError(documentId: string, errorMessage: string) {
+    const currentDoc = await documentService.getDocumentById(documentId);
     
-    for (const line of firstLines) {
-      const trimmed = line.trim()
-      if (trimmed.length > 10 && trimmed.length < 100) {
-        // Clean up common document prefixes
-        return trimmed
-          .replace(/^(CONTRACT|HOTĂRÂRE|RAPORT|DECIZIE)\s*/i, '')
-          .replace(/^Nr\.?\s*\d+\/\d+\s*/i, '')
-          .trim()
-      }
-    }
+    // FIX: Ensure metadata is treated as an object before spreading
+    const existingMetadata = (currentDoc?.metadata && typeof currentDoc.metadata === 'object' && !Array.isArray(currentDoc.metadata)) 
+        ? currentDoc.metadata 
+        : {};
 
-    return 'Document fără titlu identificat'
-  }
-
-  private predictRetentionCategory(text: string): RetentionCategory {
-    const lowerText = text.toLowerCase()
-    
-    // Permanent retention indicators
-    if (lowerText.includes('constituțional') || 
-        lowerText.includes('patrimoniu') ||
-        lowerText.includes('arhivă națională')) {
-      return 'permanent'
-    }
-    
-    // 30 year retention indicators
-    if (lowerText.includes('contract') || 
-        lowerText.includes('hotărâre') ||
-        lowerText.includes('decizie')) {
-      return '30y'
-    }
-    
-    // Default to 10 years
-    return '10y'
-  }
-
-  private combineEnrichmentResults(results: EnrichmentResult[]): EnrichmentResult {
-    if (results.length === 0) {
-      return {
-        detectedPII: [],
-        confidence: 0,
-        metadata: {}
-      }
-    }
-
-    const combined: EnrichmentResult = {
-      detectedPII: [],
-      confidence: 0,
-      metadata: {}
-    }
-
-    // Take the best title suggestion
-    const titledResult = results.find(r => r.suggestedTitle)
-    if (titledResult) {
-      combined.suggestedTitle = titledResult.suggestedTitle
-    }
-
-    // Take the most confident retention prediction
-    const retentionResult = results
-      .filter(r => r.predictedRetention)
-      .sort((a, b) => b.confidence - a.confidence)[0]
-    if (retentionResult) {
-      combined.predictedRetention = retentionResult.predictedRetention
-    }
-
-    // Combine all PII detections
-    results.forEach(result => {
-      combined.detectedPII.push(...result.detectedPII)
-    })
-
-    // Average confidence
-    combined.confidence = results.reduce((sum, r) => sum + r.confidence, 0) / results.length
-
-    // Combine metadata
-    results.forEach(result => {
-      Object.assign(combined.metadata, result.metadata)
-    })
-
-    return combined
-  }
-
-  private async updateDocumentWithEnrichment(
-    documentId: string, 
-    enrichment: EnrichmentResult
-  ): Promise<void> {
     await supabaseAdmin
-      .from('documents')
-      .update({
-        ai_suggested_title: enrichment.suggestedTitle,
-        ai_predicted_retention: enrichment.predictedRetention,
-        ai_detected_pii: enrichment.detectedPII,
-        metadata: {
-          ...enrichment.metadata,
-          enrichment_completed_at: new Date().toISOString(),
-          enrichment_confidence: enrichment.confidence
-        }
-      })
-      .eq('id', documentId)
+        .from('documents')
+        .update({
+             metadata: { 
+                ...existingMetadata,
+                error: errorMessage,
+                enrichment_failed_at: new Date().toISOString() 
+            }
+            // Optionally keep status as 'INGESTING' or a specific error status if you add one
+        })
+        .eq('id', documentId);
   }
 
-  private applyRedaction(text: string, piiTypes: string[]): string {
-    let redactedText = text
-
-    // This is a simplified redaction - in production you'd use the actual PII positions
-    if (piiTypes.includes('PERSONAL_ID')) {
-      redactedText = redactedText.replace(/\b\d{13}\b/g, 'XXX-XXX-XXX')
+  private async updateOcrResult(fileId: string, ocrText: string) {
+      await supabaseAdmin
+        .from('document_files')
+        .update({
+          ocr_text: ocrText,
+          ocr_confidence: 0.95, 
+          processing_metadata: { processed_at: new Date().toISOString(), engine: 'aws-textract' }
+        })
+        .eq('id', fileId);
+  }
+  
+  private async updateDocumentWithEnrichment(documentId: string, enrichment: EnrichmentResult) {
+    const currentDoc = await documentService.getDocumentById(documentId);
+    if (!currentDoc) {
+        console.error(`Could not find document ${documentId} to update with enrichment results.`);
+        return;
     }
-    
-    if (piiTypes.includes('EMAIL')) {
-      redactedText = redactedText.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, 'email@redacted.ro')
-    }
-    
-    if (piiTypes.includes('PHONE')) {
-      redactedText = redactedText.replace(/\b(\+4|04|07)\d{8,9}\b/g, '07XX-XXX-XXX')
-    }
 
-    return redactedText
+    // FIX: Ensure metadata is treated as an object before spreading
+    const existingMetadata = (currentDoc.metadata && typeof currentDoc.metadata === 'object' && !Array.isArray(currentDoc.metadata))
+        ? currentDoc.metadata
+        : {};
+
+    await supabaseAdmin
+        .from('documents')
+        .update({
+            status: 'ACTIVE_STORAGE',
+            ai_suggested_title: enrichment.suggestedTitle,
+            ai_predicted_retention: enrichment.predictedRetention,
+            ai_detected_pii: enrichment.detectedPII,
+            metadata: {
+                ...existingMetadata,
+                enrichment_completed_at: new Date().toISOString(),
+                enrichment_confidence: enrichment.confidence,
+                documentTypeFromAI: enrichment.metadata.documentTypeFromAI,
+            },
+            document_type: currentDoc.document_type || enrichment.metadata.documentTypeFromAI,
+        })
+        .eq('id', documentId);
   }
-
-  private extractDates(text: string): string[] {
-    const datePattern = /\b\d{1,2}[./-]\d{1,2}[./-]\d{4}\b/g
-    return Array.from(text.matchAll(datePattern), m => m[0])
-  }
-
-  private extractNumbers(text: string): string[] {
-    const numberPattern = /\bNr\.?\s*(\d+\/\d+|\d+)\b/gi
-    return Array.from(text.matchAll(numberPattern), m => m[1])
-  }
-
-  private isContract(text: string): boolean {
-    return /\bcontract\b/i.test(text)
-  }
-
-  private isDecision(text: string): boolean {
-    return /\b(hotărâre|decizie)\b/i.test(text)
-  }
-
-  private extractContractParties(text: string): string[] {
-    // Simplified extraction
-    const parties = []
-    const contractorPattern = /Contractant:\s*([^\n]+)/i
-    const supplierPattern = /Furnizor:\s*([^\n]+)/i
-    
-    const contractorMatch = text.match(contractorPattern)
-    if (contractorMatch) parties.push(contractorMatch[1].trim())
-    
-    const supplierMatch = text.match(supplierPattern)
-    if (supplierMatch) parties.push(supplierMatch[1].trim())
-    
-    return parties
-  }
-
-  private extractDecisionNumber(text: string): string | null {
-    const numberPattern = /Nr\.?\s*(\d+\/\d+)/i
-    const match = text.match(numberPattern)
-    return match ? match[1] : null
+  
+  async queueDocumentEnrichment(documentId: string, priority: number = 5): Promise<string> {
+      return queueService.enqueueTask({
+          type: 'DOCUMENT_ENRICHMENT',
+          payload: { documentId },
+          priority,
+      });
   }
 }
 
-export const enrichmentService = new EnrichmentService() 
+export const enrichmentService = new EnrichmentService();

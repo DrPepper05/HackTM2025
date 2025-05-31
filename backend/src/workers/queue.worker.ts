@@ -112,7 +112,7 @@ export class QueueWorker {
           result = await this.processDocumentEnrichment(task)
           break
 
-        case 'OCR_PROCESSING':
+        case 'OCR_PROCESSING': // This case was updated in a previous step
           result = await this.processOCR(task)
           break
 
@@ -145,13 +145,15 @@ export class QueueWorker {
 
       // Check if we should retry
       const maxAttempts = task.max_attempts || 3
-      const shouldRetry = task.attempts < maxAttempts
+      const shouldRetry = task.attempts < maxAttempts // task.attempts is from the DB record
 
       if (shouldRetry) {
         // Calculate exponential backoff delay (in seconds)
-        const delay = Math.min(300, Math.pow(2, task.attempts) * 30) // Max 5 minutes
+        // Ensure task.attempts is a number before using in Math.pow
+        const currentAttempts = typeof task.attempts === 'number' ? task.attempts : 0;
+        const delay = Math.min(300, Math.pow(2, currentAttempts) * 30) // Max 5 minutes
 
-        console.log(`Retrying task ${task.id} in ${delay} seconds (attempt ${task.attempts + 1}/${maxAttempts})`)
+        console.log(`Retrying task ${task.id} in ${delay} seconds (attempt ${currentAttempts + 1}/${maxAttempts})`)
 
         await queueService.retryTask(task.id, delay)
       } else {
@@ -160,8 +162,8 @@ export class QueueWorker {
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error'
         })
-
-        console.log(`Task ${task.id} permanently failed after ${task.attempts} attempts`)
+        const finalAttempts = typeof task.attempts === 'number' ? task.attempts : 'unknown';
+        console.log(`Task ${task.id} permanently failed after ${finalAttempts} attempts`)
       }
     }
   }
@@ -170,48 +172,54 @@ export class QueueWorker {
    * Process document enrichment task
    */
   private async processDocumentEnrichment(task: ProcessingQueueTask): Promise<any> {
-    const payload = task.payload as any
-    const { documentId } = payload
+    // Cast payload to a more specific type for better type safety if you know its structure.
+    // For now, we'll assert the specific property we need.
+    const payload = task.payload as { document_id?: string; [key: string]: any };
+    
+    // FIX: Correctly destructure document_id and rename it to documentId
+    const documentId = payload.document_id; 
 
-    if (!documentId) {
-      throw new Error('Document ID is required for enrichment')
+    if (!documentId) { // This check should now pass if document_id exists in the payload
+      console.error('Task payload missing document_id:', JSON.stringify(payload));
+      throw new Error('Document ID (document_id) is required in the task payload for enrichment');
     }
 
+    console.log(`[QueueWorker] Starting enrichment for documentId: ${documentId}`);
     // Run all enrichment processes
-    const results = await enrichmentService.enrichDocument(documentId)
+    const results = await enrichmentService.enrichDocument(documentId);
 
     return {
       documentId,
       enrichmentResults: results,
       processedAt: new Date().toISOString()
-    }
+    };
   }
+
 
   /**
    * Process OCR task
    */
   private async processOCR(task: ProcessingQueueTask): Promise<any> {
-    const payload = task.payload as any
-    const { documentId, fileKey, language = 'ro' } = payload
+    const payload = task.payload as any; // Consider defining a type for this payload
+    const { documentId } = payload;
 
-    if (!documentId || !fileKey) {
-      throw new Error('Document ID and file key are required for OCR')
+    if (!documentId) {
+      throw new Error('Document ID is required for OCR processing');
     }
 
-    // For now, we'll use the enrichment service's processFile functionality
-    // In a real implementation, this might be a separate OCR service
-    const enrichmentResult = await enrichmentService.processFile(documentId, fileKey)
+    // The main enrichment process now includes OCR.
+    // We will call the same function as the DOCUMENT_ENRICHMENT task.
+    console.log(`Forwarding OCR_PROCESSING task for document ${documentId} to the main enrichment service.`);
+    const results = await enrichmentService.enrichDocument(documentId);
 
     return {
       documentId,
-      fileKey,
       ocrResult: {
-        text: enrichmentResult.extractedText,
-        confidence: enrichmentResult.confidence
+        text: results.extractedText,
+        confidence: results.confidence, // This confidence is for the whole enrichment result
       },
-      language,
-      processedAt: new Date().toISOString()
-    }
+      processedAt: new Date().toISOString(),
+    };
   }
 
   /**
@@ -247,19 +255,20 @@ export class QueueWorker {
    * Process redaction task
    */
   private async processRedaction(task: ProcessingQueueTask): Promise<any> {
-    const payload = task.payload as any
+    const payload = task.payload as any // Consider defining a type for this payload
     const { documentId, redactionRules } = payload
 
     if (!documentId) {
       throw new Error('Document ID is required for redaction')
     }
 
-    // For now, we'll simulate redaction
+    // This would implement the actual redaction logic using enrichmentService.generateRedactedVersion
     console.log(`Performing redaction on document ${documentId} with rules:`, redactionRules)
+    // Example: await enrichmentService.generateRedactedVersion(documentId, redactionRules);
 
     return {
       documentId,
-      redactionResult: { status: 'completed', rulesApplied: redactionRules || [] },
+      redactionResult: { status: 'completed_mock', rulesApplied: redactionRules || [] },
       processedAt: new Date().toISOString()
     }
   }
@@ -268,7 +277,7 @@ export class QueueWorker {
    * Process transfer preparation task
    */
   private async processTransferPrep(task: ProcessingQueueTask): Promise<any> {
-    const payload = task.payload as any
+    const payload = task.payload as any // Consider defining a type for this payload
     const { documentId, reason } = payload
 
     if (!documentId) {
@@ -276,13 +285,13 @@ export class QueueWorker {
     }
 
     // This would implement the actual transfer preparation logic
-    // For now, we'll just mark it as prepared
+    // e.g., generating BagIt packages, metadata files for National Archives
     console.log(`Preparing document ${documentId} for transfer: ${reason}`)
 
     return {
       documentId,
       reason,
-      status: 'prepared',
+      status: 'prepared_mock', // Placeholder status
       processedAt: new Date().toISOString()
     }
   }
@@ -293,7 +302,7 @@ export class QueueWorker {
   getStatus(): {
     isRunning: boolean
     pollInterval: number
-    uptime?: number
+    uptime?: number // Uptime could be added if needed
   } {
     return {
       isRunning: this.isRunning,
@@ -309,11 +318,17 @@ export const queueWorker = new QueueWorker()
 process.on('SIGINT', () => {
   console.log('Received SIGINT, stopping queue worker...')
   queueWorker.stop()
-  process.exit(0)
+  process.exit(0) // Exit after stopping
 })
 
 process.on('SIGTERM', () => {
   console.log('Received SIGTERM, stopping queue worker...')
   queueWorker.stop()
-  process.exit(0)
+  process.exit(0) // Exit after stopping
 }) 
+
+// Actually start the worker when this script is run directly
+queueWorker.start().catch(error => {
+  console.error('Failed to start queue worker:', error);
+  process.exit(1); // Exit if start fails
+});
