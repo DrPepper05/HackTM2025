@@ -271,7 +271,12 @@
     "status_approved": "Approved",
     "status_pending_review": "Pending Review",
     "status_registered": "Registered",
-    "status_rejected": "Rejected"
+    "status_rejected": "Rejected",
+    "review_and_submit": "Review and Submit",
+    "uploaded_files": "Uploaded Files",
+    "review_and_submit_description": "Review your files before submission",
+    "previous_step": "Previous Step",
+    "submit_document": "Submit Document"
   },
   "archivist": {
     "ingestQueue": {

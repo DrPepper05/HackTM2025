@@ -35,54 +35,126 @@ export class DocumentController {
    * Create new document with file upload
    */
   createDocument = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.userId!
+    // const userId = req.userId!
     
-    // Handle file upload first
-    await new Promise<void>((resolve, reject) => {
-      upload(req, res, (err) => {
-        if (err) reject(err)
-        else resolve()
-      })
-    })
+    // // Handle file upload first
+    // await new Promise<void>((resolve, reject) => {
+    //   upload(req, res, (err) => {
+    //     if (err) reject(err)
+    //     else resolve()
+    //   })
+    // })
 
-    const file = req.file as Express.Multer.File
-    if (!file) {
-      return res.status(400).json({
+    // const file = req.file as Express.Multer.File
+    // if (!file) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'No file uploaded'
+    //   })
+    // }
+
+    // const {
+    //   title,
+    //   description,
+    //   document_type,
+    //   retention_category,
+    //   tags,
+    //   creation_date,
+    //   is_public = false
+    // } = req.body
+
+    // // Parse tags if they come as string
+    // const parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags
+
+    // const metadata = {
+    //   title,
+    //   description,
+    //   document_type,
+    //   retention_category,
+    //   tags: parsedTags,
+    //   creation_date,
+    //   is_public
+    // }
+
+    // const document = await documentService.createDocument(file, metadata, userId)
+
+    // res.status(201).json({
+    //   success: true,
+    //   message: 'Document created successfully',
+    //   data: document
+    // })
+    try {
+      const userId = req.userId!;
+      console.log('🔐 User ID:', userId);
+  
+      // Handle file upload using multer
+      await new Promise<void>((resolve, reject) => {
+        upload(req, res, (err) => {
+          if (err) {
+            console.error('❌ Multer error:', err);
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+  
+      const file = req.file;
+      if (!file) {
+        console.error('⚠️ No file uploaded');
+        return res.status(400).json({
+          success: false,
+          message: 'No file uploaded',
+        });
+      }
+  
+      const {
+        title,
+        description,
+        document_type,
+        retention_category,
+        tags,
+        creation_date,
+        is_public = false,
+      } = req.body;
+  
+      let parsedTags;
+      try {
+        parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+      } catch (err) {
+        console.error('⚠️ Invalid tags format');
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid tags format',
+        });
+      }
+  
+      const metadata = {
+        title,
+        description,
+        document_type,
+        retention_category,
+        tags: parsedTags,
+        creation_date,
+        is_public,
+      };
+  
+      console.log('📄 Metadata:', metadata);
+      console.log('📎 File uploaded:', file.originalname);
+  
+      const document = await documentService.createDocument(file, metadata, userId);
+  
+      return res.status(201).json({
+        success: true,
+        message: 'Document created successfully',
+        data: document,
+      });
+    } catch (error) {
+      console.error('💥 Internal error in createDocument:', error);
+      return res.status(500).json({
         success: false,
-        message: 'No file uploaded'
-      })
+        message: 'Internal server error',
+      });
     }
-
-    const {
-      title,
-      description,
-      document_type,
-      retention_category,
-      tags,
-      creation_date,
-      is_public = false
-    } = req.body
-
-    // Parse tags if they come as string
-    const parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags
-
-    const metadata = {
-      title,
-      description,
-      document_type,
-      retention_category,
-      tags: parsedTags,
-      creation_date,
-      is_public
-    }
-
-    const document = await documentService.createDocument(file, metadata, userId)
-
-    res.status(201).json({
-      success: true,
-      message: 'Document created successfully',
-      data: document
-    })
   })
 
   /**
