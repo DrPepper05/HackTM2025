@@ -1,6 +1,8 @@
 {
   "name": "hacktm2025-runner",
+  "name": "hacktm2025-runner",
   "version": "1.0.0",
+  "private": true,
   "private": true,
   "scripts": {
     "install-all": "npm --prefix frontend install && npm --prefix backend install",
