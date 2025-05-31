@@ -11,8 +11,19 @@ import {
 import { createHash } from 'crypto'
 import { v4 as uuidv4 } from 'uuid'
 import { calculateChecksum } from '../utils/checksum.util'
-import { extractTextFromDocument } from './textract'
-import { saveFileLocally, cleanupLocalFile } from './storage'
+import { 
+  TextractClient,
+  DetectDocumentTextCommand
+} from '@aws-sdk/client-textract'
+
+// Create Textract client
+const textractClient = new TextractClient({
+  region: process.env.AWS_REGION || 'eu-central-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
+  }
+})
 
 // Extended Document type that includes related files
 interface DocumentWithFiles extends Document {
@@ -501,12 +512,10 @@ export class DocumentService {
      * Compatible with the old documentService functionality
      */
     private async processDocumentWithTextract(documentId: string, fileId: string): Promise<void> {
-      let localFilePath: string | null = null;
-      
       try {
         console.log(`[DocumentService] Starting Textract processing for document ${documentId}, file ${fileId}`);
         
-        // 1. Download file from S3 to local storage
+        // 1. Get file info from database
         const fileInfo = await supabaseAdmin
           .from('document_files')
           .select('*')
@@ -519,28 +528,18 @@ export class DocumentService {
 
         const file = fileInfo.data;
         
-        // Download file from S3
+        // 2. Download file from S3
         const fileData = await storageService.downloadFile(file.storage_bucket, file.storage_key);
         
-        // Save to local file for Textract processing
-        const savedFile = await saveFileLocally({
-          buffer: fileData.data,
-          originalname: file.file_name,
-          mimetype: file.mime_type || 'application/octet-stream',
-          size: file.file_size || 0
-        } as Express.Multer.File);
-        
-        localFilePath = savedFile.filePath;
+        // 3. Extract text using AWS Textract directly from buffer
+        console.log(`[DocumentService] Extracting text using Textract`);
+        const extractedText = await this.extractTextFromBuffer(fileData.data);
 
-        // 2. Extract text using AWS Textract
-        console.log(`[DocumentService] Extracting text from ${localFilePath}`);
-        const extractedText = await extractTextFromDocument(localFilePath);
-
-        // 3. Get current document metadata
+        // 4. Get current document metadata
         const currentDocument = await this.getDocumentById(documentId);
         const currentMetadata = (currentDocument?.metadata as Record<string, any>) || {};
 
-        // 4. Update document with extracted text and mark as completed
+        // 5. Update document with extracted text and mark as completed
         await supabaseAdmin
           .from('documents')
           .update({
@@ -554,7 +553,7 @@ export class DocumentService {
           })
           .eq('id', documentId);
 
-        // 5. Create audit log for text extraction
+        // 6. Create audit log for text extraction
         await supabaseAdmin.rpc('create_audit_log', {
           p_action: 'DOCUMENT_TEXT_EXTRACTED',
           p_entity_type: 'document',
@@ -599,11 +598,39 @@ export class DocumentService {
             extraction_method: 'AWS_TEXTRACT'
           }
         });
-      } finally {
-        // Clean up local file
-        if (localFilePath) {
-          cleanupLocalFile(localFilePath);
+      }
+    }
+
+    /**
+     * Extract text from buffer using AWS Textract
+     */
+    private async extractTextFromBuffer(buffer: Buffer): Promise<string> {
+      try {
+        // Prepare input for Textract
+        const command = new DetectDocumentTextCommand({
+          Document: {
+            Bytes: buffer
+          }
+        });
+
+        // Call Textract to detect text
+        const response = await textractClient.send(command);
+
+        // Process and concatenate the detected text blocks
+        let extractedText = '';
+        if (response.Blocks) {
+          // Filter for LINE type blocks and concatenate their text
+          extractedText = response.Blocks
+            .filter((block: any) => block.BlockType === 'LINE' && block.Text)
+            .map((block: any) => block.Text)
+            .join('\n');
         }
+
+        return extractedText;
+      } catch (error: any) {
+        console.error('Error extracting text from buffer:', error);
+        const errorMessage = error.message || 'Unknown error';
+        throw new Error(`Failed to extract text: ${errorMessage}`);
       }
     }
 
