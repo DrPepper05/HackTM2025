@@ -25,6 +25,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed }) {
       { name: t('nav.dashboard'), href: '/dashboard', icon: Home },
       { name: t('nav.user_management'), href: '/admin/users', icon: Users },
       // { name: t('navigation.system_health'), href: '/admin/system', icon: Shield },
+      
     ] : []),
     
     // Clerk navigation
