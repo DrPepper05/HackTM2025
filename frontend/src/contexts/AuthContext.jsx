@@ -161,6 +161,8 @@ export function AuthProvider({ children }) {
         email: profile.email,
         profile
       })
+      
+      console.log('Setting userRole to:', profile.role)
       setUserRole(profile.role)
       
       return profile
@@ -460,21 +462,38 @@ export function AuthProvider({ children }) {
 
   // Role-based access control helpers
   const hasRole = (requiredRole) => {
-    if (!userRole) return false
-    
-    // Admin has access to everything
-    if (userRole === 'admin') return true
-    
-    // Role hierarchy checks
-    const roleHierarchy = {
-      admin: ['admin'],
-      archivist: ['admin', 'archivist'],
-      clerk: ['admin', 'archivist', 'clerk'],
-      inspector: ['admin', 'inspector'],
-      citizen: ['admin', 'archivist', 'clerk', 'inspector', 'citizen']
+    if (!userRole) {
+      console.log('hasRole: No userRole found')
+      return false
     }
     
-    return roleHierarchy[requiredRole]?.includes(userRole) || false
+    console.log(`hasRole: Checking if user with role '${userRole}' has access to '${requiredRole}'`)
+    
+    // Exact role match
+    if (userRole === requiredRole) {
+      console.log('hasRole: Exact match found')
+      return true
+    }
+    
+    // Admin has access to everything
+    if (userRole === 'admin') {
+      console.log('hasRole: User is admin, granting access')
+      return true
+    }
+    
+    // Define what roles each user type can access
+    const userAccessRoles = {
+      admin: ['admin', 'archivist', 'clerk', 'inspector', 'citizen'],
+      archivist: ['archivist'],
+      clerk: ['clerk'],
+      inspector: ['inspector'],
+      citizen: ['citizen']
+    }
+    
+    const hasAccess = userAccessRoles[userRole]?.includes(requiredRole) || false
+    console.log(`hasRole: User '${userRole}' ${hasAccess ? 'has' : 'does not have'} access to '${requiredRole}'`)
+    
+    return hasAccess
   }
 
   const isAuthenticated = () => {

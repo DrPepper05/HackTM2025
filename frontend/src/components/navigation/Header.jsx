@@ -15,6 +15,16 @@ function Header({ toggleSidebar }) {
     await signOut()
   }
 
+  const handleLogoClick = () => {
+    navigate('/dashboard')
+  }
+
+
+  const handleProfileClick = () => {
+    setUserMenuOpen(false)
+    navigate('/profile')
+  }
+
   return (
     <header className="bg-white shadow-sm z-10">
       <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
@@ -114,32 +124,31 @@ function Header({ toggleSidebar }) {
                   <div className="font-medium">{user?.email}</div>
                   <div className="text-xs text-gray-500 capitalize">{t(`roles.${userRole}`)}</div>
                 </div>
-                <div className="border-t border-gray-100">
-                  <Link
-                    to="/profile"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    onClick={() => setUserMenuOpen(false)}
+                <div className={`border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-100'}`}>
+                  <button
+                    onClick={handleProfileClick}
+                    className={`flex w-full items-center px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
                   >
                     <User className="mr-3 h-4 w-4" />
                     {t('nav.profile')}
-                  </Link>
-                  <Link
+                  </button>
+                  {/* <Link
                     to="/settings"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    className={`flex items-center px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <Settings className="mr-3 h-4 w-4" />
-                    {t('nav.settings')}
-                  </Link>
+                    {t('navigation.settings')}
+                  </Link> */}
                   <button
-                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    className={`flex w-full items-center px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
                     onClick={() => {
                       setUserMenuOpen(false)
                       handleSignOut()
                     }}
                   >
                     <LogOut className="mr-3 h-4 w-4" />
-                    {t('auth.sign_out')}
+                    {t('auth.signOut')}
                   </button>
                 </div>
               </div>

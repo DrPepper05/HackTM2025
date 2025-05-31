@@ -19,12 +19,23 @@ function LoginPage() {
     setIsLoading(true)
 
     try {
-      const { error } = await signIn({ email, password })
+      const { data, error } = await signIn({ email, password })
       
       if (error) {
         setError(error.message)
       } else {
-        navigate('/dashboard')
+        // Redirect based on user role
+        const userRole = data?.user?.profile?.role
+        const roleRedirects = {
+          admin: '/dashboard',
+          archivist: '/archivist/ingest',
+          clerk: '/documents/upload',
+          inspector: '/inspector/audit-logs',
+          citizen: '/'
+        }
+        
+        const redirectTo = roleRedirects[userRole] || '/dashboard'
+        navigate(redirectTo)
       }
     } catch (err) {
       setError(t('auth.login_error'))

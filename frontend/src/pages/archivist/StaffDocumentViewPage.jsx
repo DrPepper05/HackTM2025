@@ -75,62 +75,64 @@ function StaffDocumentViewPage() {
         const response = await documentsApi.getDocument(id)
         
         console.log('Document API response:', response)
+        console.log('Response type:', typeof response)
+        console.log('Response keys:', response ? Object.keys(response) : 'null response')
         
-        if (response.success) {
-          const doc = response.data
+        if (response && (response.data || response.id)) {
+          // Handle both response.data and direct response formats
+          const doc = response.data || response
           console.log('Document details:', doc)
           console.log('Available fields:', Object.keys(doc))
-          console.log('File size fields:', {
-            file_size: doc.file_size,
-            size: doc.size,
-            fileSize: doc.fileSize
-          })
-          console.log('File type fields:', {
-            mime_type: doc.mime_type,
-            file_type: doc.file_type,
-            type: doc.type,
-            mimeType: doc.mimeType
-          })
+          
           // Transform API response to component state format
           const documentData = {
             id: doc.id,
-            title: doc.title || 'Untitled Document',
-            documentType: doc.document_type || '',
-            documentTypeName: getDocumentTypeName(doc.document_type || ''),
-            creator: doc.created_by || 'Unknown',
-            creationDate: doc.created_at?.split('T')[0] || '',
+            title: doc.title || doc.name || 'Untitled Document',
+            documentType: doc.document_type || doc.type || '',
+            documentTypeName: getDocumentTypeName(doc.document_type || doc.type || ''),
+            creator: doc.creator_info?.creator_name || doc.created_by || doc.uploaded_by || doc.creator || 'Unknown',
+            creationDate: doc.created_at?.split('T')[0] || doc.creation_date?.split('T')[0] || '',
             uploadDate: doc.uploaded_at?.split('T')[0] || doc.upload_timestamp?.split('T')[0] || doc.created_at?.split('T')[0] || '',
-            uploadedBy: doc.uploaded_by || doc.created_by || 'Unknown',
-            uploaderId: doc.uploader_user_id || doc.user_id || '',
+            uploadedBy: doc.creator_info?.creator_name || doc.uploaded_by || doc.created_by || doc.uploader || 'Unknown',
+            uploaderId: doc.creator_info?.created_by_user_id || doc.uploader_user_id || doc.user_id || '',
             status: doc.status || 'draft',
             statusName: getStatusName(doc.status || 'draft'),
             retentionCategory: doc.retention_category || '',
             retentionYears: getRetentionYears(doc.retention_category || ''),
             retentionEndDate: doc.retention_end_date || '',
-            confidentiality: doc.is_public ? 'public' : 'private',
+            confidentiality: doc.confidentiality_level || (doc.is_public ? 'public' : 'private'),
             description: doc.description || '',
-            tags: doc.tags || [],
-            files: doc.document_files || [],
-            history: doc.history || [],
-            // Additional metadata - extract from document_files array
-            fileSize: (doc.document_files && doc.document_files.length > 0) ? doc.document_files[0].file_size : 0,
-            filePath: (doc.document_files && doc.document_files.length > 0) ? doc.document_files[0].storage_key : '',
-            mimeType: (doc.document_files && doc.document_files.length > 0) ? doc.document_files[0].mime_type : '',
-            fileName: (doc.document_files && doc.document_files.length > 0) ? doc.document_files[0].file_name : '',
-            lastModified: doc.updated_at || doc.created_at,
+            tags: Array.isArray(doc.tags) ? doc.tags : [],
+            files: Array.isArray(doc.document_files) ? doc.document_files : (Array.isArray(doc.files) ? doc.files : []),
+            history: Array.isArray(doc.history) ? doc.history : [],
+            // Additional metadata - extract from document_files array or direct fields
+            fileSize: doc.file_size || 
+                     (doc.document_files && doc.document_files.length > 0 ? doc.document_files[0].file_size : 0) ||
+                     (doc.files && doc.files.length > 0 ? doc.files[0].size : 0),
+            filePath: doc.file_path || 
+                     (doc.document_files && doc.document_files.length > 0 ? doc.document_files[0].storage_key : '') ||
+                     (doc.files && doc.files.length > 0 ? doc.files[0].path : ''),
+            mimeType: doc.mime_type || 
+                     (doc.document_files && doc.document_files.length > 0 ? doc.document_files[0].mime_type : '') ||
+                     (doc.files && doc.files.length > 0 ? doc.files[0].type : ''),
+            fileName: doc.file_name || 
+                     (doc.document_files && doc.document_files.length > 0 ? doc.document_files[0].file_name : '') ||
+                     (doc.files && doc.files.length > 0 ? doc.files[0].name : ''),
+            lastModified: doc.updated_at || doc.last_modified || doc.created_at,
           }
 
+          console.log('Transformed document data:', documentData)
           setDocument(documentData)
           setEditedDocument({ ...documentData })
         } else {
-          console.error('Failed to fetch document:', response.message)
+          console.error('Invalid response format or document not found:', response)
           // Show error message or redirect
-          navigate('/documents/search')
+          navigate('/dashboard/archivist/advanced-search')
         }
       } catch (error) {
         console.error('Error fetching document:', error)
         // Show error message or redirect
-        navigate('/documents/search')
+        navigate('/dashboard/archivist/advanced-search')
       } finally {
         setIsLoading(false)
       }
@@ -288,14 +290,28 @@ function StaffDocumentViewPage() {
 
   // Format date for display
   const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString()
+    if (!dateString) return 'N/A'
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'N/A'
+      return date.toLocaleDateString()
+    } catch (error) {
+      console.error('Error formatting date:', error)
+      return 'N/A'
+    }
   }
 
   // Format datetime for display
   const formatDateTime = (dateTimeString) => {
-    const date = new Date(dateTimeString)
-    return date.toLocaleString()
+    if (!dateTimeString) return 'N/A'
+    try {
+      const date = new Date(dateTimeString)
+      if (isNaN(date.getTime())) return 'N/A'
+      return date.toLocaleString()
+    } catch (error) {
+      console.error('Error formatting datetime:', error)
+      return 'N/A'
+    }
   }
 
   // Format file size for display

@@ -14,6 +14,7 @@ const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
 
 // Clerk pages
 const AddDocumentPage = lazy(() => import('./pages/clerk/AddDocumentPage'))
@@ -77,88 +78,90 @@ function AppContent() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/portal" element={<PortalPage />} />
 
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            
+            {/* Clerk routes */}
+            <Route path="/documents/upload" element={
+              <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
+                <AddDocumentPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/documents/my-uploads" element={
+              <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
+                <MyUploadsPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/documents/:id" element={
+              <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
+                <DocumentViewPage />
+              </RoleBasedRoute>
+            } />
+            
+            {/* Archivist routes */}
+            <Route path="/archivist/ingest" element={
+              <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
+                <IngestQueuePage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/archivist/review/:id" element={
+              <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
+                <DocumentReviewPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/archivist/document/:id" element={
+              <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
+                <StaffDocumentViewPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/archivist/retention" element={
+              <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
+                <RetentionQueuePage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/archivist/transfer" element={
+              <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
+                <TransferQueuePage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/documents/search" element={
+              <RoleBasedRoute allowedRoles={['archivist', 'admin', 'inspector']}>
+                <AdvancedSearchPage />
+              </RoleBasedRoute>
+            } />
+            
+            {/* Inspector routes */}
+            <Route path="/inspector/audit-logs" element={
+              <RoleBasedRoute allowedRoles={['admin', 'inspector']}>
+                <AuditLogPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/inspector/reports" element={
+              <RoleBasedRoute allowedRoles={['admin', 'inspector']}>
+                <InventoryReportsPage />
+              </RoleBasedRoute>
+            } />
+            
+            {/* Admin routes */}
+            <Route path="/admin/users" element={
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <UserManagementPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/admin/system" element={
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <SystemHealthPage />
+              </RoleBasedRoute>
+            } />
+          </Route>
           
-          {/* Clerk routes */}
-          <Route path="/documents/upload" element={
-            <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
-              <AddDocumentPage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/documents/my-uploads" element={
-            <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
-              <MyUploadsPage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/documents/:id" element={
-            <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
-              <DocumentViewPage />
-            </RoleBasedRoute>
-          } />
-          
-          {/* Archivist routes */}
-          <Route path="/archivist/ingest" element={
-            <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
-              <IngestQueuePage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/archivist/review/:id" element={
-            <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
-              <DocumentReviewPage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/archivist/document/:id" element={
-            <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
-              <StaffDocumentViewPage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/archivist/retention" element={
-            <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
-              <RetentionQueuePage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/archivist/transfer" element={
-            <RoleBasedRoute allowedRoles={['archivist', 'admin']}>
-              <TransferQueuePage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/documents/search" element={
-            <RoleBasedRoute allowedRoles={['archivist', 'admin', 'inspector']}>
-              <AdvancedSearchPage />
-            </RoleBasedRoute>
-          } />
-          
-          {/* Inspector routes */}
-          <Route path="/inspector/audit-logs" element={
-            <RoleBasedRoute allowedRoles={['admin', 'inspector']}>
-              <AuditLogPage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/inspector/reports" element={
-            <RoleBasedRoute allowedRoles={['admin', 'inspector']}>
-              <InventoryReportsPage />
-            </RoleBasedRoute>
-          } />
-          
-          {/* Admin routes */}
-          <Route path="/admin/users" element={
-            <RoleBasedRoute allowedRoles={['admin']}>
-              <UserManagementPage />
-            </RoleBasedRoute>
-          } />
-          <Route path="/admin/system" element={
-            <RoleBasedRoute allowedRoles={['admin']}>
-              <SystemHealthPage />
-            </RoleBasedRoute>
-          } />
-        </Route>
-        
-        {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Suspense>
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Suspense>
+    </ThemeProvider>
   )
 }
 

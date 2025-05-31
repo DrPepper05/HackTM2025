@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { 
   List, 
   Clock, 
@@ -20,25 +20,57 @@ import { adminApi } from '../../services/api'
 function Dashboard() {
   const { t } = useTranslation()
   const { userRole, hasRole } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [dashboardData, setDashboardData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Define the first available page for each role
+  const roleRedirectMap = {
+    archivist: '/archivist/ingest',
+    clerk: '/documents/upload', 
+    inspector: '/inspector/audit-logs',
+    citizen: '/' // Redirect citizens to public homepage
+  }
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setIsLoading(true)
-      try {
-        const response = await adminApi.getDashboard()
-        console.log('Dashboard data:', response.data)
-        setDashboardData(response.data)
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-      } finally {
-        setIsLoading(false)
+    // Only admin can access the dashboard main page
+    if (userRole === 'admin') {
+      console.log('Loading dashboard for admin')
+      const fetchDashboardData = async () => {
+        setIsLoading(true)
+        try {
+          const response = await adminApi.getDashboard()
+          console.log('Dashboard data:', response.data)
+          setDashboardData(response.data)
+        } catch (error) {
+          console.error('Error fetching dashboard data:', error)
+        } finally {
+          setIsLoading(false)
+        }
       }
+
+      fetchDashboardData()
+      return
     }
 
-    fetchDashboardData()
-  }, [])
+    // All other roles should be redirected to their respective first page
+    if (userRole && roleRedirectMap[userRole]) {
+      console.log(`Redirecting ${userRole} to ${roleRedirectMap[userRole]}`)
+      navigate(roleRedirectMap[userRole], { replace: true })
+      return
+    }
+
+    // If user has a role but no redirect configured, show access pending message
+    if (userRole) {
+      console.log(`No redirect configured for role: ${userRole}`)
+      setIsLoading(false)
+      return
+    }
+
+    // If no role yet, wait for role to be determined
+    setIsLoading(false)
+  }, [userRole, navigate])
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes'
@@ -48,10 +80,54 @@ function Dashboard() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  if (isLoading) {
+  // Show loading while we determine the user's role and redirect
+  if (isLoading || (userRole && userRole !== 'admin' && roleRedirectMap[userRole])) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">Loading...</span>
+      </div>
+    )
+  }
+
+  // If user has a role but is not admin and no redirect configured, show access pending
+  if (userRole && userRole !== 'admin' && !roleRedirectMap[userRole]) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.welcome')}</h1>
+          <p className="text-gray-600 mt-2">Welcome to the system</p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Access Pending</h3>
+            <p className="text-gray-600">
+              Your account is set up but you may not have been assigned specific permissions yet. 
+              Please contact your administrator if you need access to specific features.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // If no role or not admin, show unauthorized access message
+  if (!userRole || userRole !== 'admin') {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="text-center">
+            <XCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Unauthorized Access</h3>
+            <p className="text-gray-600">
+              You do not have permission to access the admin dashboard.
+            </p>
+          </div>
+        </div>
       </div>
     )
   }
