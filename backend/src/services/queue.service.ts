@@ -1,8 +1,9 @@
+// backend/src/services/queue.service.ts
 import { supabaseAdmin, withMonitoring } from '../config/supabase.config'
 import { ProcessingQueueTask } from '../types/database.types'
 
 export interface QueueTask {
-  type: 'DOCUMENT_ENRICHMENT' | 'OCR_PROCESSING' | 'LIFECYCLE_CHECK' | 'REDACTION' | 'TRANSFER_PREP'
+  type: 'DOCUMENT_ENRICHMENT' | 'POLL_TEXTRACT_JOB' | 'OCR_PROCESSING' | 'LIFECYCLE_CHECK' | 'REDACTION' | 'TRANSFER_PREP'
   payload: Record<string, any>
   priority: number
   scheduledFor?: Date
@@ -217,4 +218,4 @@ export class QueueService {
   }
 }
 
-export const queueService = new QueueService() 
+export const queueService = new QueueService()

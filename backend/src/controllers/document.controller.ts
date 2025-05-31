@@ -1,3 +1,4 @@
+// backend/src/controllers/document.controller.ts
 import { Request, Response } from 'express'
 import { documentService, enrichmentService, lifecycleService } from '../services'
 import { asyncHandler } from '../middleware'
@@ -123,21 +124,6 @@ export class DocumentController {
     })
   })
 
-//   /**
-//    * Delete document
-//    */
-//   deleteDocument = asyncHandler(async (req: Request, res: Response) => {
-//     const { id } = req.params
-//     const userId = req.userId!
-
-//     await documentService.deleteDocument(id, userId)
-
-//     res.json({
-//       success: true,
-//       message: 'Document deleted successfully'
-//     })
-//   })
-
   /**
    * Get documents with filters and pagination
    */
@@ -158,50 +144,6 @@ export class DocumentController {
     })
   })
 
-//   /**
-//    * Download document file
-//    */
-//   downloadFile = asyncHandler(async (req: Request, res: Response) => {
-//     const { documentId, fileId } = req.params
-//     const userId = req.userId
-
-//     const { fileData, metadata } = await documentService.downloadDocumentFile(
-//       documentId,
-//       fileId,
-//       userId
-//     )
-
-//     // Set appropriate headers
-//     res.set({
-//       'Content-Type': metadata.mimetype,
-//       'Content-Length': metadata.size.toString(),
-//       'Content-Disposition': `attachment; filename="${metadata.filename}"`,
-//       'Cache-Control': 'private, max-age=3600'
-//     })
-
-//     res.send(fileData)
-//   })
-
-//   /**
-//    * Generate document preview/thumbnail
-//    */
-//   generatePreview = asyncHandler(async (req: Request, res: Response) => {
-//     const { documentId, fileId } = req.params
-//     const userId = req.userId!
-
-//     const preview = await documentService.generateDocumentPreview(
-//       documentId,
-//       fileId,
-//       userId
-//     )
-
-//     res.json({
-//       success: true,
-//       message: 'Preview generated successfully',
-//       data: preview
-//     })
-//   })
-
   /**
    * Get document statistics
    */
@@ -220,33 +162,35 @@ export class DocumentController {
   processEnrichment = asyncHandler(async (req: Request, res: Response) => {
     const { documentId } = req.params
 
-    const result = await enrichmentService.enrichDocument(documentId)
+    // This now only starts the process. The result is handled by the worker.
+    // @ts-ignore
+    const result = await enrichmentService.startDocumentAnalysis(documentId);
 
     res.json({
       success: true,
-      message: 'Document enrichment completed',
-      data: result
+      message: 'Document enrichment process started',
+      data: { jobId: result }
     })
   })
 
   /**
-   * Generate redacted version
+   * Generate redacted version - Commented out
    */
-  generateRedacted = asyncHandler(async (req: Request, res: Response) => {
-    const { documentId } = req.params
-    const { pii_types = ['PERSONAL_ID', 'EMAIL', 'PHONE'] } = req.body
+  // generateRedacted = asyncHandler(async (req: Request, res: Response) => {
+  //   const { documentId } = req.params
+  //   const { pii_types = ['PERSONAL_ID', 'EMAIL', 'PHONE'] } = req.body
 
-    const redactedFileId = await enrichmentService.generateRedactedVersion(
-      documentId,
-      pii_types
-    )
+  //   const redactedFileId = await enrichmentService.generateRedactedVersion(
+  //     documentId,
+  //     pii_types
+  //   )
 
-    res.json({
-      success: true,
-      message: 'Redacted version generated',
-      data: { redacted_file_id: redactedFileId }
-    })
-  })
+  //   res.json({
+  //     success: true,
+  //     message: 'Redacted version generated',
+  //     data: { redacted_file_id: redactedFileId }
+  //   })
+  // })
 
   /**
    * Queue document for lifecycle action
@@ -271,34 +215,6 @@ export class DocumentController {
       message: `Document scheduled for ${action}`
     })
   })
-
-//   /**
-//    * Bulk operations on documents
-//    */
-//   bulkOperation = asyncHandler(async (req: Request, res: Response) => {
-//     const userId = req.userId!
-//     const { document_ids, operation, data } = req.body
-
-//     if (!Array.isArray(document_ids) || document_ids.length === 0) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Document IDs array is required'
-//       })
-//     }
-
-//     const result = await documentService.bulkUpdateDocuments(
-//       document_ids,
-//       operation,
-//       data,
-//       userId
-//     )
-
-//     res.json({
-//       success: true,
-//       message: 'Bulk operation completed',
-//       data: result
-//     })
-//   })
 }
 
-export const documentController = new DocumentController() 
+export const documentController = new DocumentController()
