@@ -17,6 +17,7 @@ import {
   FileCheck,
   AlertTriangle,
   Printer,
+  Clock,
 } from 'lucide-react'
 
 function TransferQueuePage() {
@@ -34,6 +35,41 @@ function TransferQueuePage() {
   const [exportSuccess, setExportSuccess] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState([])
   const [selectAll, setSelectAll] = useState(false)
+
+  // Get status badge color based on status
+  const getStatusBadgeColor = (status) => {
+    switch (status) {
+      case 'transfer_queue':
+        return 'bg-blue-100 text-blue-800'
+      case 'archived':
+        return 'bg-green-100 text-green-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'rejected':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  // Get action button based on document status
+  const getActionButton = (document) => {
+    switch (document.status) {
+      case 'transfer_queue':
+        return (
+          <button
+            type="button"
+            onClick={() => alert(t('archivist.transfer_document_alert'))}
+            className="rounded-full p-1 text-blue-600 hover:bg-blue-100"
+            title={t('archivist.transfer')}
+          >
+            <Archive className="h-5 w-5" />
+          </button>
+        )
+      default:
+        return null
+    }
+  }
 
   // Mock data for documents
   useEffect(() => {
@@ -334,39 +370,6 @@ function TransferQueuePage() {
           </p>
         </div>
 
-        {/* Action buttons */}
-        <div className="mb-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
-            {/* Export button */}
-            <button
-              type="button"
-              onClick={handleExport}
-              disabled={selectedDocuments.length === 0}
-              className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
-            >
-              <FileDown className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-              {t('archivist.export_selected')}
-            </button>
-
-            {/* Print transfer protocol button */}
-            <button
-              type="button"
-              onClick={() => alert(t('archivist.print_protocol_alert'))}
-              disabled={selectedDocuments.length === 0}
-              className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
-            >
-              <Printer className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-              {t('archivist.print_protocol')}
-            </button>
-          </div>
-
-          <div className="text-sm text-gray-500">
-            {selectedDocuments.length > 0
-              ? t('archivist.selected_documents', { count: selectedDocuments.length })
-              : t('archivist.no_documents_selected_message')}
-          </div>
-        </div>
-
         {/* Filters and search */}
         <div className="mb-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6 bg-gray-50 p-4 rounded-lg shadow-sm">
           {/* Search */}
@@ -464,11 +467,6 @@ function TransferQueuePage() {
           </div>
         </div>
 
-        {/* Results count */}
-        <div className="mb-4 text-sm font-medium text-gray-700 bg-blue-50 p-2 rounded-md inline-block">
-          {t('archivist.showing_results', { count: sortedDocuments.length })}
-        </div>
-
         {/* Documents table */}
         <div className="mt-4 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -477,21 +475,13 @@ function TransferQueuePage() {
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th scope="col" className="relative px-7 sm:w-12 sm:px-6">
-                        <input
-                          type="checkbox"
-                          className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          checked={selectAll}
-                          onChange={handleSelectAll}
-                        />
-                      </th>
                       <th
                         scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
+                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
+                          className="group inline-flex items-center"
                           onClick={() => handleSort('title')}
                         >
                           {t('archivist.document_title')}
@@ -512,7 +502,7 @@ function TransferQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
+                          className="group inline-flex items-center"
                           onClick={() => handleSort('documentType')}
                         >
                           {t('archivist.document_type')}
@@ -533,7 +523,7 @@ function TransferQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
+                          className="group inline-flex items-center"
                           onClick={() => handleSort('creator')}
                         >
                           {t('archivist.document_creator')}
@@ -554,14 +544,14 @@ function TransferQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
-                          onClick={() => handleSort('addedDate')}
+                          className="group inline-flex items-center"
+                          onClick={() => handleSort('dueDate')}
                         >
-                          {t('archivist.added_date')}
+                          {t('archivist.due_date')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'addedDate' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'dueDate' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
-                            {sortBy === 'addedDate' && sortDirection === 'asc' ? (
+                            {sortBy === 'dueDate' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
                             ) : (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -575,14 +565,14 @@ function TransferQueuePage() {
                       >
                         <button
                           type="button"
-                          className="group inline-flex"
-                          onClick={() => handleSort('retentionEndDate')}
+                          className="group inline-flex items-center"
+                          onClick={() => handleSort('status')}
                         >
-                          {t('archivist.retention_end')}
+                          {t('archivist.status')}
                           <span
-                            className={`ml-2 flex-none rounded ${sortBy === 'retentionEndDate' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
+                            className={`ml-2 flex-none rounded ${sortBy === 'status' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 invisible group-hover:visible'}`}
                           >
-                            {sortBy === 'retentionEndDate' && sortDirection === 'asc' ? (
+                            {sortBy === 'status' && sortDirection === 'asc' ? (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
                             ) : (
                               <ArrowUpDown className="h-5 w-5" aria-hidden="true" />
@@ -590,13 +580,7 @@ function TransferQueuePage() {
                           </span>
                         </button>
                       </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        {t('archivist.files')}
-                      </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                         <span className="sr-only">{t('archivist.actions')}</span>
                       </th>
                     </tr>
@@ -605,7 +589,7 @@ function TransferQueuePage() {
                     {sortedDocuments.length === 0 ? (
                       <tr>
                         <td
-                          colSpan="8"
+                          colSpan="6"
                           className="py-10 text-center text-sm font-medium text-gray-500"
                         >
                           {t('archivist.no_documents_found')}
@@ -613,20 +597,8 @@ function TransferQueuePage() {
                       </tr>
                     ) : (
                       sortedDocuments.map((document) => (
-                        <tr
-                          key={document.id}
-                          className={selectedDocuments.includes(document.id) ? 'bg-gray-50' : 'hover:bg-gray-50'}
-                        >
-                          <td className="relative px-7 sm:w-12 sm:px-6">
-                            <input
-                              type="checkbox"
-                              className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                              value={document.id}
-                              checked={selectedDocuments.includes(document.id)}
-                              onChange={() => handleSelectDocument(document.id)}
-                            />
-                          </td>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                        <tr key={document.id} className="hover:bg-gray-50">
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                             {document.title}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -636,26 +608,30 @@ function TransferQueuePage() {
                             {document.creator}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {formatDate(document.addedDate)}
+                            <div className="flex items-center">
+                              <Clock className="mr-1.5 h-4 w-4 text-gray-400" />
+                              {formatDate(document.dueDate)}
+                            </div>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {formatDate(document.retentionEndDate)}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
-                              <FileText className="-ml-0.5 mr-1.5 h-4 w-4" />
-                              {document.fileCount} {t('archivist.files')} ({formatFileSize(document.totalSize)})
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeColor(document.status)}`}
+                            >
+                              {document.statusName}
                             </span>
                           </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/dashboard/archivist/document/${document.id}`)}
-                              className="rounded-full p-1 text-primary hover:bg-gray-100 hover:text-primary-dark"
-                              title={t('common.view')}
-                            >
-                              <Eye className="h-5 w-5" />
-                            </button>
+                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            <div className="flex items-center justify-end space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/dashboard/archivist/document/${document.id}`)}
+                                className="rounded-full p-1 text-primary hover:bg-gray-100 hover:text-primary-dark"
+                                title={t('common.view')}
+                              >
+                                <Eye className="h-5 w-5" />
+                              </button>
+                              {getActionButton(document)}
+                            </div>
                           </td>
                         </tr>
                       ))
