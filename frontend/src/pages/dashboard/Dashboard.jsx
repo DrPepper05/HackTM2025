@@ -270,7 +270,7 @@ function Dashboard() {
               <AlertTriangle className="h-8 w-8 text-orange-500" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Pending Review</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardData?.lifecycle?.pendingReview?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData?.lifecycle?.pendingReview || 0}</p>
               </div>
             </div>
           </div>
@@ -280,7 +280,7 @@ function Dashboard() {
               <CheckCircle className="h-8 w-8 text-blue-500" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">To Transfer</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardData?.lifecycle?.toTransfer?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData?.lifecycle?.toTransfer || 0}</p>
               </div>
             </div>
           </div>
@@ -290,7 +290,7 @@ function Dashboard() {
               <XCircle className="h-8 w-8 text-red-500" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">To Destroy</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardData?.lifecycle?.toDestroy?.length || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData?.lifecycle?.toDestroy || 0}</p>
               </div>
             </div>
           </div>

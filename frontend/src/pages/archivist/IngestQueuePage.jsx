@@ -14,6 +14,7 @@ import {
   ArrowUpDown,
   Inbox,
 } from 'lucide-react'
+import { documentsApi, searchApi } from '../../services/api'
 
 function IngestQueuePage() {
   const { t } = useTranslation()
@@ -21,7 +22,6 @@ function IngestQueuePage() {
   const [documents, setDocuments] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState('all')
-  const [typeFilter, setTypeFilter] = useState('all')
   const [sortBy, setSortBy] = useState('date_desc')
 
   // Date options for filtering
@@ -32,19 +32,6 @@ function IngestQueuePage() {
     { id: 'this_month', name: t('archivist.filter_this_month') },
   ]
 
-  // Document type options for filtering
-  const typeOptions = [
-    { id: 'all', name: t('archivist.filter_all_types') },
-    { id: 'hotarare', name: 'Hotărâre' },
-    { id: 'dispozitie', name: 'Dispoziție' },
-    { id: 'contract', name: 'Contract' },
-    { id: 'autorizatie', name: 'Autorizație' },
-    { id: 'certificat', name: 'Certificat' },
-    { id: 'adresa', name: 'Adresă' },
-    { id: 'raport', name: 'Raport' },
-    { id: 'proces_verbal', name: 'Proces-verbal' },
-  ]
-
   // Sort options
   const sortOptions = [
     { id: 'date_desc', name: t('archivist.sort_newest') },
@@ -53,82 +40,107 @@ function IngestQueuePage() {
     { id: 'title_desc', name: t('archivist.sort_title_za') },
   ]
 
-  // Mock data for documents
+  // Fetch documents from API
   useEffect(() => {
-    // In a real app, this would be an API call to fetch documents in the ingest queue
     const fetchDocuments = async () => {
       setIsLoading(true)
       try {
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
-        // Mock data
-        const mockDocuments = [
-          {
-            id: '1',
-            title: 'Contract de achiziție publică pentru servicii de mentenanță',
-            documentType: 'contract',
-            documentTypeName: 'Contract',
-            creationDate: '2023-10-20',
-            uploadDate: '2023-10-22',
-            uploadedBy: 'Maria Popescu',
-            status: 'registered',
-            retentionCategory: 'c',
-            confidentiality: 'internal',
-          },
-          {
-            id: '2',
-            title: 'Dispoziție privind constituirea comisiei de inventariere',
-            documentType: 'dispozitie',
-            documentTypeName: 'Dispoziție',
-            creationDate: '2023-11-01',
-            uploadDate: '2023-11-02',
-            uploadedBy: 'Ion Ionescu',
-            status: 'registered',
-            retentionCategory: 'ci',
-            confidentiality: 'internal',
-          },
-          {
-            id: '3',
-            title: 'Certificat de urbanism pentru construire locuință',
-            documentType: 'certificat',
-            documentTypeName: 'Certificat',
-            creationDate: '2023-09-10',
-            uploadDate: '2023-09-12',
-            uploadedBy: 'Ana Popescu',
-            status: 'registered',
-            retentionCategory: 'cs',
-            confidentiality: 'public',
-          },
-          {
-            id: '4',
-            title: 'Autorizație de construire pentru imobil rezidențial',
-            documentType: 'autorizatie',
-            documentTypeName: 'Autorizație',
-            creationDate: '2023-11-10',
-            uploadDate: '2023-11-12',
-            uploadedBy: 'Mihai Popa',
-            status: 'registered',
-            retentionCategory: 'cs',
-            confidentiality: 'public',
-          },
-          {
-            id: '5',
-            title: 'Proces-verbal de recepție lucrări de infrastructură',
-            documentType: 'proces_verbal',
-            documentTypeName: 'Proces-verbal',
-            creationDate: '2023-11-15',
-            uploadDate: '2023-11-16',
-            uploadedBy: 'Elena Dumitrescu',
-            status: 'registered',
-            retentionCategory: 'c',
-            confidentiality: 'internal',
-          },
-        ]
-
-        setDocuments(mockDocuments)
+        console.log('Fetching documents with INGESTING status...')
+        
+        let allDocuments = []
+        
+        // Approach 1: Try search API first as it should return all documents for staff
+        try {
+          const response = await searchApi.search({ 
+            query: '', // Empty query to get all documents
+            limit: 1000, // Large limit to get all ingesting documents
+            offset: 0 
+          })
+          console.log('Search API Response:', response)
+          
+          if (response.data?.documents) {
+            // Extract the actual document objects from the nested structure
+            allDocuments = response.data.documents.map(item => item.document)
+            console.log('Extracted documents from search API:', allDocuments.length)
+          } else if (Array.isArray(response.data)) {
+            allDocuments = response.data
+          }
+        } catch (searchError) {
+          console.log('Search API failed:', searchError)
+        }
+        
+        // Approach 2: Try documents API without user filter
+        if (allDocuments.length === 0) {
+          try {
+            const response = await documentsApi.getDocuments({ limit: 1000 })
+            console.log('Documents API Response:', response)
+            
+            if (response && response.documents) {
+              allDocuments = response.documents
+            } else if (response && response.data) {
+              if (response.data.documents) {
+                allDocuments = response.data.documents
+              } else if (Array.isArray(response.data)) {
+                allDocuments = response.data
+              }
+            } else if (Array.isArray(response)) {
+              allDocuments = response
+            }
+          } catch (docError) {
+            console.log('Documents API failed:', docError)
+          }
+        }
+        
+        // Approach 3: Try direct API call to get all documents (for staff)
+        if (allDocuments.length === 0) {
+          try {
+            const token = JSON.parse(localStorage.getItem('auth_session'))?.access_token
+            const directResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'}/admin/documents`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            })
+            
+            if (directResponse.ok) {
+              const directData = await directResponse.json()
+              console.log('Direct admin API Response:', directData.length, 'documents')
+              allDocuments = Array.isArray(directData) ? directData : []
+            }
+          } catch (directError) {
+            console.log('Direct admin API failed:', directError)
+          }
+        }
+        
+        console.log('All documents found:', allDocuments.length)
+        
+        // Filter documents to only show those with INGESTING status
+        const ingestingDocuments = allDocuments.filter(doc => {
+          console.log('Document status:', doc.status, 'Document title:', doc.title?.substring(0, 50))
+          return doc.status === 'INGESTING'
+        })
+        
+        console.log('Filtered ingesting documents:', ingestingDocuments.length, 'out of', allDocuments.length)
+        
+        // Transform the API response to match the expected format
+        const transformedDocuments = ingestingDocuments.map(doc => ({
+          id: doc.id,
+          title: doc.title || 'Untitled Document',
+          documentType: doc.document_type || 'unknown',
+          documentTypeName: doc.document_type || 'Unknown',
+          creationDate: doc.created_at ? doc.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          uploadDate: doc.created_at ? doc.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          uploadedBy: doc.uploader_user_id || 'Unknown User',
+          status: 'ingesting', // Ensure consistent lowercase status for UI
+          retentionCategory: doc.retention_category || 'unknown',
+          confidentiality: doc.is_public ? 'public' : 'internal',
+        }))
+        
+        setDocuments(transformedDocuments)
       } catch (error) {
         console.error('Error fetching documents:', error)
+        // Fallback to empty array on error
+        setDocuments([])
       } finally {
         setIsLoading(false)
       }
@@ -145,9 +157,6 @@ function IngestQueuePage() {
       doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.documentTypeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase())
-
-    // Type filter
-    const matchesType = typeFilter === 'all' || doc.documentType === typeFilter
 
     // Date filter
     let matchesDate = true
@@ -167,7 +176,7 @@ function IngestQueuePage() {
       matchesDate = uploadDate >= thisMonthStart
     }
 
-    return matchesSearch && matchesType && matchesDate
+    return matchesSearch && matchesDate
   })
 
   // Sort documents
@@ -187,6 +196,8 @@ function IngestQueuePage() {
   // Get status badge icon
   const getStatusBadge = (status) => {
     switch (status) {
+      case 'ingesting':
+        return { icon: <Clock className="h-5 w-5 text-blue-500 animate-spin" /> }
       case 'registered':
         return { icon: <Clock className="h-5 w-5 text-amber-500" /> }
       case 'approved':
@@ -216,7 +227,7 @@ function IngestQueuePage() {
         </div>
 
         {/* Search and filters */}
-        <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-12 items-center bg-gray-50 p-4 rounded-lg shadow-sm">
+        <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-8 items-center bg-gray-50 p-4 rounded-lg shadow-sm">
           {/* Search */}
           <div className="relative sm:col-span-4">
             <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
@@ -239,7 +250,7 @@ function IngestQueuePage() {
           </div>
 
           {/* Date filter */}
-          <div className="relative sm:col-span-3">
+          <div className="relative sm:col-span-2">
             <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1">
               {t('archivist.date_filter')}
             </label>
@@ -255,31 +266,6 @@ function IngestQueuePage() {
                 onChange={(e) => setDateFilter(e.target.value)}
               >
                 {dateOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Document type filter */}
-          <div className="relative sm:col-span-3">
-            <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('archivist.document_type')}
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              </div>
-              <select
-                id="type-filter"
-                name="type-filter"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-              >
-                {typeOptions.map((option) => (
                   <option key={option.id} value={option.id}>
                     {option.name}
                   </option>
@@ -334,20 +320,17 @@ function IngestQueuePage() {
                     <th scope="col" className="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('archivist.document_title')}
                     </th>
-                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('archivist.document_type')}
                     </th>
-                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('archivist.uploaded_by')}
                     </th>
                     <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('archivist.upload_date')}
                     </th>
-                    <th scope="col" className="w-1/12 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('archivist.status')}
-                    </th>
-                    <th scope="col" className="w-1/12 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('archivist.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -374,25 +357,7 @@ function IngestQueuePage() {
                         <td className="px-6 py-4 text-sm text-gray-500">
                           <div className="flex items-center">
                             {statusBadge.icon}
-                            <span className="ml-2">{t(`archivist.status_${document.status}`)}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm font-medium">
-                          <div className="flex justify-end space-x-3">
-                            <Link 
-                              to={`/dashboard/archivist/document/${document.id}`}
-                              className="text-primary hover:text-primary-dark inline-flex items-center"
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              {t('archivist.view')}
-                            </Link>
-                            <Link 
-                              to={`/dashboard/archivist/document/${document.id}/review`}
-                              className="text-green-600 hover:text-green-900 inline-flex items-center"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              {t('archivist.review')}
-                            </Link>
+                            <span className="ml-2">Ingesting</span>
                           </div>
                         </td>
                       </tr>
