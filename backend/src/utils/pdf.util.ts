@@ -1,31 +1,65 @@
 // PDF utility for Romanian government document management
-// In a production system, you would use libraries like pdf-parse, pdf2pic, puppeteer, etc.
+// backend/src/utils/pdf.util.ts
+import pdf, { Result } from 'pdf-parse'; // Ensure this import is present
+
+// Helper function to parse PDF date strings (e.g., "D:20240101120000Z")
+function parsePdfDate(pdfDate?: string): Date | undefined {
+  if (!pdfDate) return undefined;
+  // Remove "D:" prefix if present
+  const dateStr = pdfDate.startsWith('D:') ? pdfDate.substring(2) : pdfDate;
+
+  // Basic parsing: YYYYMMDDHHMMSS
+  const year = parseInt(dateStr.substring(0, 4), 10);
+  const month = parseInt(dateStr.substring(4, 6), 10) - 1; // Month is 0-indexed
+  const day = parseInt(dateStr.substring(6, 8), 10);
+  const hour = parseInt(dateStr.substring(8, 10), 10) || 0;
+  const minute = parseInt(dateStr.substring(10, 12), 10) || 0;
+  const second = parseInt(dateStr.substring(12, 14), 10) || 0;
+
+  // Handle timezone offset if present (e.g., Z, +HH'MM', -HH'MM')
+  // This is a simplified parser; a robust one would handle all PDF date formats.
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return undefined;
+
+  // Assuming UTC if 'Z' is present or no offset specified after seconds
+  if (dateStr.length > 14 && dateStr.charAt(14).toUpperCase() === 'Z') {
+    return new Date(Date.UTC(year, month, day, hour, minute, second));
+  }
+  // For simplicity, treat as local time if no 'Z' or specific offset parsing implemented
+  return new Date(year, month, day, hour, minute, second);
+}
+
 
 export interface PDFMetadata {
-  title?: string
-  author?: string
-  subject?: string
-  creator?: string
-  producer?: string
-  creationDate?: Date
-  modificationDate?: Date
-  keywords?: string[]
-  pageCount: number
-  fileSize: number
-  isEncrypted: boolean
-  version?: string
+  title?: string;
+  author?: string;
+  subject?: string;
+  keywords?: string; // Changed from string[] to string, as pdf-parse gives a single string
+  creator?: string;
+  producer?: string;
+  creationDate?: Date;
+  modificationDate?: Date;
+  pdfVersion?: string; // e.g., "1.4", "1.7"
+  isAcroFormPresent?: boolean;
+  isXFAPresent?: boolean;
+  isEncrypted?: boolean; // From pdf-parse's internal check (not directly in info)
+  pageCount: number; // From pdf-parse's numpages
+  fileSize: number; // Will be passed in from buffer length
 }
 
-export interface PDFTextExtraction {
-  text: string
-  pageTexts: string[]
-  confidence: number
-  metadata: {
-    pageCount: number
-    processingTime: number
-    language?: string
-  }
+export interface PDFTextExtraction { // This was defined in the previous step
+  text: string;
+  pageTexts: string[];
+  numPages: number;
+  numRenders: number;
+  info: any;
+  metadata: any; // Raw PDF metadata from pdf-parse
+  version: string; // PDF version from pdf-parse
+  confidence: number;
+  processingTimeMs: number;
+  language?: string;
 }
+
+
 
 export interface PDFThumbnailOptions {
   width?: number
@@ -46,50 +80,108 @@ export interface PDFRedactionOptions {
  * Extract metadata from PDF buffer
  */
 export async function extractPDFMetadata(pdfBuffer: Buffer): Promise<PDFMetadata> {
-  // Mock implementation for hackathon
-  // In production, use pdf-parse or similar library
-  
-  const mockMetadata: PDFMetadata = {
-    title: extractTitleFromBuffer(pdfBuffer),
-    author: 'Guvernul României',
-    subject: 'Document oficial',
-    creator: 'OpenArchive System',
-    producer: 'Adobe PDF Library',
-    creationDate: new Date(),
-    modificationDate: new Date(),
-    keywords: ['guvern', 'oficial', 'document'],
-    pageCount: Math.floor(pdfBuffer.length / 50000) + 1, // Rough estimate
-    fileSize: pdfBuffer.length,
-    isEncrypted: false,
-    version: '1.4'
-  }
+  try {
+    const data: Result = await pdf(pdfBuffer, {
+      // We can limit to parsing only metadata if we don't need the text here
+      // However, pdf-parse typically parses content to get some metadata too.
+      // For this specific function, we might not need to pass a `max` pages option
+      // if we only care about the metadata, but often metadata is tied to parsing some content.
+    });
 
-  return mockMetadata
+    const info = data.info || {}; // data.info contains the /Info dictionary
+    // data.metadata might contain XMP metadata, for simplicity we focus on data.info
+
+    // Helper to safely access potentially undefined string properties from info
+    const getString = (obj: any, key: string): string | undefined => {
+        return typeof obj[key] === 'string' ? obj[key] : undefined;
+    };
+
+    return {
+      title: getString(info, 'Title'),
+      author: getString(info, 'Author'),
+      subject: getString(info, 'Subject'),
+      keywords: getString(info, 'Keywords'), // Keywords from PDF info are usually a single string
+      creator: getString(info, 'Creator'),
+      producer: getString(info, 'Producer'),
+      creationDate: parsePdfDate(getString(info, 'CreationDate')),
+      modificationDate: parsePdfDate(getString(info, 'ModDate') || getString(info, 'ModDate')), // ModDate is common
+      pdfVersion: data.version || getString(info, 'PDFFormatVersion'), // data.version is preferred
+      isAcroFormPresent: info.IsAcroFormPresent === 'true' || info.IsAcroFormPresent === true,
+      isXFAPresent: info.IsXFAPresent === 'true' || info.IsXFAPresent === true,
+      // isEncrypted: data.encrypted, // pdf-parse's `data.encrypted` field if available & accurate.
+                                     // However, `pdf-parse` doesn't explicitly expose an `encrypted` boolean in its `Result` type.
+                                     // A more robust check would involve trying to parse with a known password or analyzing PDF structure.
+                                     // For now, we'll default or omit if not directly available.
+                                     // Let's assume it's not encrypted if parsing succeeds without password.
+      isEncrypted: false, // Placeholder - a more reliable check is needed if this is critical.
+      pageCount: data.numpages,
+      fileSize: pdfBuffer.length,
+    };
+  } catch (error) {
+    console.error("Error extracting metadata from PDF:", error);
+    // Fallback or throw error
+    return {
+        pageCount: 0,
+        fileSize: pdfBuffer.length,
+        isEncrypted: false, // Default on error
+    };
+  }
 }
+
 
 /**
  * Extract text from PDF buffer
  */
 export async function extractTextFromPDF(pdfBuffer: Buffer): Promise<PDFTextExtraction> {
-  const startTime = Date.now()
-  
-  // Mock implementation
-  const mockText = generateMockPDFText(pdfBuffer)
-  const pageTexts = mockText.split('\n\n') // Split by double newlines as pages
-  
-  const processingTime = Date.now() - startTime
+  const startTime = Date.now();
+  try {
+    const data: Result = await pdf(pdfBuffer);
 
-  return {
-    text: mockText,
-    pageTexts,
-    confidence: 0.95,
-    metadata: {
-      pageCount: pageTexts.length,
-      processingTime,
-      language: 'ro'
-    }
+    // pdf-parse provides text for all pages combined in `data.text`
+    // It also provides `data.numpages`
+    // To get text per page, one might need a more advanced library or a different approach
+    // if pdf-parse doesn't directly offer it. For now, we'll put all text in pageTexts[0]
+    // or split by a common page break indicator if one exists in `data.text` (less reliable).
+    // A simpler approach for `pageTexts` with pdf-parse is to consider the whole text as one page
+    // or acknowledge this limitation. Let's try to naively split by form feed character (\f) if present.
+
+    const pageTexts = data.text.split(/\f/).map(pageText => pageText.trim()).filter(Boolean);
+
+    const processingTimeMs = Date.now() - startTime;
+
+    return {
+      text: data.text.trim(),
+      pageTexts: pageTexts.length > 0 ? pageTexts : [data.text.trim()], // Ensure pageTexts is not empty
+      numPages: data.numpages,
+      numRenders: data.numrender,
+      info: data.info, // Raw PDF metadata (author, title, keywords, etc.)
+      metadata: data.metadata, // Raw document metadata (if different from info)
+      version: data.version,
+      confidence: 0.9, // pdf-parse doesn't directly provide a confidence score for the whole text.
+                       // This would typically come from an OCR engine if it were image-based.
+                       // For text-based PDFs, extraction is usually accurate.
+      processingTimeMs,
+      language: 'ro', // Language detection is a separate, more complex task. Defaulting to 'ro'.
+    };
+  } catch (error) {
+    console.error("Error extracting text from PDF:", error);
+    const processingTimeMs = Date.now() - startTime;
+    // Return a structure indicating failure or partial data
+    return {
+        text: '',
+        pageTexts: [],
+        numPages: 0,
+        numRenders: 0,
+        info: null,
+        metadata: null,
+        version: '',
+        confidence: 0,
+        processingTimeMs,
+        language: 'ro',
+    };
   }
 }
+
 
 /**
  * Generate thumbnail from PDF

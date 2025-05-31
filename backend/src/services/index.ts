@@ -8,6 +8,7 @@ export * from './enrichment.service'
 export * from './access-request.service'
 export * from './lifecycle.service'
 export * from './storage.service'
+export * from './email.service'; 
 
 // Service instances
 export { authService } from './auth.service'
@@ -19,3 +20,4 @@ export { enrichmentService } from './enrichment.service'
 export { accessRequestService } from './access-request.service'
 export { lifecycleService } from './lifecycle.service'
 export { storageService } from './storage.service' 
+export { emailService } from './email.service';
