@@ -76,6 +76,7 @@ function AppContent() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/request" element={<PrivateFileRequestPage />} />
         <Route path="/portal" element={<PortalPage />} />
 
           {/* Protected routes */}
