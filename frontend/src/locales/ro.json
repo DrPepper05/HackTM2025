@@ -130,6 +130,14 @@
     "audit_logs": "Jurnale de Audit",
     "inventory_reports": "Rapoarte de Inventar"
   },
+  "notifications": {
+    "no_notifications": "Nu există notificări",
+    "view_all": "Vezi toate notificările",
+    "new_document": "Document nou încărcat",
+    "document_approved": "Document aprobat",
+    "retention_alert": "Perioada de retenție se apropie de sfârșit",
+    "time_ago": "acum {{time}}"
+  },
   "dashboard": {
     "welcome": "Bine ai venit, {{name}}",
     "summary": "Sumar",

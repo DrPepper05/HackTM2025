@@ -294,11 +294,11 @@
   
   /* Loading */
   .loading-container {
-    @apply flex justify-center items-center py-16;
+    @apply flex flex-col items-center justify-center py-16 min-h-[200px] w-full;
   }
   
   .loading-spinner {
-    @apply h-12 w-12 rounded-full border-4 border-gray-100 border-t-sky-600 animate-spin shadow-md;
+    @apply h-12 w-12 rounded-full border-4 border-gray-100 border-t-sky-600 animate-spin shadow-md mb-4;
   }
   
   /* Alert for no results */

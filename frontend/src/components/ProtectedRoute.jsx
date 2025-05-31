@@ -13,8 +13,9 @@ const ProtectedRoute = ({
   // Show loading state while checking authentication
   if (isLoading) {
     return loadingComponent || (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="loading-container min-h-screen">
+        <div className="loading-spinner"></div>
+        <p className="text-gray-600 text-sm mt-2">Loading...</p>
       </div>
     )
   }

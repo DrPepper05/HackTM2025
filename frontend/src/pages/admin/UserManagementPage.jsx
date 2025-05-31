@@ -479,11 +479,9 @@ function UserManagementPage() {
             <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
                 {isLoading ? (
-                  <div className="flex h-64 items-center justify-center bg-white">
-                    <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-                    <span className="ml-2 text-lg font-medium text-gray-700">
-                      {t('admin.loading_users')}
-                    </span>
+                  <div className="loading-container bg-white h-64">
+                    <div className="loading-spinner"></div>
+                    <p className="text-gray-600 text-sm mt-2">{t('admin.loading_users')}</p>
                   </div>
                 ) : users.length === 0 ? (
                   <div className="flex h-64 flex-col items-center justify-center bg-white">

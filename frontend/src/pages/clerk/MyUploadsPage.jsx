@@ -424,8 +424,9 @@ function MyUploadsPage() {
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+                <div className="loading-container">
+                  <div className="loading-spinner"></div>
+                  <p className="text-gray-600 text-sm">{t('common.loading')}</p>
                 </div>
               ) : sortedDocuments.length === 0 ? (
                 <div className="py-8 text-center">

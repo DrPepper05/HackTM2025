@@ -356,11 +356,9 @@ function RetentionQueuePage() {
   // Render loading state
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-primary"></div>
-          <p className="mt-4 text-lg font-medium text-gray-700">{t('common.loading')}</p>
-        </div>
+      <div className="loading-container h-96">
+        <div className="loading-spinner"></div>
+        <p className="text-gray-600 text-sm mt-2">{t('common.loading')}</p>
       </div>
     )
   }

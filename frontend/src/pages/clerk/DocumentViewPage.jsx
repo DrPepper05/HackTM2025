@@ -180,8 +180,9 @@ function DocumentViewPage() {
   // Render loading state
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+      <div className="loading-container h-96">
+        <div className="loading-spinner"></div>
+        <p className="text-gray-600 text-sm mt-2">{t('common.loading')}</p>
       </div>
     )
   }

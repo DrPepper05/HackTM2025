@@ -156,6 +156,14 @@
       "admin": "System administrator"
     }
   },
+  "notifications": {
+    "no_notifications": "No notifications",
+    "view_all": "View all notifications",
+    "new_document": "New document uploaded",
+    "document_approved": "Document approved",
+    "retention_alert": "Retention period ending",
+    "time_ago": "{{time}} ago"
+  },
   "dashboard": {
     "welcome": "Welcome",
     "summary": "Summary",
@@ -379,6 +387,7 @@
     "ingest_queue": "Ingest Queue",
     "ingest_queue_description": "Review and process newly uploaded documents",
     "retention_queue": "Retention Queue",
+    "retention_alerts": "Retention Alerts",
     "retention_queue_description": "Manage documents due for retention actions",
     "search_documents": "Search documents",
     "filter_all_dates": "All Dates",

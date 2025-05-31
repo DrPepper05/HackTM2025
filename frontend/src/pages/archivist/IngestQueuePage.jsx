@@ -303,8 +303,9 @@ function IngestQueuePage() {
         {/* Documents table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+            <div className="loading-container h-64">
+              <div className="loading-spinner"></div>
+              <p className="text-gray-600 text-sm mt-2">{t('common.loading')}</p>
             </div>
           ) : sortedDocuments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">

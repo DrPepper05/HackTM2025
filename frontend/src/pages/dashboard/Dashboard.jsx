@@ -83,9 +83,9 @@ function Dashboard() {
   // Show loading while we determine the user's role and redirect
   if (isLoading || (userRole && userRole !== 'admin' && roleRedirectMap[userRole])) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">Loading...</span>
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p className="text-gray-600 text-sm">{t('common.loading')}</p>
       </div>
     )
   }

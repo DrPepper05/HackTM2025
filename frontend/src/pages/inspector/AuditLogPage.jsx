@@ -498,8 +498,9 @@ function AuditLogPage() {
 
         {/* Logs Table */}
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+          <div className="loading-container h-64">
+            <div className="loading-spinner"></div>
+            <p className="text-gray-600 text-sm mt-2">{t('common.loading')}</p>
           </div>
         ) : logs.length === 0 ? (
           <div className="rounded-md bg-yellow-50 p-4">
