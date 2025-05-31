@@ -130,6 +130,22 @@
     "audit_logs": "Audit Logs",
     "inventory_reports": "Inventory Reports"
   },
+  "roles": {
+    "clerk": "Clerk",
+    "archivist": "Archivist",
+    "citizen": "Citizen",
+    "media": "Media",
+    "inspector": "Inspector",
+    "admin": "Administrator",
+    "description": {
+      "clerk": "Can upload and register documents",
+      "archivist": "Can manage document lifecycle",
+      "citizen": "Public access only",
+      "media": "Media access",
+      "inspector": "Can view audit logs",
+      "admin": "System administrator"
+    }
+  },
   "dashboard": {
     "welcome": "Welcome",
     "summary": "Summary",
@@ -391,7 +407,7 @@
     "confirm_release": "Confirm Release",
     "no_documents": "No documents found",
     "no_documents_description": "There are no documents in the ingest queue matching your criteria.",
-    "search_documents": "Search documents",
+    "no_documents_found": "No documents found",
     "type_filter": "Document Type",
     "transfer_queue": "Transfer Queue",
     "transfer_queue_description": "Manage documents ready for transfer to permanent storage",
