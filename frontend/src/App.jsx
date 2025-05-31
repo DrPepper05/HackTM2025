@@ -15,6 +15,7 @@ const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
 
 // Clerk pages
 const AddDocumentPage = lazy(() => import('./pages/clerk/AddDocumentPage'))
@@ -82,6 +83,7 @@ function AppContent() {
           {/* Protected routes */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<ProfilePage />} />
             
             {/* Clerk routes */}
             <Route path="/documents/upload" element={
