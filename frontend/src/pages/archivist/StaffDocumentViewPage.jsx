@@ -76,8 +76,8 @@ function StaffDocumentViewPage() {
         
         console.log('Document API response:', response)
         
-        if (response.success) {
-          const doc = response.data
+        if (response) {
+          const doc = response
           console.log('Document details:', doc)
           console.log('Available fields:', Object.keys(doc))
           console.log('File size fields:', {
@@ -97,11 +97,11 @@ function StaffDocumentViewPage() {
             title: doc.title || 'Untitled Document',
             documentType: doc.document_type || '',
             documentTypeName: getDocumentTypeName(doc.document_type || ''),
-            creator: doc.created_by || 'Unknown',
+            creator: doc.creator_info?.creator_name || doc.created_by || doc.uploaded_by || 'Unknown',
             creationDate: doc.created_at?.split('T')[0] || '',
             uploadDate: doc.uploaded_at?.split('T')[0] || doc.upload_timestamp?.split('T')[0] || doc.created_at?.split('T')[0] || '',
-            uploadedBy: doc.uploaded_by || doc.created_by || 'Unknown',
-            uploaderId: doc.uploader_user_id || doc.user_id || '',
+            uploadedBy: doc.creator_info?.creator_name || doc.uploaded_by || doc.created_by || 'Unknown',
+            uploaderId: doc.creator_info?.created_by_user_id || doc.uploader_user_id || doc.user_id || '',
             status: doc.status || 'draft',
             statusName: getStatusName(doc.status || 'draft'),
             retentionCategory: doc.retention_category || '',
@@ -123,7 +123,7 @@ function StaffDocumentViewPage() {
           setDocument(documentData)
           setEditedDocument({ ...documentData })
         } else {
-          console.error('Failed to fetch document:', response.message)
+          console.error('Invalid response format or document not found:', response)
           // Show error message or redirect
           navigate('/documents/search')
         }

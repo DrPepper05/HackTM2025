@@ -1134,7 +1134,7 @@ function AdvancedSearchPage() {
                                 
                               <div className="flex items-center text-sm text-gray-500">
                                   <User className="mr-1.5 h-4 w-4 flex-shrink-0" />
-                                  {doc?.created_by || 'Unknown Creator'}
+                                  {doc?.creator_info?.creator_name || doc?.created_by || doc?.uploaded_by || 'Unknown Creator'}
                               </div>
                                 
                                 <div className="flex items-center text-sm text-gray-500">

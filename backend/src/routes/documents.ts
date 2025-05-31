@@ -80,12 +80,24 @@ router.post('/', authMiddleware, upload.single('file'), async (req: Authenticate
 router.get('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.id;
+    console.log('GET /documents - User ID from auth:', userId);
+    console.log('GET /documents - Full user object:', req.user);
+    
     if (!userId) {
+      console.log('GET /documents - No user ID found');
       return res.status(401).json({ error: 'User ID not found' });
     }
 
     const filters = { uploader_user_id: userId };
+    console.log('GET /documents - Applying filters:', filters);
+    
     const result = await documentService.getDocuments(filters);
+    console.log('GET /documents - Result from service:', {
+      documentsCount: result.documents.length,
+      total: result.total,
+      firstDocUploaderIds: result.documents.slice(0, 3).map(d => d.uploader_user_id)
+    });
+    
     res.json(result);
   } catch (error) {
     console.error('Error fetching documents:', error);
