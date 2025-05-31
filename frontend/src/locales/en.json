@@ -294,6 +294,40 @@
       "preservation_title": "Digital Preservation",
       "preservation_desc": "Documents are preserved in digital format ensuring long-term accessibility and historical record keeping."
     },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Find answers to common questions about our platform and services",
+      "categories": {
+        "general": "General",
+        "documents": "Documents",
+        "access": "Access & Permissions"
+      },
+      "questions": {
+        "what_is_openarchive": "What is OpenArchive?",
+        "who_can_use": "Who can use this platform?",
+        "is_free": "Is it free to use OpenArchive?",
+        "what_documents": "What types of documents can I find?",
+        "how_to_search": "How can I search for documents?",
+        "document_formats": "What file formats are supported?",
+        "request_access": "How can I request access to a restricted document?",
+        "access_denied": "What if my access request is denied?",
+        "response_time": "How long does it take to process an access request?"
+      },
+      "answers": {
+        "what_is_openarchive": "OpenArchive is a digital archiving platform designed to help Romanian public institutions comply with Law 16/1996 (National Archives Law) and its 2023 digital norms. It provides tools for document capture, preservation, search, and lawful disclosure of official records.",
+        "who_can_use": "The platform is designed primarily for local public institutions in Romania. Different user roles include clerks for document upload, archivists for document management, citizens for public document access, and inspectors for audit purposes.",
+        "is_free": "Yes, access to public documents is free for all citizens. Public institutions may have costs associated with implementing and using the system.",
+        "what_documents": "You can find a variety of public documents including resolutions, administrative decisions, reports, local budgets, and other official documents issued by local public institutions.",
+        "how_to_search": "You can use the search function on our public portal to find publicly available documents. Enter keywords in the search box, and you can refine your search using filters for date range, document type, and institution.",
+        "document_formats": "The platform supports various file formats including PDF, DOCX, XLSX, PPTX, JPG, PNG, and TIFF. Documents are converted to PDF/A format for long-term preservation.",
+        "request_access": "For documents that are not publicly available, you can submit an access request through our portal, providing your details and the reason for your request.",
+        "access_denied": "If your request is denied, you will receive a notification with the reason. You can appeal the decision or submit a new request with additional information justifying access.",
+        "response_time": "Access requests are typically processed within 10 working days, in accordance with Romanian transparency laws. You will receive a notification when your request has been processed."
+      },
+      "contact_title": "Still have questions?",
+      "contact_description": "If you couldn't find the answer you were looking for, please contact us.",
+      "contact_button": "Contact Us"
+    },
     "cta_title": "Need Access to Restricted Documents?",
     "cta_subtitle": "Login to request access to documents that aren't publicly available yet",
     "cta_description": "Some documents may be restricted due to privacy or security concerns. Registered users can request access to these documents through our secure system.",
@@ -400,6 +434,8 @@
       "searching": "Searching..."
     },
     "search_description": "Search through our collection of publicly available documents",
+    "filters": "Filters",
+    "search": "Search",
     "refine_search": "Refine Your Search",
     "date_from": "Date From",
     "date_to": "Date To",
@@ -408,8 +444,10 @@
     "reset_filters": "Reset Filters",
     "apply_filters": "Apply Filters",
     "search_results_count": "{{count}} results found",
+    "frequent_documents": "Frequently Accessed Documents",
     "no_results": "No Results Found",
     "no_results_description": "We couldn't find any documents matching your search criteria. Try adjusting your filters or search terms.",
+    "try_again": "Try Again",
     "previous": "Previous",
     "next": "Next",
     "view": {

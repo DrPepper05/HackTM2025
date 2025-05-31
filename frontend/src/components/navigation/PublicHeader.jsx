@@ -22,7 +22,7 @@ function PublicHeader() {
         <div className="flex lg:flex-1">
           <Link to="/" className="-m-1.5 p-1.5">
             <span className="sr-only">OpenArchive</span>
-            <span className="text-xl font-bold text-primary">OpenArchive</span>
+            <span className="text-xl font-bold text-sky-600">OpenArchive</span>
           </Link>
         </div>
         
@@ -39,7 +39,7 @@ function PublicHeader() {
         
         <div className="hidden lg:flex lg:gap-x-12">
           {navigation.map((item) => (
-            <Link key={item.name} to={item.href} className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary">
+            <Link key={item.name} to={item.href} className="text-sm font-semibold leading-6 text-gray-900 hover:text-sky-600">
               {item.name}
             </Link>
           ))}
@@ -47,7 +47,7 @@ function PublicHeader() {
         
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
           <LanguageSwitcher />
-          <Link to="/login" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary">
+          <Link to="/login" className="text-sm font-semibold leading-6 text-gray-900 hover:text-sky-600">
             {t('auth.sign_in')} <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
@@ -61,7 +61,7 @@ function PublicHeader() {
             <div className="flex items-center justify-between">
               <Link to="/" className="-m-1.5 p-1.5">
                 <span className="sr-only">OpenArchive</span>
-                <span className="text-xl font-bold text-primary">OpenArchive</span>
+                <span className="text-xl font-bold text-sky-600">OpenArchive</span>
               </Link>
               <button
                 type="button"

@@ -26,7 +26,7 @@ function Footer() {
         <nav className="-mb-6 columns-2 sm:flex sm:justify-center sm:space-x-12" aria-label="Footer">
           {navigation.main.map((item) => (
             <div key={item.name} className="pb-6">
-              <Link to={item.href} className="text-sm leading-6 text-gray-600 hover:text-primary">
+              <Link to={item.href} className="text-sm leading-6 text-gray-600 hover:text-sky-600">
                 {item.name}
               </Link>
             </div>
@@ -44,7 +44,7 @@ function Footer() {
             </p>
             <nav className="mt-4 flex space-x-6 md:mt-0">
               {navigation.legal.map((item) => (
-                <Link key={item.name} to={item.href} className="text-xs leading-5 text-gray-500 hover:text-primary">
+                <Link key={item.name} to={item.href} className="text-xs leading-5 text-gray-500 hover:text-sky-600">
                   {item.name}
                 </Link>
               ))}
@@ -53,7 +53,7 @@ function Footer() {
           <div className="mt-4 text-center text-xs text-gray-500">
             <p>{t('footer.compliance_notice')}</p>
             <p className="mt-2">
-              {t('footer.developed_by')} <a href="https://hacktm.ro" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">HackTM 2025</a>
+              {t('footer.developed_by')} <a href="https://hacktm.ro" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">HackTM 2025</a>
             </p>
           </div>
         </div>

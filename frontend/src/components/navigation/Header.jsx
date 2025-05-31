@@ -16,7 +16,7 @@ function Header({ setSidebarOpen }) {
   }
 
   return (
-    <header className="bg-white shadow">
+    <header className="bg-white shadow-md">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Mobile menu button */}
         <button
@@ -31,7 +31,7 @@ function Header({ setSidebarOpen }) {
         {/* Logo */}
         <div className="flex md:hidden">
           <Link to="/dashboard" className="flex items-center">
-            <span className="text-xl font-bold text-primary">OpenArchive</span>
+            <span className="text-xl font-bold text-sky-600">OpenArchive</span>
           </Link>
         </div>
 
@@ -46,7 +46,7 @@ function Header({ setSidebarOpen }) {
               <input
                 id="search"
                 name="search"
-                className="block w-full rounded-md border-0 bg-gray-50 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                className="block w-full rounded-md border-0 bg-gray-50 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6"
                 placeholder={t('common.search')}
                 type="search"
               />
@@ -63,7 +63,7 @@ function Header({ setSidebarOpen }) {
           <div className="relative">
             <button
               type="button"
-              className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2"
               onClick={() => setNotificationsOpen(!notificationsOpen)}
             >
               <span className="sr-only">{t('common.notifications')}</span>
@@ -97,7 +97,7 @@ function Header({ setSidebarOpen }) {
                   </div>
                 </div>
                 <div className="border-t border-gray-100 px-4 py-2 text-center">
-                  <Link to="/notifications" className="text-sm font-medium text-primary hover:text-primary-dark">
+                  <Link to="/notifications" className="text-sm font-medium text-sky-600 hover:text-sky-700">
                     {t('notifications.view_all')}
                   </Link>
                 </div>
@@ -109,7 +109,7 @@ function Header({ setSidebarOpen }) {
           <div className="relative">
             <button
               type="button"
-              className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
             >
               <span className="sr-only">{t('navigation.open_user_menu')}</span>

@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog, Transition } from '@headlessui/react'
-import { X, Home, FileText, Upload, Inbox, Clock, Send, Search, Users, Shield, BarChart } from 'lucide-react'
+import { X, Home, FileText, Upload, Inbox, Clock, Send, Search, Users, Shield, BarChart, FolderArchive } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 function Sidebar({ sidebarOpen, setSidebarOpen }) {
@@ -69,7 +69,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-white pt-5 pb-4">
+              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-slate-800 pt-5 pb-4">
                 <Transition.Child
                   as={Fragment}
                   enter="ease-in-out duration-300"
@@ -94,7 +94,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 {/* Logo */}
                 <div className="flex flex-shrink-0 items-center px-4">
                   <Link to="/dashboard" className="flex items-center">
-                    <span className="text-xl font-bold text-primary">OpenArchive</span>
+                    <FolderArchive className="text-sky-600 mr-3 h-8 w-8" />
+                    <span className="text-xl font-bold text-white">OpenArchive</span>
                   </Link>
                 </div>
                 
@@ -107,14 +108,14 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                         <Link
                           key={item.name}
                           to={item.href}
-                          className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${isActive
-                            ? 'bg-primary text-white'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          className={`group flex items-center px-2 py-2 text-base font-medium rounded-lg ${isActive
+                            ? 'bg-sky-600 text-white'
+                            : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                           }`}
                           onClick={() => setSidebarOpen(false)}
                         >
                           <item.icon
-                            className={`mr-4 h-6 w-6 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'}`}
+                            className={`mr-4 h-6 w-6 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}
                             aria-hidden="true"
                           />
                           {item.name}
@@ -134,10 +135,11 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
       {/* Desktop sidebar */}
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
-        <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+        <div className="flex min-h-0 flex-1 flex-col bg-slate-800">
           <div className="flex h-16 flex-shrink-0 items-center px-4">
             <Link to="/dashboard" className="flex items-center">
-              <span className="text-xl font-bold text-primary">OpenArchive</span>
+              <FolderArchive className="text-sky-600 mr-3 h-8 w-8" />
+              <span className="text-xl font-bold text-white">OpenArchive</span>
             </Link>
           </div>
           <div className="flex flex-1 flex-col overflow-y-auto">
@@ -148,13 +150,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive
-                      ? 'bg-primary text-white'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-lg ${isActive
+                      ? 'bg-sky-600 text-white'
+                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                     }`}
                   >
                     <item.icon
-                      className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'}`}
+                      className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}
                       aria-hidden="true"
                     />
                     {item.name}
