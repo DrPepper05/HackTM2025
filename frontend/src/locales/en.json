@@ -773,6 +773,7 @@
     "connect": "Connect"
   },
   "inspector": {
+    "status": "Status",
     "no_reports_found": "No reports found",
     "no_reports_found_description": "No reports have been submitted",
     "audit_logs": "Audit Logs",
