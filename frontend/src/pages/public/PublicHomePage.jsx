@@ -217,10 +217,10 @@ function PublicHomePage() {
             </p>
             <div className="flex gap-4 justify-center">
               <Link
-                to="/login"
+                to="/request"
                 className="px-8 py-3 bg-white text-sky-600 font-medium rounded-lg hover:bg-sky-50 transition-colors"
               >
-                {t('public.cta_button_primary')}
+                Request File Access
               </Link>
               <Link
                 to="/contact"

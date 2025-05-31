@@ -2,13 +2,13 @@
 import { Router } from 'express';
 import { accessRequestController } from '../controllers';
 import { validateAccessRequest, validateUUID } from '../middleware/validation.middleware';
+// import { access } from 'fs';
 // import { authenticateOptionalToken } from '../middleware/auth.middleware'; // If you want to attach user if logged in
 
 const router = Router();
 
 // Create a new access request (publicly accessible)
-// The validateAccessRequest middleware is defined in validation.middleware.ts
-router.post('/', validateAccessRequest, accessRequestController.createRequest);
+router.post('/', /*validateAccessRequest,*/ accessRequestController.createRequest);
 
 // Get status of a specific access request by ID (publicly accessible by ID)
 // Optional: Add authenticateOptionalToken if you want to know who is asking,

@@ -9,9 +9,18 @@ export class AccessRequestController {
    * Create a new access request
    */
   createRequest = asyncHandler(async (req: Request, res: Response) => {
-    const requestData: CreateAccessRequestDto = req.body;
+    const requestData: CreateAccessRequestDto = {
+      requesterName: req.body.requester_name,
+      requesterEmail: req.body.requester_email,
+      requesterPhone: req.body.requester_phone,
+      requesterIdNumber: req.body.requester_id_number,
+      requesterOrganization: req.body.requester_organization,
+      documentId: req.body.document_id,
+      justification: req.body.justification,
+      intendedUse: req.body.intended_use,
+    };
 
-    // Basic validation (more comprehensive validation is in the middleware)
+    // Basic validation
     if (!requestData.requesterName || !requestData.requesterEmail || !requestData.justification) {
       return res.status(400).json({
         success: false,
@@ -19,13 +28,28 @@ export class AccessRequestController {
       });
     }
 
-    const newAccessRequest = await accessRequestService.createAccessRequest(requestData);
+    try {
+      const newAccessRequest = await accessRequestService.createAccessRequest(requestData);
 
-    res.status(201).json({
-      success: true,
-      message: 'Access request submitted successfully. You will receive a confirmation email.',
-      data: newAccessRequest,
-    });
+      res.status(201).json({
+        success: true,
+        message: 'Access request submitted successfully. You will receive a confirmation email.',
+        data: newAccessRequest,
+      });
+    } catch (error) {
+      // Handle specific error cases from the service
+      if (error instanceof Error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message
+        });
+      }
+      // Handle unexpected errors
+      return res.status(500).json({
+        success: false,
+        message: 'An unexpected error occurred while processing your request.'
+      });
+    }
   });
 
   /**
