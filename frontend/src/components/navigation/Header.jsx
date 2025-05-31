@@ -136,16 +136,16 @@ function Header({ toggleSidebar }) {
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <User className="mr-3 h-4 w-4" />
-                    {t('navigation.profile')}
+                    {t('nav.profile')}
                   </Link>
-                  <Link
+                  {/* <Link
                     to="/settings"
                     className={`flex items-center px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <Settings className="mr-3 h-4 w-4" />
                     {t('navigation.settings')}
-                  </Link>
+                  </Link> */}
                   <button
                     className={`flex w-full items-center px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
                     onClick={() => {
@@ -154,7 +154,7 @@ function Header({ toggleSidebar }) {
                     }}
                   >
                     <LogOut className="mr-3 h-4 w-4" />
-                    {t('auth.sign_out')}
+                    {t('auth.signOut')}
                   </button>
                 </div>
               </div>
