@@ -10,7 +10,8 @@ import {
   TextractClient, 
   StartDocumentAnalysisCommand,
   GetDocumentAnalysisCommand,
-  JobStatus
+  JobStatus,
+  Block // Import the Block type if not already imported
 } from '@aws-sdk/client-textract';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { PDFDocument } from 'pdf-lib';
@@ -22,7 +23,8 @@ export interface EnrichmentResult {
   predictedRetention?: RetentionCategory;
   detectedPII: PIIDetection[];
   extractedText?: string;
-  confidence: number;
+  confidence: number; // This is for AI analysis confidence
+  ocrConfidence?: number; // Added for OCR specific confidence
   metadata: Record<string, any>;
 }
 
@@ -40,9 +42,6 @@ const awsRegion = process.env.AWS_REGION || 'eu-central-1';
 const textractClient = new TextractClient({ region: awsRegion });
 const bedrockClient = new BedrockRuntimeClient({ region: awsRegion });
 
-// --- IMPLEMENTATION ---
-// Define the confidence threshold for automatic retention assignment.
-// This can be moved to an environment variable for easier configuration.
 const RETENTION_CONFIDENCE_THRESHOLD = 0.90;
 
 
@@ -74,7 +73,7 @@ export class EnrichmentService {
             Name: originalFile.storage_key,
           },
         },
-        FeatureTypes: ['FORMS', 'TABLES'],
+        FeatureTypes: ['FORMS', 'TABLES'], // Can also request 'LAYOUT' if needed for other purposes
       });
 
       const response = await textractClient.send(command);
@@ -102,7 +101,7 @@ export class EnrichmentService {
      return withMonitoring('process_textract_result', 'documents', async () => {
         let nextToken: string | undefined;
         let jobStatus: JobStatus | undefined;
-        let allBlocks: any[] = [];
+        let allBlocks: Block[] = []; // Use the imported Block type
 
         do {
             const command = new GetDocumentAnalysisCommand({ JobId: jobId, NextToken: nextToken });
@@ -125,20 +124,31 @@ export class EnrichmentService {
             nextToken = response.NextToken;
         } while (nextToken);
 
-        const ocrText = allBlocks.filter(block => block.BlockType === 'LINE').map(block => block.Text || '').join('\n');
+        const lineBlocks = allBlocks.filter(block => block.BlockType === 'LINE');
+        const ocrText = lineBlocks.map(block => block.Text || '').join('\n');
+        
+        // --- START: Calculate Average OCR Confidence ---
+        let totalConfidence = 0;
+        let lineCount = 0;
+        lineBlocks.forEach(block => {
+            if (block.Confidence !== undefined) { // Textract confidence is 0-100
+                totalConfidence += block.Confidence;
+                lineCount++;
+            }
+        });
+        // Normalize to 0-1 if lineCount > 0, else default or handle as appropriate
+        const averageOcrConfidence = lineCount > 0 ? (totalConfidence / lineCount) / 100 : 0; 
+        // --- END: Calculate Average OCR Confidence ---
         
         const originalFile = (await documentService.getDocumentById(documentId) as DocumentWithFiles)?.document_files?.find(f => f.file_type === 'original');
         if (originalFile) {
-            await this.updateOcrResult(originalFile.id, ocrText);
+            // Pass the calculated confidence to updateOcrResult
+            await this.updateOcrResult(originalFile.id, ocrText, averageOcrConfidence);
         }
 
-        // PII detection is now disabled.
         const piiDetections: PIIDetection[] = [];
-
         const aiAnalysis = await this._analyzeTextWithBedrock(ocrText);
         
-        // --- START OF MODIFIED HYBRID LOGIC ---
-
         const currentDoc = await documentService.getDocumentById(documentId);
         if (!currentDoc) {
             throw new Error(`Document ${documentId} not found during final update.`);
@@ -155,34 +165,34 @@ export class EnrichmentService {
               enrichment_completed_at: new Date().toISOString(),
               enrichment_confidence: aiAnalysis.confidence,
               documentTypeFromAI: aiAnalysis.document_type,
+              average_ocr_confidence: averageOcrConfidence // Store average OCR confidence in metadata too
           },
-          // Set the document_type only if it wasn't set during upload
           document_type: currentDoc.document_type || aiAnalysis.document_type
         };
   
         let auditAction: string;
-        let auditDetails: any = { provider: 'aws_bedrock_async', confidence: aiAnalysis.confidence };
+        let auditDetails: any = { 
+            provider: 'aws_bedrock_async', 
+            ai_confidence: aiAnalysis.confidence, // AI analysis confidence
+            ocr_confidence: averageOcrConfidence // OCR confidence
+        };
   
         if (aiAnalysis.confidence >= RETENTION_CONFIDENCE_THRESHOLD) {
-          // HIGH CONFIDENCE: Automate the assignment
           updates.retention_category = aiAnalysis.retention_category as RetentionCategory;
-          updates.status = 'ACTIVE_STORAGE'; // Move directly to active storage
+          updates.status = 'ACTIVE_STORAGE'; 
           auditAction = 'AUTONOMOUS_CLASSIFICATION_SUCCESS';
           auditDetails.assigned_retention = updates.retention_category;
         } else {
-          // LOW CONFIDENCE: Flag for human review
-          updates.status = 'NEEDS_CLASSIFICATION'; // Use our new status
+          updates.status = 'NEEDS_CLASSIFICATION'; 
           auditAction = 'AUTONOMOUS_CLASSIFICATION_NEEDS_REVIEW';
           auditDetails.suggested_retention = aiAnalysis.retention_category;
         }
   
-        // Update the document in the database with the determined updates
         await supabaseAdmin
           .from('documents')
           .update(updates)
           .eq('id', documentId);
           
-        // Log the specific outcome to the audit trail
         await supabaseAdmin.rpc('create_audit_log', { 
             p_action: auditAction, 
             p_entity_type: 'document', 
@@ -195,13 +205,12 @@ export class EnrichmentService {
         const finalResult: EnrichmentResult = {
             suggestedTitle: aiAnalysis.title,
             predictedRetention: aiAnalysis.retention_category as RetentionCategory,
-            detectedPII: piiDetections, // Will be an empty array
+            detectedPII: piiDetections, 
             extractedText: ocrText,
-            confidence: aiAnalysis.confidence,
+            confidence: aiAnalysis.confidence, // AI analysis confidence
+            ocrConfidence: averageOcrConfidence, // OCR confidence
             metadata: updates.metadata as Record<string, any>,
         };
-
-        // --- END OF MODIFIED HYBRID LOGIC ---
 
         return finalResult;
      });
@@ -275,12 +284,13 @@ Asigură-te că output-ul este doar obiectul JSON, fără text adițional.
         .eq('id', documentId);
   }
 
-  private async updateOcrResult(fileId: string, ocrText: string) {
+  // --- MODIFIED: updateOcrResult now accepts calculatedConfidence ---
+  private async updateOcrResult(fileId: string, ocrText: string, calculatedConfidence: number) {
       await supabaseAdmin
         .from('document_files')
         .update({
           ocr_text: ocrText,
-          ocr_confidence: 0.95, 
+          ocr_confidence: calculatedConfidence, // Use the dynamic value
           processing_metadata: { processed_at: new Date().toISOString(), engine: 'aws-textract-async' }
         })
         .eq('id', fileId);
