@@ -102,7 +102,7 @@ function Header({ toggleSidebar }) {
                 </div>
                 <div className={`border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-100'} px-4 py-2 text-center`}>
                   <Link to="/notifications" className="text-sm font-medium text-sky-600 hover:text-sky-700">
-                    {t('notifications.view_all')}
+                    {t('common.view_all')}
                   </Link>
                 </div>
               </div>
