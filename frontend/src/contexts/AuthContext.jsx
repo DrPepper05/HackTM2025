@@ -13,9 +13,13 @@ export function AuthProvider({ children }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // Token management functions
-  const saveSession = (sessionData) => {
-    localStorage.setItem('auth_session', JSON.stringify(sessionData))
-    setSession(sessionData)
+  const saveSession = (sessionData, userData = null) => {
+    const sessionToStore = {
+      ...sessionData,
+      user: userData || user // Store user data with session
+    }
+    localStorage.setItem('auth_session', JSON.stringify(sessionToStore))
+    setSession(sessionToStore)
   }
 
   const clearSession = () => {
@@ -29,17 +33,60 @@ export function AuthProvider({ children }) {
   const getStoredSession = () => {
     try {
       const stored = localStorage.getItem('auth_session')
-      return stored ? JSON.parse(stored) : null
+      if (!stored) {
+        console.log('No stored session found')
+        return null
+      }
+      
+      const session = JSON.parse(stored)
+      console.log('Retrieved stored session:', { 
+        hasAccessToken: !!session.access_token,
+        hasRefreshToken: !!session.refresh_token,
+        hasUser: !!session.user,
+        expiresAt: session.expires_at 
+      })
+      return session
     } catch (error) {
       console.error('Error parsing stored session:', error)
+      // Clear corrupted session data
+      localStorage.removeItem('auth_session')
       return null
     }
   }
 
   // Check if token is expired
   const isTokenExpired = (session) => {
-    if (!session?.expires_at) return true
-    return Date.now() > session.expires_at
+    if (!session?.expires_at) {
+      console.log('Token check: No expires_at found, considering expired')
+      return true
+    }
+    
+    // Add a 30-second buffer to account for clock skew and network delays
+    const bufferMs = 30 * 1000
+    const now = Date.now()
+    
+    // Handle both Unix timestamps (seconds) and JavaScript timestamps (milliseconds)
+    let expiresAt
+    if (typeof session.expires_at === 'string') {
+      expiresAt = new Date(session.expires_at).getTime()
+    } else if (session.expires_at < 10000000000) {
+      // If the number is less than 10 billion, it's likely in seconds (Unix timestamp)
+      expiresAt = session.expires_at * 1000
+    } else {
+      // Otherwise, it's already in milliseconds
+      expiresAt = session.expires_at
+    }
+    
+    const isExpired = now > (expiresAt - bufferMs)
+    const timeUntilExpiry = expiresAt - now
+    
+    console.log('Token expiration check:', {
+      expiresAtRaw: session.expires_at,
+      timeUntilExpiryMinutes: Math.round(timeUntilExpiry / 60000),
+      isExpired
+    })
+    
+    return isExpired
   }
 
   // API helper with auth headers
@@ -99,8 +146,15 @@ export function AuthProvider({ children }) {
   // Load user profile
   const loadUserProfile = useCallback(async () => {
     try {
+      console.log('Making API call to load user profile...')
       const result = await apiCall('/api/v1/auth/profile')
       const profile = result.data
+      
+      console.log('User profile loaded from API:', { 
+        id: profile.id, 
+        email: profile.email, 
+        role: profile.role 
+      })
       
       setUser({
         id: profile.id,
@@ -112,7 +166,8 @@ export function AuthProvider({ children }) {
       return profile
     } catch (error) {
       console.error('Error loading user profile:', error)
-      clearSession()
+      // Don't automatically clear session here - let the caller decide
+      // This function is called from initialization and other places
       throw error
     }
   }, [apiCall])
@@ -121,20 +176,36 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const initializeAuth = async () => {
       setIsLoading(true)
+      console.log('Starting auth initialization...')
       
       try {
         const storedSession = getStoredSession()
         
         if (!storedSession) {
+          console.log('No stored session found, user not logged in')
           setIsLoading(false)
           return
         }
 
+        console.log('Found stored session, checking expiration...')
+        
+        // Always restore the session first
+        setSession(storedSession)
+
         // Check if token is expired
         if (isTokenExpired(storedSession)) {
+          console.log('Token expired, attempting refresh...')
           // Try to refresh token
           try {
-            await refreshToken()
+            const refreshResult = await refreshToken()
+            if (!refreshResult.success) {
+              console.log('Token refresh failed during init, logging out')
+              clearSession()
+              setIsLoading(false)
+              return
+            }
+            console.log('Token refresh successful during init')
+            // refreshToken already updates the session, so we continue
           } catch (error) {
             console.log('Token refresh failed during init:', error)
             clearSession()
@@ -142,16 +213,52 @@ export function AuthProvider({ children }) {
             return
           }
         } else {
-          setSession(storedSession)
+          console.log('Token is still valid, proceeding with profile loading')
         }
 
-        // Load user profile
-        await loadUserProfile()
+        // First, try to restore user data from stored session
+        if (storedSession.user) {
+          console.log('Restoring user data from stored session')
+          setUser(storedSession.user)
+          setUserRole(storedSession.user.profile?.role || 'citizen')
+        }
+
+        // Then try to load fresh user profile, but don't fail the entire auth if it fails
+        try {
+          console.log('Loading fresh user profile...')
+          await loadUserProfile()
+          console.log('User profile loaded successfully')
+        } catch (error) {
+          console.error('Error loading user profile during init:', error)
+          
+          // Check if it's a 401 error (invalid token)
+          if (error.message.includes('Session expired') || error.message.includes('401')) {
+            console.log('Profile loading failed due to invalid token, clearing session')
+            clearSession()
+          } else {
+            // For other errors (network issues, server problems), keep the session
+            console.warn('Profile loading failed but keeping session. User data restored from cache:', error.message)
+            
+            // Make sure we have user data from session if profile loading failed
+            if (!user && storedSession.user) {
+              console.log('Ensuring user data is restored from session after profile loading failure')
+              setUser(storedSession.user)
+              setUserRole(storedSession.user.profile?.role || 'citizen')
+            }
+          }
+        }
         
       } catch (error) {
         console.error('Error initializing auth:', error)
-        clearSession()
+        // Only clear session for critical authentication errors
+        if (error.message.includes('Session expired') || error.message.includes('401')) {
+          console.log('Clearing session due to authentication error')
+          clearSession()
+        } else {
+          console.warn('Non-auth error during initialization, keeping session')
+        }
       } finally {
+        console.log('Auth initialization complete')
         setIsLoading(false)
       }
     }
@@ -182,7 +289,7 @@ export function AuthProvider({ children }) {
       const sessionData = result.data.session
       const userData = result.data.user
       
-      saveSession(sessionData)
+      saveSession(sessionData, userData)
       setUser(userData)
       setUserRole(userData.profile?.role || 'citizen')
       
@@ -225,7 +332,7 @@ export function AuthProvider({ children }) {
       const sessionData = result.data.session
       const userData = result.data.user
       
-      saveSession(sessionData)
+      saveSession(sessionData, userData)
       setUser(userData)
       setUserRole(userData.profile?.role || 'citizen')
       
@@ -293,9 +400,9 @@ export function AuthProvider({ children }) {
         throw new Error(result.message || 'Token refresh failed')
       }
 
-      // Update session with new tokens
+      // Update session with new tokens while preserving user data
       const newSession = result.data
-      saveSession(newSession)
+      saveSession(newSession, storedSession.user)
       
       return { success: true, session: newSession }
       
@@ -371,7 +478,14 @@ export function AuthProvider({ children }) {
   }
 
   const isAuthenticated = () => {
-    return !!user && !!session && !isTokenExpired(session)
+    // Check current state first
+    if (user && session && !isTokenExpired(session)) {
+      return true
+    }
+    
+    // If current state is not available, check stored session
+    const storedSession = getStoredSession()
+    return !!(storedSession?.access_token && storedSession?.user && !isTokenExpired(storedSession))
   }
 
   // Auto-refresh token when it's about to expire
