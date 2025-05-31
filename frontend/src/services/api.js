@@ -155,6 +155,12 @@ export const documentsApi = {
   downloadDocument: (id) => apiService.get(`/api/v1/documents/${id}/download`),
   getDocumentVersions: (id) => apiService.get(`/api/v1/documents/${id}/versions`),
   restoreVersion: (id, versionId) => apiService.post(`/api/v1/documents/${id}/versions/${versionId}/restore`),
+  
+  //Added for pending requests for archivist
+  //getAccessRequests: () => apiService.get('/api/v1/access-requests'),
+  //updateAccessRequest: (requestId, data) => apiService.patch(`/api/v1/access-requests/${requestId}`, data),
+  //getAccessRequestById: (requestId) => apiService.get(`/api/v1/access-requests/${requestId}`),
+  //createAccessRequest: (data) => apiService.post('/api/v1/access-requests', data),
 }
 
 export const collectionsApi = {
