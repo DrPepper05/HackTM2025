@@ -10,6 +10,7 @@ function Layout() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   // Close sidebar on mobile when route changes
   useEffect(() => {
@@ -49,7 +50,12 @@ function Layout() {
         {/* Fixed Sidebar - now with full height */}
         <div className="hidden md:block fixed left-0 top-16 bottom-0 z-40 h-full">
           <div className="h-full">
-            <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+            <Sidebar 
+              sidebarOpen={sidebarOpen} 
+              setSidebarOpen={setSidebarOpen}
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+            />
           </div>
         </div>
 
@@ -59,7 +65,7 @@ function Layout() {
         </div>
 
         {/* Main content with margin for sidebar */}
-        <div className="flex-1 flex flex-col md:ml-64"> {/* Add margin-left to account for sidebar width */}
+        <div className={`flex-1 flex flex-col ${isCollapsed ? 'md:ml-16' : 'md:ml-64'} transition-all duration-300`}>
           <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
             <div className="mx-auto max-w-7xl">
               <Outlet />

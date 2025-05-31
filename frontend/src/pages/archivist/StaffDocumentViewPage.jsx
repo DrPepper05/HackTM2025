@@ -364,7 +364,7 @@ function StaffDocumentViewPage() {
                     onClick={() => navigate('/dashboard/archivist/advanced-search')}
                     className="rounded-md bg-red-50 px-2 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-red-50"
                   >
-                    {t('archivist.back_to_search')}
+                    {t('common.back')}
                   </button>
                 </div>
               </div>
@@ -386,7 +386,7 @@ function StaffDocumentViewPage() {
             className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           >
             <ArrowLeft className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-            {t('archivist.back')}
+            {t('common.back')}
           </button>
         </div>
 
@@ -434,7 +434,7 @@ function StaffDocumentViewPage() {
                   className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <X className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                  {t('archivist.cancel')}
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -442,7 +442,7 @@ function StaffDocumentViewPage() {
                   className="ml-3 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <Save className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                  {t('archivist.save')}
+                  {t('common.save')}
                 </button>
               </>
             ) : (
@@ -453,15 +453,15 @@ function StaffDocumentViewPage() {
                   className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <Trash2 className="-ml-0.5 mr-1.5 h-5 w-5 text-red-500" aria-hidden="true" />
-                  {t('archivist.delete')}
+                  {t('common.delete')}
                 </button>
                 <button
                   type="button"
                   onClick={handleEditToggle}
-                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  className="ml-3 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <Pencil className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                  {t('archivist.edit')}
+                  {t('common.edit')}
                 </button>
               </>
             )}

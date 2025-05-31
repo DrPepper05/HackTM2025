@@ -1,14 +1,16 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog, Transition } from '@headlessui/react'
-import { X, Home, FileText, Upload, Inbox, Clock, Send, Search, Users, Shield, BarChart, FolderArchive } from 'lucide-react'
+import { X, Home, FileText, Upload, Inbox, Clock, Send, Search, Users, Shield, BarChart, FolderArchive, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useTheme } from '../../contexts/ThemeContext'
 
-function Sidebar({ sidebarOpen, setSidebarOpen }) {
+function Sidebar({ sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed }) {
   const { t } = useTranslation()
   const location = useLocation()
   const { userRole, hasRole } = useAuth()
+  const { isDarkMode } = useTheme()
 
   // Define navigation items based on user role
   const navigation = [
@@ -42,6 +44,20 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
     ] : []),
   ]
 
+  const isActive = (path) => location.pathname === path
+
+  const navClasses = (path) => `
+    flex items-center px-2 py-2 text-sm font-medium rounded-md whitespace-nowrap
+    ${isActive(path)
+      ? `${isDarkMode 
+          ? 'bg-gray-900 text-white' 
+          : 'bg-sky-100 text-sky-700'}`
+      : `${isDarkMode
+          ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`
+    }
+  `
+
   return (
     <>
       {/* Mobile sidebar */}
@@ -69,7 +85,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-slate-800 pt-5 pb-4">
+              <Dialog.Panel className={`relative flex w-full max-w-xs flex-1 flex-col ${isDarkMode ? 'bg-slate-800' : 'bg-gray-100'} pt-5 pb-4`}>
                 <Transition.Child
                   as={Fragment}
                   enter="ease-in-out duration-300"
@@ -92,37 +108,37 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                   </div>
                 </Transition.Child>
                 
-                {/* Logo */}
-                <div className="flex flex-shrink-0 items-center px-4">
-                  <Link to="/dashboard" className="flex items-center">
-                    <FolderArchive className="text-sky-500 mr-3 h-8 w-8" />
-                    <span className="text-xl font-bold text-white">OpenArchive</span>
-                  </Link>
-                </div>
-                
                 {/* Navigation */}
-                <div className="mt-5 h-0 flex-1 overflow-y-auto">
+                <div className="mt-5 flex-1 overflow-y-auto">
                   <nav className="space-y-1 px-2">
                     {navigation.map((item) => {
-                      const isActive = location.pathname === item.href
                       return (
                         <Link
                           key={item.name}
                           to={item.href}
-                          className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${isActive
-                            ? 'bg-sky-600 text-white'
-                            : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+                          className={navClasses(item.href)}
                           onClick={() => setSidebarOpen(false)}
                         >
                           <item.icon
-                            className={`mr-4 h-6 w-6 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}
+                            className={`mr-4 h-6 w-6 flex-shrink-0 ${isActive(item.href) 
+                              ? (isDarkMode ? 'text-white' : 'text-sky-700')
+                              : isDarkMode 
+                                ? 'text-slate-400 group-hover:text-white' 
+                                : 'text-gray-500 group-hover:text-gray-900'}`}
                             aria-hidden="true"
                           />
-                          {item.name}
+                          <span className="truncate">{item.name}</span>
                         </Link>
                       )
                     })}
                   </nav>
+                </div>
+
+                {/* Logo at bottom */}
+                <div className="flex-shrink-0 px-4 py-4">
+                  <Link to="/dashboard" className="flex items-center">
+                    <FolderArchive className={`${isDarkMode ? 'text-sky-500' : 'text-sky-600'} h-8 w-8`} />
+                  </Link>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -134,30 +150,51 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       </Transition.Root>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:block md:w-64 md:flex-shrink-0 h-full">
-        <div className="flex h-full flex-col bg-slate-800">
+      <div className={`hidden md:block ${isCollapsed ? 'md:w-16' : 'md:w-64'} md:flex-shrink-0 h-full transition-all duration-300`}>
+        <div className={`flex h-full flex-col ${isDarkMode ? 'bg-slate-800' : 'bg-gray-100'} relative`}>
+          {/* Toggle button */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`absolute -right-3 top-16 bg-white rounded-full p-1 border border-gray-200 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4 text-gray-600" />
+            ) : (
+              <ChevronLeft className="h-4 w-4 text-gray-600" />
+            )}
+          </button>
           
           <div className="flex flex-1 flex-col overflow-y-auto">
+            {/* Navigation */}
             <nav className="flex-1 space-y-1 px-2 py-4">
               {navigation.map((item) => {
-                const isActive = location.pathname === item.href
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive
-                      ? 'bg-sky-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+                    className={`${navClasses(item.href)} ${isCollapsed ? 'justify-center' : ''}`}
+                    title={isCollapsed ? item.name : undefined}
                   >
                     <item.icon
-                      className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}
+                      className={`${isCollapsed ? '' : 'mr-3'} h-5 w-5 flex-shrink-0 ${isActive(item.href)
+                        ? (isDarkMode ? 'text-white' : 'text-sky-700')
+                        : isDarkMode
+                          ? 'text-slate-400 group-hover:text-white'
+                          : 'text-gray-500 group-hover:text-gray-900'}`}
                       aria-hidden="true"
                     />
-                    {item.name}
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
                   </Link>
                 )
               })}
             </nav>
+
+            {/* Logo at bottom */}
+            <div className={`flex-shrink-0 px-4 py-4 ${isCollapsed ? 'flex justify-center' : ''}`}>
+              <Link to="/dashboard" className="flex items-center" title="Dashboard">
+                <FolderArchive className={`${isDarkMode ? 'text-sky-500' : 'text-sky-600'} h-8 w-8`} />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
