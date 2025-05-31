@@ -1,7 +1,7 @@
 // backend/src/services/access-request.service.ts
 import { supabaseAdmin, withMonitoring, verifyUserRole } from '../config/supabase.config';
-import { AccessRequest, AccessRequestStatus, UserProfile } from '../types/database.types';
-import { emailService, MailOptions } from './email.service'; // Import the real emailService and MailOptions
+import { AccessRequest, AccessRequestStatus, UserProfile, Document } from '../types/database.types'; // Added Document
+import { emailService, MailOptions } from './email.service';
 
 export interface CreateAccessRequestDto {
   requesterName: string;
@@ -9,15 +9,15 @@ export interface CreateAccessRequestDto {
   requesterPhone?: string;
   requesterIdNumber?: string;
   requesterOrganization?: string;
-  documentId?: string; // Can be null if it's a general access request
+  documentId?: string | null; // Allow null for optional, or omit field
   justification: string;
   intendedUse?: string;
 }
 
 export interface ProcessAccessRequestDto {
-  status: 'approved' | 'rejected'; // Only these two are valid for processing
+  status: 'approved' | 'rejected';
   rejectionReason?: string;
-  notes?: string; // Internal notes for the processing staff
+  notes?: string;
 }
 
 export interface AccessRequestFilter {
@@ -30,41 +30,59 @@ export interface AccessRequestFilter {
   offset?: number;
 }
 
+// Define a type for documents joined with access requests if needed
+type DocumentForAccessRequest = Pick<Document, 'id' | 'title' | 'is_public' | 'status'>;
+
+
 export class AccessRequestService {
   /**
    * Create a new access request (public interface)
    */
   async createAccessRequest(requestData: CreateAccessRequestDto): Promise<AccessRequest> {
     return withMonitoring('create', 'access_requests', async () => {
-      // Validate document exists and is eligible for access request if documentId is provided
+      let documentData: DocumentForAccessRequest | null = null;
+
       if (requestData.documentId) {
+        // <<<--- DEBUG LOGGING BLOCK ---<<<
+        console.log('--- DEBUG: AccessRequestService ---');
+        console.log(`Received documentId in service: "${requestData.documentId}"`);
+        console.log(`Type of documentId: ${typeof requestData.documentId}`);
+        if (requestData.documentId) { // Check if not null before accessing length
+            console.log(`Length of documentId string: ${requestData.documentId.length}`);
+        }
+        console.log('--- END DEBUG ---');
+        // >>>------------------------------------>>>
+
         const { data: document, error: docError } = await supabaseAdmin
           .from('documents')
-          .select('id, is_public, status, title') // Added title for email
+          .select('id, is_public, status, title')
           .eq('id', requestData.documentId)
           .single();
 
         if (docError || !document) {
-          throw new Error('Document not found or error fetching document.');
+          if (docError) {
+            console.error("Detailed Supabase error fetching document:", JSON.stringify(docError, null, 2));
+            throw new Error(`Database error fetching document: ${docError.message}`);
+          }
+          throw new Error(`Document with ID '${requestData.documentId}' not found.`);
         }
+        documentData = document; // Store for later use
 
         if (document.is_public) {
           throw new Error('Document is already public, no access request needed.');
         }
 
-        // Define statuses that allow access requests
-        const eligibleStatuses: AccessRequestStatus[] = ['REGISTERED' as any, 'ACTIVE_STORAGE' as any]; // Type assertion might be needed if DocumentStatus and AccessRequestStatus enums differ in compatible values
-        if (!eligibleStatuses.includes(document.status as any)) {
+        const eligibleStatuses: DocumentStatus[] = ['REGISTERED', 'ACTIVE_STORAGE'];
+        if (!eligibleStatuses.includes(document.status)) {
           throw new Error(`Document with status "${document.status}" is not available for access requests.`);
         }
       }
 
-      // Create access request
       const { data, error } = await supabaseAdmin
         .from('access_requests')
         .insert({
           requester_name: requestData.requesterName,
-          requester_email: requestData.requesterEmail.toLowerCase(), // Store email in lowercase
+          requester_email: requestData.requesterEmail.toLowerCase(),
           requester_phone: requestData.requesterPhone,
           requester_id_number: requestData.requesterIdNumber,
           requester_organization: requestData.requesterOrganization,
@@ -77,11 +95,10 @@ export class AccessRequestService {
         .single();
 
       if (error) {
-        console.error('Error creating access request in DB:', error);
+        console.error('Error inserting access request in DB:', error);
         throw error;
       }
 
-      // Log the access request creation
       await supabaseAdmin.rpc('create_audit_log', {
         p_action: 'ACCESS_REQUEST_CREATED',
         p_entity_type: 'access_request',
@@ -93,8 +110,8 @@ export class AccessRequestService {
         },
       });
 
-      // Send confirmation email
-      await this.sendRequestConfirmationEmail(data);
+      // Pass documentData (which might include title) to email function
+      await this.sendRequestConfirmationEmail(data, documentData);
 
       return data;
     });
@@ -107,7 +124,7 @@ export class AccessRequestService {
     filters: AccessRequestFilter = {},
     userId: string
   ): Promise<{
-    requests: AccessRequest[];
+    requests: Array<AccessRequest & { document_title?: string }>;
     total: number;
   }> {
     const hasPermission = await verifyUserRole(userId, ['clerk', 'archivist', 'inspector', 'admin']);
@@ -118,7 +135,7 @@ export class AccessRequestService {
     return withMonitoring('list', 'access_requests', async () => {
       let query = supabaseAdmin
         .from('access_requests')
-        .select('*, documents (id, title)', { count: 'exact' }); // Include document title
+        .select('*, documents (id, title)', { count: 'exact' });
 
       if (filters.status) query = query.eq('status', filters.status);
       if (filters.documentId) query = query.eq('document_id', filters.documentId);
@@ -138,13 +155,17 @@ export class AccessRequestService {
         console.error('Error fetching access requests:', error);
         throw error;
       }
+      
+      const requestsWithTitle = (data || []).map(req => {
+        const typedReq = req as any; // Type assertion for Supabase join result
+        return {
+          ...typedReq,
+          document_title: typedReq.documents?.title 
+        };
+      });
 
       return {
-        requests: (data || []).map(req => ({
-            ...req,
-            // @ts-ignore Supabase TS generation for joined tables can be tricky
-            document_title: req.documents?.title 
-        })) as AccessRequest[],
+        requests: requestsWithTitle,
         total: count || 0,
       };
     });
@@ -166,7 +187,7 @@ export class AccessRequestService {
     return withMonitoring('process', 'access_requests', async () => {
       const { data: currentRequest, error: fetchError } = await supabaseAdmin
         .from('access_requests')
-        .select('*, documents (id, title)') // Include document title for email
+        .select('*, documents (id, title)')
         .eq('id', requestId)
         .single();
 
@@ -189,11 +210,10 @@ export class AccessRequestService {
           processed_by_user_id: processingUserId,
           processed_at: new Date().toISOString(),
           rejection_reason: decision.status === 'rejected' ? decision.rejectionReason : null,
-          // notes: decision.notes, // If you add a 'notes' column to access_requests table
           updated_at: new Date().toISOString(),
         })
         .eq('id', requestId)
-        .select('*, documents (id, title)') // Re-select to get the latest data with join
+        .select('*, documents (id, title)')
         .single();
 
       if (updateError) {
@@ -210,11 +230,10 @@ export class AccessRequestService {
           processed_by: processingUserId,
           rejection_reason: decision.rejectionReason,
           previous_status: currentRequest.status,
-          // internal_notes: decision.notes,
         },
       });
 
-      await this.sendDecisionNotificationEmail(updatedRequest);
+      await this.sendDecisionNotificationEmail(updatedRequest as AccessRequest & { documents: DocumentForAccessRequest | null });
 
       return updatedRequest;
     });
@@ -225,24 +244,33 @@ export class AccessRequestService {
    */
   async getAccessRequestById(
     requestId: string,
-    requestingUserId?: string // Optional: if provided, will check permissions
-  ): Promise<AccessRequest | null> {
-    const { data: request, error } = await supabaseAdmin
+    requestingUserId?: string
+  ): Promise<(AccessRequest & { document_title?: string }) | null> {
+    const { data, error } = await supabaseAdmin
       .from('access_requests')
       .select('*, documents (id, title)')
       .eq('id', requestId)
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') return null; // Not found
+      if (error.code === 'PGRST116') return null;
       console.error('Error fetching access request by ID:', error);
       throw error;
     }
     
+    const request = data as any; // Type assertion for Supabase join result
+
     if (requestingUserId) {
-      const profile = await supabaseAdmin.from('user_profiles').select('email, role').eq('id', requestingUserId).single();
-      const userEmail = profile.data?.email;
-      const userRole = profile.data?.role;
+      const {data: profile, error: profileError} = await supabaseAdmin
+        .from('user_profiles')
+        .select('email, role')
+        .eq('id', requestingUserId)
+        .single();
+      
+      if (profileError && profileError.code !== 'PGRST116') throw profileError;
+
+      const userEmail = profile?.email;
+      const userRole = profile?.role;
 
       const canStaffAccess = userRole && ['clerk', 'archivist', 'inspector', 'admin'].includes(userRole);
       const isRequester = userEmail && userEmail.toLowerCase() === request.requester_email.toLowerCase();
@@ -251,20 +279,17 @@ export class AccessRequestService {
         throw new Error('Unauthorized: You do not have permission to view this access request.');
       }
     }
-    // @ts-ignore
-    if (request.documents && !Array.isArray(request.documents)) { // Supabase might return object instead of array for single join
-        // @ts-ignore
-        request.document_title = request.documents.title;
-    }
-
-
-    return request as AccessRequest;
+    
+    return {
+        ...request,
+        document_title: request.documents?.title
+    };
   }
 
   /**
    * Get access requests submitted by a specific email address
    */
-  async getRequestsByEmail(email: string): Promise<AccessRequest[]> {
+  async getRequestsByEmail(email: string): Promise<Array<AccessRequest & { document_title?: string }>> {
     const { data, error } = await supabaseAdmin
       .from('access_requests')
       .select('*, documents (id, title)')
@@ -275,17 +300,17 @@ export class AccessRequestService {
       console.error('Error fetching requests by email:', error);
       throw error;
     }
-    return (data || []).map(req => ({
-        ...req,
-        // @ts-ignore
-        document_title: req.documents?.title
-    })) as AccessRequest[];
+    return (data || []).map(req => {
+        const typedReq = req as any;
+        return {
+          ...typedReq,
+          document_title: typedReq.documents?.title
+        };
+    });
   }
 
-  // Updated to use the new emailService
-  private async sendRequestConfirmationEmail(request: AccessRequest): Promise<void> {
-    // @ts-ignore
-    const documentTitle = request.documents?.title || (request.document_id ? `Document ID ${request.document_id.substring(0,8)}...` : 'general information');
+  private async sendRequestConfirmationEmail(request: AccessRequest, documentData?: DocumentForAccessRequest | null): Promise<void> {
+    const documentTitle = documentData?.title || (request.document_id ? `Document ID ${request.document_id.substring(0,8)}...` : 'general information');
     const mailSubject = `OpenArchive: Access Request Received (ID: ${request.id.substring(0, 8)})`;
     const mailBody = `
 Dear ${request.requester_name},
@@ -322,12 +347,10 @@ The OpenArchive Team
     }
   }
 
-  // Updated to use the new emailService
   private async sendDecisionNotificationEmail(
-    request: AccessRequest // This should now include document title if joined
+    request: AccessRequest & { documents?: DocumentForAccessRequest | null }
   ): Promise<void> {
-    const decision = request.status; // status is now 'approved' or 'rejected'
-    // @ts-ignore
+    const decision = request.status as 'approved' | 'rejected'; // Assuming status is one of these after processing
     const documentTitle = request.documents?.title || (request.document_id ? `Document ID ${request.document_id.substring(0,8)}...` : 'the requested information');
     
     const mailSubject = `OpenArchive: Update on Your Access Request (ID: ${request.id.substring(0, 8)}) - ${String(decision).toUpperCase()}`;
@@ -344,7 +367,7 @@ Your request has been: ${String(decision).toUpperCase()}
     } else if (decision === 'approved') {
       mailBody += `\n\nAccess to ${documentTitle} has been granted.`;
       if (request.document_id) {
-        const documentAccessUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${request.document_id}`; //
+        const documentAccessUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${request.document_id}`;
         mailBody += `\nYou may be able to access the document here: ${documentAccessUrl}`;
       }
     }
@@ -377,7 +400,7 @@ The OpenArchive Team
   }
   
   async getAccessRequestStatistics(
-    userId: string, // For permission check
+    userId: string,
     days: number = 30
   ): Promise<{
     total: number;
@@ -385,7 +408,7 @@ The OpenArchive Team
     approved: number;
     rejected: number;
     byMonth: Array<{ month: string; count: number }>;
-    averageProcessingTimeHours: number; // Changed to hours
+    averageProcessingTimeHours: number;
   }> {
     const hasPermission = await verifyUserRole(userId, ['archivist', 'inspector', 'admin']);
     if (!hasPermission) {
@@ -427,13 +450,13 @@ The OpenArchive Team
 
       if (req.processed_at && req.status !== 'pending') {
         const processingTime = new Date(req.processed_at).getTime() - new Date(req.created_at).getTime();
-        if (processingTime > 0) { // Ensure valid time
+        if (processingTime > 0) {
             totalProcessingTimeMs += processingTime;
             processedCount++;
         }
       }
 
-      const month = new Date(req.created_at).toISOString().substring(0, 7); // YYYY-MM
+      const month = new Date(req.created_at).toISOString().substring(0, 7);
       monthCounts[month] = (monthCounts[month] || 0) + 1;
     });
 
@@ -450,10 +473,10 @@ The OpenArchive Team
 
   async bulkProcessRequests(
     requestIds: string[],
-    decision: ProcessAccessRequestDto, // status and rejectionReason
+    decision: ProcessAccessRequestDto,
     processingUserId: string
   ): Promise<{ processed: number; errors: Array<{ id: string; error: string }> }> {
-    const hasPermission = await verifyUserRole(processingUserId, ['admin']); // Or 'archivist'
+    const hasPermission = await verifyUserRole(processingUserId, ['admin', 'archivist']);
     if (!hasPermission) {
       throw new Error('Unauthorized: Admin or Archivist role required for bulk processing.');
     }
@@ -462,10 +485,9 @@ The OpenArchive Team
 
     for (const requestId of requestIds) {
       try {
-        // Fetch the request to pass to sendDecisionNotificationEmail
         const { data: currentRequest, error: fetchErr } = await supabaseAdmin
             .from('access_requests')
-            .select('*, documents (id, title)')
+            .select('*, documents (id, title)') // Ensure we fetch document for email
             .eq('id', requestId)
             .single();
 
@@ -488,33 +510,30 @@ The OpenArchive Team
                 updated_at: new Date().toISOString(),
             })
             .eq('id', requestId)
-            .eq('status', 'pending') // Ensure we only update pending requests
-            .select('*, documents (id, title)')
+            .eq('status', 'pending')
+            .select('*, documents (id, title)') // Re-select for email context
             .single();
 
-        if (processErr) {
-          throw processErr;
-        }
-        if (!updatedRequest){ // If update didn't return data (e.g. status was not pending)
+        if (processErr) throw processErr;
+        if (!updatedRequest) {
             results.errors.push({ id: requestId, error: 'Failed to update or request was not pending.' });
             continue;
         }
         
-        // Log individual processing for audit
         await supabaseAdmin.rpc('create_audit_log', {
-            p_action: 'ACCESS_REQUEST_PROCESSED', // Consistent with single processing
+            p_action: 'ACCESS_REQUEST_PROCESSED',
             p_entity_type: 'access_request',
             p_entity_id: requestId,
             p_details: { 
                 decision: decision.status,
                 processed_by: processingUserId,
                 rejection_reason: decision.rejectionReason,
-                previous_status: 'pending', // Assuming bulk only targets pending
+                previous_status: 'pending',
                 bulk_operation: true
             }
         });
 
-        await this.sendDecisionNotificationEmail(updatedRequest);
+        await this.sendDecisionNotificationEmail(updatedRequest as AccessRequest & { documents: DocumentForAccessRequest | null });
         results.processed++;
 
       } catch (error) {
@@ -522,10 +541,9 @@ The OpenArchive Team
       }
     }
 
-    // Log the overall bulk operation
     await supabaseAdmin.rpc('create_audit_log', {
       p_action: 'BULK_ACCESS_REQUEST_PROCESSING_COMPLETED',
-      p_entity_type: 'system_task', // Or 'access_request_bulk'
+      p_entity_type: 'system_task',
       p_entity_id: null, 
       p_details: {
         total_attempted: requestIds.length,
@@ -539,37 +557,36 @@ The OpenArchive Team
     return results;
   }
 
-
   async cancelAccessRequest(
     requestId: string,
-    requesterEmail: string // To verify ownership
+    requesterEmail: string
   ): Promise<void> {
     return withMonitoring('cancel', 'access_requests', async () => {
       const { data: request, error: fetchError } = await supabaseAdmin
         .from('access_requests')
-        .select('id, status, requester_email')
+        .select('id, status, requester_email, document_id, documents (id, title)') // Fetch document for email
         .eq('id', requestId)
         .single();
 
       if (fetchError || !request) {
         throw new Error('Access request not found.');
       }
+      const typedRequest = request as any;
 
-      if (request.requester_email.toLowerCase() !== requesterEmail.toLowerCase()) {
+      if (typedRequest.requester_email.toLowerCase() !== requesterEmail.toLowerCase()) {
         throw new Error('Unauthorized: You can only cancel your own requests.');
       }
 
-      if (request.status !== 'pending') {
+      if (typedRequest.status !== 'pending') {
         throw new Error('Cannot cancel a request that has already been processed.');
       }
 
       const { error: updateError } = await supabaseAdmin
         .from('access_requests')
         .update({
-          status: 'rejected', // Or a new 'cancelled' status if you add one
+          status: 'rejected',
           rejection_reason: 'Cancelled by requester.',
-          processed_at: new Date().toISOString(), // Mark as processed
-          // processed_by_user_id: null, // Or a system user ID
+          processed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq('id', requestId);
@@ -588,9 +605,9 @@ The OpenArchive Team
           requester_email: requesterEmail,
         },
       });
+      // Optionally, send a cancellation confirmation email, though typically not done.
     });
   }
-
 }
 
 export const accessRequestService = new AccessRequestService();
