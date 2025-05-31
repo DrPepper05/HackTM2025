@@ -1,27 +1,22 @@
 // backend/src/services/email.service.ts
-import nodemailer from 'nodemailer';
-import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2'; // Correct import
+import { SESv2Client, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-sesv2';
 import { supabaseAdmin } from '../config/supabase.config';
 
-const sesV2ApiVersion = "2019-09-27"; // SESv2 API version
+// Debug logging for AWS configuration
+console.log('AWS Configuration Debug:');
+console.log('AWS_SES_REGION:', process.env.AWS_SES_REGION);
+console.log('AWS_REGION:', process.env.AWS_REGION);
+console.log('AWS_ACCESS_KEY_ID exists:', !!process.env.AWS_ACCESS_KEY_ID);
+console.log('AWS_SECRET_ACCESS_KEY exists:', !!process.env.AWS_SECRET_ACCESS_KEY);
+console.log('MAIL_FROM_ADDRESS:', process.env.MAIL_FROM_ADDRESS);
 
+// Configure the SESv2Client with explicit credentials
 const sesV2Client = new SESv2Client({
   region: process.env.AWS_SES_REGION || process.env.AWS_REGION || 'eu-central-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-  apiVersion: sesV2ApiVersion, // Explicitly setting API version for SESv2
-});
-
-// Create a Nodemailer transporter
-// MODIFICATION HERE: Pass SendEmailCommand directly as a property
-const transporter = nodemailer.createTransport({
-  SES: {
-    ses: sesV2Client,       // The SESv2Client instance
-    SendEmailCommand,       // The SendEmailCommand constructor directly
-    // apiVersion: sesV2ApiVersion // Also can be specified here
-  },
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+  }
 });
 
 export interface MailOptions {
@@ -37,62 +32,84 @@ class EmailService {
 
   constructor() {
     this.defaultFromAddress = process.env.MAIL_FROM_ADDRESS || 'noreply@openarchive.local';
+
+    // Warnings for configuration issues
+    if (!process.env.AWS_SES_REGION && !process.env.AWS_REGION) {
+      console.warn('EmailService: AWS_SES_REGION or AWS_REGION is not set. Defaulting to eu-central-1, but this might be incorrect for your SES setup.');
+    }
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
       console.warn(
-        'EmailService: AWS credentials not fully configured. Emails might fail.'
+        'EmailService: AWS SES credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) not fully configured in environment variables. Emails might fail.'
       );
     }
     if (!this.defaultFromAddress || !this.defaultFromAddress.includes('@')) {
-        console.warn(
-            `EmailService: Default MAIL_FROM_ADDRESS ("${this.defaultFromAddress}") is not configured or invalid. Please check your .env file.`
-        );
+      console.warn(
+        `EmailService: Default MAIL_FROM_ADDRESS ("${this.defaultFromAddress}") is not configured or invalid. Please check your .env file.`
+      );
     }
   }
 
   async sendMail(options: MailOptions): Promise<{ messageId: string }> {
-    // Nodemailer will construct the appropriate SendEmailCommandInput for SESv2
-    // based on these standard mail options.
-    const mailPayload = {
-      from: options.from || this.defaultFromAddress,
-      to: options.to,
-      subject: options.subject,
-      text: options.textBody,
-      html: options.htmlBody || `<p>${options.textBody.replace(/\n/g, '<br>')}</p>`,
-      // SES specific options can be added here if needed, e.g., ConfigurationSetName
-      // ses: { // Example:
-      //   ConfigurationSetName: 'MyConfigurationSet'
-      // }
+    const recipients = Array.isArray(options.to) ? options.to : [options.to];
+    
+    const params: SendEmailCommandInput = {
+      FromEmailAddress: options.from || this.defaultFromAddress,
+      Destination: {
+        ToAddresses: recipients
+      },
+      Content: {
+        Simple: {
+          Subject: {
+            Data: options.subject
+          },
+          Body: {
+            Text: {
+              Data: options.textBody
+            },
+            Html: {
+              Data: options.htmlBody || `<p>${options.textBody.replace(/\n/g, '<br>')}</p>`
+            }
+          }
+        }
+      }
     };
 
     try {
-      console.log(`Attempting to send email via SESv2 from ${mailPayload.from} to ${mailPayload.to} with subject "${mailPayload.subject}"`);
-      // transporter.sendMail will use the SESv2Client and its SendEmailCommand
-      const info = await transporter.sendMail(mailPayload);
-      console.log('Email sent successfully via SESv2. Message ID: %s', info.messageId);
+      console.log(`Attempting to send email via SESv2 from ${params.FromEmailAddress} to ${recipients.join(', ')} with subject "${params.Content.Simple.Subject.Data}"`);
+      
+      const command = new SendEmailCommand(params);
+      const response = await sesV2Client.send(command);
+      
+      console.log('Email sent successfully via SESv2. Message ID:', response.MessageId);
 
       await supabaseAdmin.rpc('create_audit_log', {
         p_action: 'EMAIL_SENT_SUCCESS',
         p_entity_type: 'email_service',
         p_entity_id: null,
         p_details: {
-          to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
+          to: recipients.join(', '),
           subject: options.subject,
-          messageId: info.messageId,
+          messageId: response.MessageId,
           transport: 'AWS SESv2',
         },
       });
-      return { messageId: info.messageId };
+      
+      return { messageId: response.MessageId || '' };
     } catch (error) {
       console.error('Error sending email via SESv2:', error);
+      // Log more detailed error if available
+      const errorDetails = error instanceof Error ? { message: error.message, stack: error.stack, name: error.name } : { message: String(error) };
+      
       await supabaseAdmin.rpc('create_audit_log', {
         p_action: 'EMAIL_SENT_FAILURE',
         p_entity_type: 'email_service',
         p_entity_id: null,
         p_details: {
-          to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
+          to: recipients.join(', '),
           subject: options.subject,
-          error: error instanceof Error ? error.message : String(error),
-          errorMessage: error instanceof Error ? error.stack : "No stack",
+          errorName: errorDetails.name,
+          errorMessage: errorDetails.message,
+          errorStack: errorDetails.stack,
           transport: 'AWS SESv2',
         },
       });
