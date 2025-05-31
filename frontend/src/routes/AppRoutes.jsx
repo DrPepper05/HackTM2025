@@ -54,10 +54,10 @@ function AppRoutes() {
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
-        <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
-        <Route path="/forgot-password" element={!user ? <ForgotPasswordPage /> : <Navigate to="/dashboard" />} />
-        <Route path="/reset-password" element={!user ? <ResetPasswordPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/login" element={!user ? <LoginPage /> : <RoleBasedRedirect />} />
+        <Route path="/register" element={!user ? <RegisterPage /> : <RoleBasedRedirect />} />
+        <Route path="/forgot-password" element={!user ? <ForgotPasswordPage /> : <RoleBasedRedirect />} />
+        <Route path="/reset-password" element={!user ? <ResetPasswordPage /> : <RoleBasedRedirect />} />
         
         {/* Public pages */}
         <Route path="/" element={<PublicHomePage />} />
@@ -70,7 +70,11 @@ function AppRoutes() {
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={
+            <RoleBasedRoute allowedRoles={['admin']}>
+              <Dashboard />
+            </RoleBasedRoute>
+          } />
           
           {/* Clerk routes */}
           <Route path="/documents/upload" element={

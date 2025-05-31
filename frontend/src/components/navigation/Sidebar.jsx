@@ -12,10 +12,20 @@ function Sidebar({ sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed }) {
   const { userRole, hasRole } = useAuth()
   const { isDarkMode } = useTheme()
 
+  // Debug logging
+  console.log('Sidebar render - userRole:', userRole)
+  console.log('Sidebar render - hasRole check for archivist:', hasRole('archivist'))
+  console.log('Sidebar render - hasRole check for clerk:', hasRole('clerk'))
+  console.log('Sidebar render - hasRole check for admin:', hasRole('admin'))
+
   // Define navigation items based on user role
   const navigation = [
-    // Common for all authenticated users
-    { name: t('nav.dashboard'), href: '/dashboard', icon: Home },
+    // Admin navigation
+    ...(hasRole('admin') ? [
+      { name: t('nav.dashboard'), href: '/dashboard', icon: Home },
+      { name: t('nav.user_management'), href: '/admin/users', icon: Users },
+      // { name: t('navigation.system_health'), href: '/admin/system', icon: Shield },
+    ] : []),
     
     // Clerk navigation
     ...(hasRole('clerk') ? [
@@ -31,11 +41,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed }) {
       { name: t('nav.advanced_search'), href: '/documents/search', icon: Search },
     ] : []),
     
-    // Admin navigation
-    ...(hasRole('admin') ? [
-      { name: t('nav.user_management'), href: '/admin/users', icon: Users },
-      // { name: t('navigation.system_health'), href: '/admin/system', icon: Shield },
-    ] : []),
+
     
     // Inspector/Auditor navigation
     ...(hasRole('inspector') ? [
