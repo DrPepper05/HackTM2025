@@ -24,34 +24,22 @@ function PublicHomePage() {
   }
 
   const quickLinks = [
-    // {
-    //   title: 'Most Viewed Documents',
-    //   icon: Eye,
-    //   link: '/search?sort=views',
-    //   color: 'text-sky-600',
-    //   bgColor: 'bg-sky-50'
-    // },
     {
-      title: 'Recently Added',
+      title: 'Recently Added Documents',
       icon: Recent,
       link: '/search?sort=date',
       color: 'text-sky-600',
-      bgColor: 'bg-sky-50'
+      bgColor: 'bg-sky-100',
+      description: 'Explore the latest additions to our archive.'
     },
     {
       title: 'Browse by Organization',
       icon: Building,
       link: '/organizations',
-      color: 'text-sky-600',
-      bgColor: 'bg-sky-50'
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
+      description: 'Find documents based on contributing entities.'
     },
-    // {
-    //   title: 'Geographic Data',
-    //   icon: Globe,
-    //   link: '/search?type=geographic',
-    //   color: 'text-sky-600',
-    //   bgColor: 'bg-sky-50'
-    // }
   ]
 
   const features = [
@@ -75,71 +63,118 @@ function PublicHomePage() {
       description: t('public.features.preservation_desc'),
       icon: Clock,
     },
+    {
+      name: t('public.features.transparency_title'),
+      description: t('public.features.transparency_desc'),
+      icon: Eye, 
+    },
+    {
+      name: t('public.features.innovation_title'),
+      description: t('public.features.innovation_desc'),
+      icon: Globe, 
+    }
   ]
+
+  const missionPoints = [
+    {
+      title: 'Inform Decisions',
+      description: 'Support public and policymaker decisions with accurate data',
+      icon: FileText,
+      bgColor: 'bg-sky-50',
+      textColor: 'text-sky-700',
+      iconColor: 'text-sky-600'
+    },
+    {
+      title: 'Drive Innovation',
+      description: 'Enable innovation and economic growth through open access',
+      icon: Globe,
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-700',
+      iconColor: 'text-green-600'
+    },
+    {
+      title: 'Ensure Transparency',
+      description: 'Strengthen the foundation of open and transparent governance',
+      icon: Eye,
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-700',
+      iconColor: 'text-indigo-600'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section with Search */}
-      <section className="relative bg-gradient-to-br from-sky-600 to-sky-800 py-20">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute right-0 top-0 w-1/2 h-full bg-white/5 transform skew-x-12"></div>
-          <div className="absolute left-0 bottom-0 w-full h-32 bg-gradient-to-t from-black/10 to-transparent"></div>
-        </div>
+      <section className="relative bg-gradient-to-br from-sky-600 to-sky-800 py-24 md:py-32">
+        {/* Optional: Add a very subtle pattern or texture if desired, e.g., opacity-5 */}
+        {/* <div className="absolute inset-0 bg-[url('/path/to/subtle-pattern.svg')] opacity-5"></div> */}
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
               {t('public.hero_title')}
             </h1>
-            <p className="text-xl text-sky-100 mb-12 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-sky-100 mb-12 max-w-3xl mx-auto">
               {t('public.hero_subtitle')}
             </p>
 
-            {/* Large Search Box */}
-            <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-1">
-              <form onSubmit={handleSearch} className="flex">
-                <input
-                  type="text"
-                  className="flex-1 px-6 py-4 text-lg border-0 focus:ring-0 outline-none"
-                  placeholder={t('public.search_placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+            {/* Slicker Search Box */}
+            <div className="max-w-3xl mx-auto px-2"> {/* Added slight horizontal padding for very narrow screens if shadow gets clipped */}
+              <form 
+                onSubmit={handleSearch} 
+                className="flex items-center bg-white rounded-xl shadow-xl overflow-hidden focus-within:ring-2 focus-within:ring-sky-400 focus-within:ring-offset-2 focus-within:ring-offset-white transition-all duration-150 ease-in-out"
+              > {/* Form is the styled container, increased rounding, adjusted ring color/offset */}
+                <div className="relative flex-grow">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none"> {/* Icon padding */}
+                    <Search className="h-5 w-5 text-gray-500" /> {/* Icon color */}
+                  </div>
+                  <input
+                    type="text"
+                    className="w-full px-6 py-5 pl-14 text-lg text-gray-800 bg-transparent border-0 focus:outline-none placeholder-gray-500 transition-colors duration-150 ease-in-out" // bg-transparent, darker text, adjusted placeholder
+                    placeholder={t('public.search_placeholder')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
                 <button
                   type="submit"
-                  className="px-8 py-4 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 transition-colors"
+                  className="px-8 py-5 bg-sky-500 text-white font-semibold hover:bg-sky-600 focus:outline-none active:bg-sky-700 transition-colors duration-150 ease-in-out text-lg"
                 >
                   {t('public.search_button')}
                 </button>
               </form>
             </div>
 
-            {/* Statistics */}
-            <div className="mt-12 text-white">
-              <div className="inline-block px-6 py-2 bg-white/10 rounded-full">
-                <span className="font-bold text-2xl">311,097</span>
-                <span className="ml-2 text-sky-100">Documents Available</span>
+            {/* Statistics - Made more prominent */}
+            <div className="mt-16 text-white flex justify-center">
+              <div className="inline-flex items-center justify-center px-10 py-5 bg-sky-600/80 rounded-lg shadow-lg whitespace-nowrap">
+                <span className="font-bold text-3xl tracking-tight mr-6">311,097</span>
+                <span className="text-sky-50 text-lg">Documents Available</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Quick Links Section */}
-      <section className="py-16 bg-gray-50">
+      {/* Quick Links Section - Enhanced */}
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="max-w-lg mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 className="text-3xl font-bold text-gray-800 mb-12 text-center">Quick Access</h2>
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
             {quickLinks.map((item) => (
               <Link
                 key={item.title}
                 to={item.link}
-                className="block p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="group block p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1"
               >
-                <div className="flex items-center">
-                  <div className={`p-3 rounded-lg ${item.bgColor}`}>
-                    <item.icon className={`h-6 w-6 ${item.color}`} />
+                <div className="flex items-start">
+                  <div className={`p-4 rounded-xl ${item.bgColor} transition-colors duration-300 group-hover:bg-opacity-80`}>
+                    <item.icon className={`h-8 w-8 ${item.color} transition-transform duration-300 group-hover:scale-110`} />
                   </div>
-                  <h3 className="ml-4 font-semibold text-gray-900">{item.title}</h3>
+                  <div className="ml-5">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-1">{item.title}</h3>
+                    <p className="text-gray-600">{item.description}</p>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -147,56 +182,56 @@ function PublicHomePage() {
         </div>
       </section>
 
-      {/* Mission Section */}
-      <section className="py-16 bg-white">
+      {/* Mission Section - Enhanced */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
-            <p className="text-lg text-gray-600 leading-relaxed">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Mission</h2>
+            <p className="text-xl text-gray-600 leading-relaxed mb-12">
               The OpenArchive platform is designed to unleash the power of public records to:
             </p>
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 bg-sky-50 rounded-lg">
-                <h3 className="font-semibold text-sky-900 mb-2">Inform Decisions</h3>
-                <p className="text-sky-700">Support public and policymaker decisions with accurate data</p>
-              </div>
-              <div className="p-6 bg-sky-50 rounded-lg">
-                <h3 className="font-semibold text-sky-900 mb-2">Drive Innovation</h3>
-                <p className="text-sky-700">Enable innovation and economic growth through open access</p>
-              </div>
-              <div className="p-6 bg-sky-50 rounded-lg">
-                <h3 className="font-semibold text-sky-900 mb-2">Ensure Transparency</h3>
-                <p className="text-sky-700">Strengthen the foundation of open and transparent governance</p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {missionPoints.map((point) => (
+                <div 
+                  key={point.title}
+                  className={`p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 ${point.bgColor}`}
+                >
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${point.bgColor === 'bg-sky-50' ? 'bg-sky-100' : point.bgColor === 'bg-green-50' ? 'bg-green-100' : 'bg-indigo-100'}`}>
+                    <point.icon className={`h-8 w-8 ${point.iconColor}`} />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-3 ${point.textColor.replace('-700', '-900')}`}>{point.title}</h3>
+                  <p className={`${point.textColor}`}>{point.description}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
+      {/* Features Section - Enhanced */}
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
               {t('public.features_title')}
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-xl text-gray-600">
               {t('public.features_subtitle')}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {features.map((feature) => (
               <div
                 key={feature.name}
-                className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1"
               >
-                <div className="w-12 h-12 bg-sky-50 rounded-lg flex items-center justify-center mb-4">
-                  <feature.icon className="h-6 w-6 text-sky-600" />
+                <div className="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mb-6">
+                  <feature.icon className="h-8 w-8 text-sky-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   {feature.name}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -205,26 +240,26 @@ function PublicHomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-sky-600">
+      {/* CTA Section - Enhanced */}
+      <section className="py-20 bg-sky-700">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
               {t('public.cta_title')}
             </h2>
-            <p className="text-xl text-sky-100 mb-8">
+            <p className="text-xl md:text-2xl text-sky-100 mb-10">
               {t('public.cta_subtitle')}
             </p>
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link
                 to="/request"
-                className="px-8 py-3 bg-white text-sky-600 font-medium rounded-lg hover:bg-sky-50 transition-colors"
+                className="px-10 py-4 bg-white text-sky-700 font-semibold rounded-lg hover:bg-sky-50 transition-all duration-300 ease-in-out text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
                 Request File Access
               </Link>
               <Link
                 to="/contact"
-                className="px-8 py-3 text-white font-medium border border-white rounded-lg hover:bg-sky-700 transition-colors"
+                className="px-10 py-4 text-white font-semibold border-2 border-white rounded-lg hover:bg-sky-600 hover:border-sky-600 transition-all duration-300 ease-in-out text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
                 {t('public.cta_button_secondary')}
               </Link>
