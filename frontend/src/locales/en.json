@@ -48,7 +48,11 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System",
-    "notifications3": "Notifications"
+    "notifications3": "Notifications",
+    "light_mode": "Light Mode",
+    "dark_mode": "Dark Mode",
+    "system_theme": "System Theme",
+    "toggle_theme": "Toggle Theme"
   },
   "auth": {
     "email": "Email",
