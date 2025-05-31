@@ -22,6 +22,11 @@ function Header({ toggleSidebar }) {
     navigate('/dashboard')
   }
 
+  const handleProfileClick = () => {
+    setUserMenuOpen(false)
+    navigate('/profile')
+  }
+
   return (
     <header className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} shadow-sm z-10`}>
       <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
@@ -130,14 +135,13 @@ function Header({ toggleSidebar }) {
                   <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} capitalize`}>{t(`roles.${userRole}`)}</div>
                 </div>
                 <div className={`border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-100'}`}>
-                  <Link
-                    to="/profile"
-                    className={`flex items-center px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
-                    onClick={() => setUserMenuOpen(false)}
+                  <button
+                    onClick={handleProfileClick}
+                    className={`flex w-full items-center px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
                   >
                     <User className="mr-3 h-4 w-4" />
                     {t('nav.profile')}
-                  </Link>
+                  </button>
                   {/* <Link
                     to="/settings"
                     className={`flex items-center px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
