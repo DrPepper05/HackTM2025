@@ -292,7 +292,11 @@
     "uploaded_files": "Uploaded Files",
     "review_and_submit_description": "Review your files before submission",
     "previous_step": "Previous Step",
-    "submit_document": "Submit Document"
+    "submit_document": "Submit Document",
+    "upload_success": "Success!",
+    "upload_success_description": "The file has been uploaded successfully",
+    "upload_another": "Upload Another",
+    "view_my_uploads": "View Uploads"
   },
   "archivist": {
     "ingestQueue": {

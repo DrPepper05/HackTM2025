@@ -347,8 +347,8 @@ function AddDocumentPage() {
         </button>
         <button
           type="button"
-          onClick={() => navigate('/dashboard/clerk/my-uploads')}
-          className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          onClick={() => navigate('/documents/my-uploads')}
+          className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
         >
           {t('clerk.view_my_uploads')}
         </button>
