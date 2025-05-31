@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 
 // Base API class
 class ApiService {
@@ -194,5 +194,15 @@ export const systemApi = {
   updateSettings: (data) => apiService.put('/api/v1/settings', data),
 }
 
+export const adminApi = {
+  getDashboard: () => apiService.get('/api/v1/admin/dashboard'),
+  getQueueStatus: (params) => apiService.get('/api/v1/admin/queue', params),
+  retryTask: (taskId, data) => apiService.post(`/api/v1/admin/queue/tasks/${taskId}/retry`, data),
+  cleanupTasks: (data) => apiService.post('/api/v1/admin/queue/cleanup', data),
+  checkLifecycles: () => apiService.get('/api/v1/admin/lifecycle'),
+  getStorageStats: () => apiService.get('/api/v1/admin/storage'),
+  getAccessRequestStats: () => apiService.get('/api/v1/admin/access-requests/stats'),
+}
+
 // Export the main API service instance
-export default apiService 
+export default apiService

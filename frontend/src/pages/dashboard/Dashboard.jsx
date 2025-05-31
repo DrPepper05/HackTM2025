@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { FileText, Upload, Inbox, Clock, Send, Search, Users, Shield, BarChart } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { adminApi } from '../../services/api'
 
 function Dashboard() {
   const { t } = useTranslation()
@@ -11,36 +12,36 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate fetching dashboard stats
     const fetchDashboardStats = async () => {
       setIsLoading(true)
       try {
-        // In a real app, this would be an API call
-        // For the hackathon, we'll use mock data
-        const mockStats = {
+        // Fetch real data from the API
+        const response = await adminApi.getDashboard()
+        
+        // Transform the API response to match the expected stats structure
+        const dashboardData = response.data
+        
+        const transformedStats = {
           // Clerk stats
           uploads: {
-            total: 24,
-            pending: 5,
-            approved: 19,
+            total: dashboardData.queue?.document_uploads?.total || 0,
+            pending: dashboardData.queue?.document_uploads?.pending || 0,
+            approved: dashboardData.queue?.document_uploads?.completed || 0,
           },
           // Archivist stats
-          ingestQueue: 12,
-          retentionAlerts: 8,
-          transferQueue: 3,
+          ingestQueue: dashboardData.queue?.ingest_tasks?.pending || 0,
+          retentionAlerts: dashboardData.lifecycle?.pending_reviews || 0,
+          transferQueue: dashboardData.queue?.transfer_tasks?.pending || 0,
           // Admin stats
-          users: 45,
-          systemHealth: 'Good',
+          users: dashboardData.accessRequests?.total_users || 0,
+          systemHealth: dashboardData.storage?.health_status || 'Unknown',
           // Inspector stats
-          auditLogs: 156,
-          reports: 7,
+          auditLogs: dashboardData.storage?.audit_count || 0,
+          reports: dashboardData.lifecycle?.reports_due || 0,
         }
-
-        // Simulate network delay
-        setTimeout(() => {
-          setStats(mockStats)
-          setIsLoading(false)
-        }, 500)
+        
+        setStats(transformedStats)
+        setIsLoading(false)
       } catch (error) {
         console.error('Error fetching dashboard stats:', error)
         setIsLoading(false)
@@ -123,14 +124,14 @@ function Dashboard() {
           color: 'bg-teal-500',
           count: stats?.users,
         },
-        {
-          title: t('dashboard.system_health'),
-          description: t('dashboard.system_health_desc'),
-          icon: Shield,
-          link: '/admin/system',
-          color: 'bg-cyan-500',
-          status: stats?.systemHealth,
-        }
+        // {
+        //   title: t('dashboard.system_health'),
+        //   description: t('dashboard.system_health_desc'),
+        //   icon: Shield,
+        //   link: '/admin/system',
+        //   color: 'bg-cyan-500',
+        //   status: stats?.systemHealth,
+        // }
       )
     }
 

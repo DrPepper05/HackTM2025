@@ -31,8 +31,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
     
     // Admin navigation
     ...(hasRole('admin') ? [
-      { name: t('nav.user_management'), href: '/admin/users', icon: Users },
-      { name: t('nav.system_health'), href: '/admin/system', icon: Shield },
+      { name: t('navigation.user_management'), href: '/admin/users', icon: Users },
+      // { name: t('navigation.system_health'), href: '/admin/system', icon: Shield },
     ] : []),
     
     // Inspector/Auditor navigation
