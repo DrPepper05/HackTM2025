@@ -45,24 +45,38 @@ export class AuditService {
    * Create an audit log entry
    * This is typically called by other services, not directly
    */
+  // backend/src/services/audit.service.ts
+
   async createAuditLog(
-    action: string,
-    entityType: string,
-    entityId: string | null,
-    details: Record<string, any> = {},
-    userId?: string
+      action: string,
+      entityType: string,
+      entityId: string | null,
+      details: Record<string, any> = {},
+      userId?: string | null,
+      userEmail?: string | null,
+      ipAddress?: string | null,
+      userAgent?: string | null
   ): Promise<string> {
     return withMonitoring('create', 'audit_logs', async () => {
-      const { data, error } = await supabaseAdmin.rpc('create_audit_log', {
-        p_action: action,
-        p_entity_type: entityType,
-        p_entity_id: entityId,
-        p_details: details
-      })
+      const finalEntityId = entityId === undefined ? null : entityId;
 
-      if (error) throw error
-      return data
-    })
+      const { data, error } = await supabaseAdmin.rpc('create_audit_log', {
+        // **IMPORTANT: Ensure these named parameters match the SQL function's EXPECTED names**
+        // The order in this object might not strictly matter if Supabase is parsing named parameters,
+        // but ensure all are present and correctly typed.
+        p_action: action,
+        p_details: details, // Ensure details is correctly mapped here
+        p_entity_id: finalEntityId,
+        p_entity_type: entityType,
+        p_ip_address: ipAddress || null,
+        p_user_agent: userAgent || null,
+        p_user_email: userEmail || null,
+        p_user_id: userId || null
+      });
+
+      if (error) throw error;
+      return data;
+    });
   }
 
   /**

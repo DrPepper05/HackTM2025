@@ -2,6 +2,7 @@
 import { supabaseAdmin, withMonitoring, verifyUserRole } from '../config/supabase.config';
 import { AccessRequest, AccessRequestStatus, UserProfile, Document } from '../types/database.types'; // Added Document
 import { emailService, MailOptions } from './email.service';
+import {DocumentStatus} from "../models/document";
 
 export interface CreateAccessRequestDto {
   requesterName: string;
@@ -72,7 +73,7 @@ export class AccessRequestService {
           throw new Error('Document is already public, no access request needed.');
         }
 
-        const eligibleStatuses: DocumentStatus[] = ['REGISTERED', 'ACTIVE_STORAGE'];
+        const eligibleStatuses: string[] = ['REGISTERED', 'ACTIVE_STORAGE'];
         if (!eligibleStatuses.includes(document.status)) {
           throw new Error(`Document with status "${document.status}" is not available for access requests.`);
         }

@@ -1,5 +1,12 @@
 import { Request, Response } from 'express'
-import { queueService, lifecycleService, storageService, accessRequestService } from '../services'
+import {
+  queueService,
+  lifecycleService,
+  storageService,
+  accessRequestService,
+  AuditLogFilter,
+  auditService
+} from '../services'
 import { asyncHandler } from '../middleware'
 
 export class AdminController {
@@ -211,14 +218,28 @@ export class AdminController {
    * Export audit logs
    */
   exportAuditLogs = asyncHandler(async (req: Request, res: Response) => {
-    const { format = 'json', filters = {} } = req.body
+    // Extract filters and format from the request body or query parameters
+    // For a POST request, they'd typically be in req.body
+    const { filters, format } = req.body as { filters: AuditLogFilter, format: 'json' | 'csv' };
 
-    // This would be implemented with the audit service
-    res.json({
-      success: true,
-      message: 'Audit log export feature coming soon'
-    })
-  })
+    // Validate format if necessary (though your service method already handles unsupported formats)
+    if (format !== 'json' && format !== 'csv') {
+      return res.status(400).json({ success: false, message: 'Invalid export format. Must be "json" or "csv".' });
+    }
+
+    // Call the audit service to get the formatted data and file metadata
+    const { data: exportedData, filename, mime_type } = await auditService.exportAuditLogs(filters, format);
+
+    // Set the Content-Type header based on the MIME type returned by the service
+    res.setHeader('Content-Type', mime_type);
+
+    // Set the Content-Disposition header to prompt the browser to download the file
+    // 'attachment' tells the browser to download, and 'filename' specifies the default file name
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Send the exported data as the response
+    res.send(exportedData);
+  });
 }
 
 export const adminController = new AdminController() 
