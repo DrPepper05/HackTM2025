@@ -137,7 +137,7 @@ function FAQPage() {
           <div className="faq-contact-content">
             <h2 className="faq-contact-title">{t('public.faq.contact_title')}</h2>
             <p className="faq-contact-description">{t('public.faq.contact_description')}</p>
-            <a href="/public/contact" className="btn btn-primary">
+            <a href={t('public.faq.contact_url')} className="btn btn-primary">
               <Mail className="icon" aria-hidden="true" />
               {t('public.faq.contact_button')}
             </a>

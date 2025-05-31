@@ -47,20 +47,20 @@ function PublicHomePage() {
 
   const quickLinks = [
     {
-      title: 'Recently Added Documents',
+      title: t('public.recently_added'),
       icon: Recent,
       link: '/search?sort=date',
       color: 'text-sky-600',
       bgColor: 'bg-sky-100',
-      description: 'Explore the latest additions to our archive.'
+      description: t('public.recently_added_desc')
     },
     {
-      title: 'Browse by Organization',
+      title: t('public.browse_by_org'),
       icon: Building,
       link: '/organizations',
       color: 'text-green-600',
       bgColor: 'bg-green-100',
-      description: 'Find documents based on contributing entities.'
+      description: t('public.browse_by_org_desc')
     },
   ]
 
@@ -99,24 +99,24 @@ function PublicHomePage() {
 
   const missionPoints = [
     {
-      title: 'Inform Decisions',
-      description: 'Support public and policymaker decisions with accurate data',
+      title: t('public.mission_points.inform_decisions'),
+      description: t('public.mission_points.inform_decisions_desc'),
       icon: FileText,
       bgColor: 'bg-sky-50',
       textColor: 'text-sky-700',
       iconColor: 'text-sky-600'
     },
     {
-      title: 'Drive Innovation',
-      description: 'Enable innovation and economic growth through open access',
+      title: t('public.mission_points.drive_innovation'),
+      description: t('public.mission_points.drive_innovation_desc'),
       icon: Globe,
       bgColor: 'bg-green-50',
       textColor: 'text-green-700',
       iconColor: 'text-green-600'
     },
     {
-      title: 'Ensure Transparency',
-      description: 'Strengthen the foundation of open and transparent governance',
+      title: t('public.mission_points.ensure_transparency'),
+      description: t('public.mission_points.ensure_transparency_desc'),
       icon: Eye,
       bgColor: 'bg-indigo-50',
       textColor: 'text-indigo-700',
@@ -171,11 +171,11 @@ function PublicHomePage() {
             <div className="mt-16 text-white flex justify-center">
               <div className="inline-flex items-center justify-center px-10 py-5 bg-sky-600/80 rounded-lg shadow-lg whitespace-nowrap">
                 {isLoading ? (
-                  <span className="font-bold text-2xl">Loading...</span>
+                  <span className="font-bold text-2xl">{t('public.stats.loading')}</span>
                 ) : (
                   <>
                     <span className="font-bold text-3xl tracking-tight mr-6">{documentCount.toLocaleString()}</span>
-                    <span className="text-sky-50 text-lg">Documents Available</span>
+                    <span className="text-sky-50 text-lg">{t('public.stats.documents_available')}</span>
                   </>
                 )}
               </div>
@@ -187,7 +187,7 @@ function PublicHomePage() {
       {/* Quick Links Section - Enhanced */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-800 mb-12 text-center">Quick Access</h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-12 text-center">{t('public.quick_access')}</h2>
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
             {quickLinks.map((item) => (
               <Link
@@ -214,9 +214,9 @@ function PublicHomePage() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Mission</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">{t('public.our_mission')}</h2>
             <p className="text-xl text-gray-600 leading-relaxed mb-12">
-              The OpenArchive platform is designed to unleash the power of public records to:
+              {t('public.mission_description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {missionPoints.map((point) => (
@@ -283,7 +283,7 @@ function PublicHomePage() {
                 to="/request"
                 className="px-10 py-4 bg-white text-sky-700 font-semibold rounded-lg hover:bg-sky-50 transition-all duration-300 ease-in-out text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
-                Request File Access
+                {t('public.cta_button_primary')}
               </Link>
               <Link
                 to="/contact"

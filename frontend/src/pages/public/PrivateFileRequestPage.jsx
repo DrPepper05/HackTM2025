@@ -73,7 +73,7 @@ function PrivateFileRequestPage() {
         intendedUse: ''
       })
     } catch (err) {
-      setError(err.message || 'An error occurred while submitting your request. Please try again.')
+      setError(err.message || t('public.error_submitting_request'))
       console.error('Error submitting request:', err)
     } finally {
       setIsSubmitting(false)
@@ -87,10 +87,10 @@ function PrivateFileRequestPage() {
           <div className="text-center mb-8">
             <FileText className="mx-auto h-12 w-12 text-sky-600" />
             <h2 className="mt-4 text-3xl font-bold text-gray-900">
-              Request Document Access
+              {t('public.request_document_access')}
             </h2>
             <p className="mt-2 text-lg text-gray-600">
-              Please fill out this form to request access to a restricted document
+              {t('public.request_document_description')}
             </p>
           </div>
 
@@ -121,17 +121,17 @@ function PrivateFileRequestPage() {
                 </svg>
               </div>
               <h3 className="mt-4 text-xl font-medium text-gray-900">
-                Request Submitted Successfully
+                {t('public.request_submitted')}
               </h3>
               <p className="mt-2 text-gray-600">
-                We have received your request and will review it shortly. You will be notified via email about the status of your request.
+                {t('public.request_received')}
               </p>
               <button
                 type="button"
                 onClick={() => setFormSubmitted(false)}
                 className="mt-6 text-sky-600 hover:text-sky-500"
               >
-                Submit another request
+                {t('public.submit_another_request')}
               </button>
             </div>
           ) : (
@@ -139,7 +139,7 @@ function PrivateFileRequestPage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <label htmlFor="requesterName" className="block text-sm font-medium text-gray-700">
-                    Full Name
+                    {t('public.requester_name')}
                   </label>
                   <input
                     type="text"
@@ -154,7 +154,7 @@ function PrivateFileRequestPage() {
 
                 <div>
                   <label htmlFor="requesterEmail" className="block text-sm font-medium text-gray-700">
-                    Email Address
+                    {t('public.requester_email')}
                   </label>
                   <input
                     type="email"
@@ -169,7 +169,7 @@ function PrivateFileRequestPage() {
 
                 <div>
                   <label htmlFor="requesterPhone" className="block text-sm font-medium text-gray-700">
-                    Phone Number
+                    {t('public.requester_phone')}
                   </label>
                   <input
                     type="tel"
@@ -183,7 +183,7 @@ function PrivateFileRequestPage() {
 
                 <div>
                   <label htmlFor="requesterIdNumber" className="block text-sm font-medium text-gray-700">
-                    National ID Number
+                    {t('public.requester_id_number')}
                   </label>
                   <input
                     type="text"
@@ -199,7 +199,7 @@ function PrivateFileRequestPage() {
 
               <div>
                 <label htmlFor="requesterOrganization" className="block text-sm font-medium text-gray-700">
-                  Organization (Optional)
+                  {t('public.requester_organization')}
                 </label>
                 <input
                   type="text"
@@ -213,7 +213,7 @@ function PrivateFileRequestPage() {
 
               <div>
                 <label htmlFor="documentId" className="block text-sm font-medium text-gray-700">
-                  Document ID
+                  {t('public.document_id')}
                 </label>
                 <input
                   type="text"
@@ -223,13 +223,13 @@ function PrivateFileRequestPage() {
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500"
                   value={formData.documentId}
                   onChange={handleChange}
-                  placeholder="UUID of the document you want to access"
+                  placeholder={t('public.document_id_placeholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="justification" className="block text-sm font-medium text-gray-700">
-                  Justification
+                  {t('public.justification')}
                 </label>
                 <textarea
                   name="justification"
@@ -239,13 +239,13 @@ function PrivateFileRequestPage() {
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500"
                   value={formData.justification}
                   onChange={handleChange}
-                  placeholder="Please explain why you need access to this document..."
+                  placeholder={t('public.justification_placeholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="intendedUse" className="block text-sm font-medium text-gray-700">
-                  Intended Use
+                  {t('public.intended_use')}
                 </label>
                 <textarea
                   name="intendedUse"
@@ -254,7 +254,7 @@ function PrivateFileRequestPage() {
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500"
                   value={formData.intendedUse}
                   onChange={handleChange}
-                  placeholder="How do you plan to use this document?"
+                  placeholder={t('public.intended_use_placeholder')}
                 />
               </div>
 
@@ -264,7 +264,7 @@ function PrivateFileRequestPage() {
                   disabled={isSubmitting}
                   className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                  {isSubmitting ? t('public.submitting') : t('public.submit_request')}
                 </button>
               </div>
             </form>

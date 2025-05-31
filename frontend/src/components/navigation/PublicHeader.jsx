@@ -10,7 +10,7 @@ function PublicHeader() {
 
   const navigation = [
     { name: t('public.home'), href: '/' },
-    { name: t('public.search'), href: '/search' },
+    { name: t('public.search_page'), href: '/search' },
     { name: t('public.about'), href: '/about' },
     { name: t('public.faq'), href: '/faq' },
     { name: t('public.contact'), href: '/contact' },
@@ -32,7 +32,7 @@ function PublicHeader() {
             className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
             onClick={() => setMobileMenuOpen(true)}
           >
-            <span className="sr-only">{t('navigation.open_main_menu')}</span>
+            <span className="sr-only">{t('nav.open_main_menu')}</span>
             <Menu className="h-6 w-6" aria-hidden="true" />
           </button>
         </div>
@@ -68,7 +68,7 @@ function PublicHeader() {
                 className="-m-2.5 rounded-md p-2.5 text-gray-700"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <span className="sr-only">{t('navigation.close_menu')}</span>
+                <span className="sr-only">{t('nav.close_menu')}</span>
                 <X className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>

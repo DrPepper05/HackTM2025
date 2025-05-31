@@ -8,7 +8,7 @@ function Footer() {
   const navigation = {
     main: [
       { name: t('public.home'), href: '/' },
-      { name: t('public.search'), href: '/search' },
+      { name: t('public.search_page'), href: '/search' },
       { name: t('public.about'), href: '/about' },
       { name: t('public.faq'), href: '/faq' },
       { name: t('public.contact'), href: '/contact' },

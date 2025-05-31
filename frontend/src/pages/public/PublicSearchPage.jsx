@@ -298,7 +298,7 @@ function PublicSearchPage() {
                     onClick={handleSearch}
                   >
                     <Search className="icon" aria-hidden="true" />
-                    <span className="hidden sm:inline">{t('public.search')}</span>
+                    <span className="hidden sm:inline">{t('public.search_button')}</span>
                   </button>
                 </div>
               </div>
@@ -374,11 +374,11 @@ function PublicSearchPage() {
                       onChange={handleFilterChange}
                     >
                       <option value="">{t('public.all_types')}</option>
-                      <option value="hotarare">Hotărâre</option>
-                      <option value="dispozitie">Dispoziție</option>
-                      <option value="contract">Contract</option>
-                      <option value="autorizatie">Autorizație</option>
-                      <option value="certificat">Certificat</option>
+                      <option value="hotarare">{t('public.document_types.decision')}</option>
+                      <option value="dispozitie">{t('public.document_types.disposition')}</option>
+                      <option value="contract">{t('public.document_types.contract')}</option>
+                      <option value="autorizatie">{t('public.document_types.authorization')}</option>
+                      <option value="certificat">{t('public.document_types.certificate')}</option>
                     </select>
                   </div>
                 </div>
@@ -398,10 +398,10 @@ function PublicSearchPage() {
                       onChange={handleFilterChange}
                     >
                       <option value="">{t('public.all_institutions')}</option>
-                      <option value="primaria_timisoara">Primăria Municipiului Timișoara</option>
-                      <option value="consiliul_local_timisoara">Consiliul Local Timișoara</option>
-                      <option value="consiliul_judetean_timis">Consiliul Județean Timiș</option>
-                      <option value="primaria_dumbravita">Primăria Comunei Dumbrăvița</option>
+                      <option value="primaria_timisoara">{t('public.institutions.timisoara_city_hall')}</option>
+                      <option value="consiliul_local_timisoara">{t('public.institutions.timisoara_local_council')}</option>
+                      <option value="consiliul_judetean_timis">{t('public.institutions.timis_county_council')}</option>
+                      <option value="primaria_dumbravita">{t('public.institutions.dumbravita_city_hall')}</option>
                     </select>
                   </div>
                 </div>
@@ -534,13 +534,13 @@ function PublicSearchPage() {
                 <div className="alert-description">
                   <p>{t('public.no_results_description')}</p>
                   <p className="mt-2 text-amber-600">
-                    {searchQuery && <span className="font-medium">Search term: "{searchQuery}"</span>}
+                    {searchQuery && <span className="font-medium">{t('public.search_term')}: "{searchQuery}"</span>}
                     {(filters.dateFrom || filters.dateTo || filters.documentType || filters.institution) && (
                       <span className="block mt-1 text-sm">
-                        {filters.documentType && <span className="inline-block mr-2">Type: {filters.documentType}</span>}
-                        {filters.institution && <span className="inline-block mr-2">Institution: {filters.institution}</span>}
-                        {filters.dateFrom && <span className="inline-block mr-2">From: {filters.dateFrom}</span>}
-                        {filters.dateTo && <span className="inline-block">To: {filters.dateTo}</span>}
+                        {filters.documentType && <span className="inline-block mr-2">{t('public.document_type')}: {filters.documentType}</span>}
+                        {filters.institution && <span className="inline-block mr-2">{t('public.institution')}: {filters.institution}</span>}
+                        {filters.dateFrom && <span className="inline-block mr-2">{t('public.date_from')}: {filters.dateFrom}</span>}
+                        {filters.dateTo && <span className="inline-block">{t('public.date_to')}: {filters.dateTo}</span>}
                       </span>
                     )}
                   </p>

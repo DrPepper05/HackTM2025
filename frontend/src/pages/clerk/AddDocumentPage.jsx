@@ -25,14 +25,14 @@ function AddDocumentPage() {
 
   // Document types for dropdown
   const documentTypes = [
-    { id: 'hotarare', name: 'Hotărâre' },
-    { id: 'dispozitie', name: 'Dispoziție' },
-    { id: 'contract', name: 'Contract' },
-    { id: 'autorizatie', name: 'Autorizație' },
-    { id: 'certificat', name: 'Certificat' },
-    { id: 'adresa', name: 'Adresă' },
-    { id: 'raport', name: 'Raport' },
-    { id: 'proces_verbal', name: 'Proces-verbal' },
+    { id: 'hotarare', name: t('clerk.document_types.hotarare') },
+    { id: 'dispozitie', name: t('clerk.document_types.dispozitie') },
+    { id: 'contract', name: t('clerk.document_types.contract') },
+    { id: 'autorizatie', name: t('clerk.document_types.autorizatie') },
+    { id: 'certificat', name: t('clerk.document_types.certificat') },
+    { id: 'adresa', name: t('clerk.document_types.adresa') },
+    { id: 'raport', name: t('clerk.document_types.raport') },
+    { id: 'proces_verbal', name: t('clerk.document_types.proces_verbal') },
   ]
 
   // Retention categories for dropdown
@@ -195,7 +195,7 @@ function AddDocumentPage() {
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const sizes = [t('dashboard.filesize.bytes'), t('dashboard.filesize.kb'), t('dashboard.filesize.mb'), t('dashboard.filesize.gb')]
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
