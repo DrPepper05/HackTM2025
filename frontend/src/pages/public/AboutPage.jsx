@@ -192,8 +192,9 @@ function AboutPage() {
                     <span className="text-5xl font-bold tracking-tight text-gray-900">16/1996</span>
                   </p>
                   <Link
-                    to="#"
+                    to="https://legislatie.just.ro/public/DetaliiDocument/7937"
                     className="btn btn-primary mt-10 block w-full"
+                    target="_blank"
                   >
                     {t('public.read_full_law')}
                   </Link>
