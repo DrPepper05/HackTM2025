@@ -58,11 +58,77 @@ export function AuthProvider({ children }) {
 
   // Authentication functions
   const signIn = async ({ email, password }) => {
-    return auth.signIn({ email, password })
-  }
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-  const signUp = async ({ email, password, metadata }) => {
-    return auth.signUp({ email, password, metadata })
+      const result = await response.json();
+
+      if (!response.ok) {
+        return { data: null, error: result.message || 'Login failed' };
+      }
+
+      // Update state with the returned user and session
+      const userData = result.data.user;
+      const sessionData = result.data.session;
+      
+      setUser(userData);
+      setSession(sessionData);
+      setUserRole(userData.profile?.role || 'citizen');
+      
+      return { data: { user: userData, session: sessionData }, error: null };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { data: null, error: error.message || 'An unexpected error occurred' };
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  const signUp = async (email, password, full_name, role = 'citizen', institution = '', phone = '') => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          full_name,
+          role,
+          institution,
+          phone
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        return { data: null, error: result.message || 'Registration failed' };
+      }
+
+      // Update state with the returned user and session
+      const userData = result.data.user;
+      const sessionData = result.data.session;
+      
+      setUser(userData);
+      setSession(sessionData);
+      setUserRole(userData.profile?.role || 'citizen');
+      
+      return { data: { user: userData, session: sessionData }, error: null };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { data: null, error: error.message || 'An unexpected error occurred' };
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const signOut = async () => {
