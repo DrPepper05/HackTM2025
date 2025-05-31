@@ -1,0 +1,198 @@
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
+
+// Base API class
+class ApiService {
+  constructor() {
+    this.baseURL = API_BASE_URL
+  }
+
+  // Helper method to get auth token from localStorage
+  getAuthToken() {
+    try {
+      const session = JSON.parse(localStorage.getItem('auth_session'))
+      return session?.access_token || null
+    } catch {
+      return null
+    }
+  }
+
+  // Helper method to make requests
+  async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`
+    const token = this.getAuthToken()
+
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    }
+
+    // Add auth header if token exists
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    try {
+      const response = await fetch(url, config)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new ApiError(data.message || `HTTP ${response.status}`, response.status, data)
+      }
+
+      return data
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
+      throw new ApiError(error.message || 'Network error', 0, null)
+    }
+  }
+
+  // GET request
+  async get(endpoint, params = {}) {
+    const queryString = new URLSearchParams(params).toString()
+    const url = queryString ? `${endpoint}?${queryString}` : endpoint
+    return this.request(url, { method: 'GET' })
+  }
+
+  // POST request
+  async post(endpoint, data = {}) {
+    return this.request(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // PUT request
+  async put(endpoint, data = {}) {
+    return this.request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // PATCH request
+  async patch(endpoint, data = {}) {
+    return this.request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // DELETE request
+  async delete(endpoint) {
+    return this.request(endpoint, { method: 'DELETE' })
+  }
+
+  // File upload method
+  async upload(endpoint, formData) {
+    const token = this.getAuthToken()
+    const config = {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    }
+
+    // Add auth header if token exists (don't set Content-Type for FormData)
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, config)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new ApiError(data.message || `HTTP ${response.status}`, response.status, data)
+      }
+
+      return data
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
+      throw new ApiError(error.message || 'Upload failed', 0, null)
+    }
+  }
+}
+
+// Custom error class for API errors
+export class ApiError extends Error {
+  constructor(message, status, data) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.data = data
+  }
+}
+
+// Create singleton instance
+const apiService = new ApiService()
+
+// Export specific service methods for different domains
+export const authApi = {
+  register: (data) => apiService.post('/api/v1/auth/register', data),
+  login: (data) => apiService.post('/api/v1/auth/login', data),
+  logout: () => apiService.post('/api/v1/auth/logout'),
+  refreshToken: (refreshToken) => apiService.post('/api/v1/auth/refresh', { refreshToken }),
+  getProfile: () => apiService.get('/api/v1/auth/profile'),
+  updateProfile: (data) => apiService.put('/api/v1/auth/profile', data),
+  resetPassword: (email) => apiService.post('/api/v1/auth/password/reset', { email }),
+}
+
+export const documentsApi = {
+  getDocuments: (params) => apiService.get('/api/v1/documents', params),
+  getDocument: (id) => apiService.get(`/api/v1/documents/${id}`),
+  createDocument: (data) => apiService.post('/api/v1/documents', data),
+  updateDocument: (id, data) => apiService.put(`/api/v1/documents/${id}`, data),
+  deleteDocument: (id) => apiService.delete(`/api/v1/documents/${id}`),
+  uploadDocument: (formData) => apiService.upload('/api/v1/documents', formData),
+  downloadDocument: (id) => apiService.get(`/api/v1/documents/${id}/download`),
+  getDocumentVersions: (id) => apiService.get(`/api/v1/documents/${id}/versions`),
+  restoreVersion: (id, versionId) => apiService.post(`/api/v1/documents/${id}/versions/${versionId}/restore`),
+}
+
+export const collectionsApi = {
+  getCollections: (params) => apiService.get('/api/v1/collections', params),
+  getCollection: (id) => apiService.get(`/api/v1/collections/${id}`),
+  createCollection: (data) => apiService.post('/api/v1/collections', data),
+  updateCollection: (id, data) => apiService.put(`/api/v1/collections/${id}`, data),
+  deleteCollection: (id) => apiService.delete(`/api/v1/collections/${id}`),
+  addDocumentToCollection: (collectionId, documentId) => 
+    apiService.post(`/api/v1/collections/${collectionId}/documents`, { documentId }),
+  removeDocumentFromCollection: (collectionId, documentId) => 
+    apiService.delete(`/api/v1/collections/${collectionId}/documents/${documentId}`),
+}
+
+export const searchApi = {
+  search: (params) => apiService.get('/api/v1/search', params),
+  advancedSearch: (data) => apiService.post('/api/v1/search/advanced', data),
+  getSuggestions: (query) => apiService.get('/api/v1/search/suggestions', { query }),
+}
+
+export const usersApi = {
+  getUsers: (params) => apiService.get('/api/v1/users', params),
+  getUser: (id) => apiService.get(`/api/v1/users/${id}`),
+  updateUser: (id, data) => apiService.put(`/api/v1/users/${id}`, data),
+  deleteUser: (id) => apiService.delete(`/api/v1/users/${id}`),
+  getUserStatistics: () => apiService.get('/api/v1/users/statistics'),
+}
+
+export const auditApi = {
+  getAuditLogs: (params) => apiService.get('/api/v1/audit', params),
+  getEntityAuditLogs: (entityType, entityId) => 
+    apiService.get(`/api/v1/audit/${entityType}/${entityId}`),
+}
+
+export const systemApi = {
+  getHealth: () => apiService.get('/api/v1/health'),
+  getMetrics: () => apiService.get('/api/v1/metrics'),
+  getSettings: () => apiService.get('/api/v1/settings'),
+  updateSettings: (data) => apiService.put('/api/v1/settings', data),
+}
+
+// Export the main API service instance
+export default apiService 

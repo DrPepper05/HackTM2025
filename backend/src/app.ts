@@ -33,10 +33,21 @@ const corsOptions = {
     
     const allowedOrigins = [
       'http://localhost:3000',
-      'http://localhost:3001',
+      'http://localhost:3001', 
+      'http://localhost:5173', // Vite default port
       'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:5173',
       process.env.FRONTEND_URL
     ].filter(Boolean)
+    
+    // In development, be more permissive
+    if (process.env.NODE_ENV !== 'production') {
+      // Allow any localhost/127.0.0.1 origin in development
+      if (origin?.match(/^https?:\/\/(localhost|127\.0\.0\.1):\d+$/)) {
+        return callback(null, true)
+      }
+    }
     
     if (allowedOrigins.includes(origin)) {
       callback(null, true)
