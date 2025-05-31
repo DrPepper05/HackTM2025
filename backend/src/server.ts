@@ -5,23 +5,23 @@ const PORT = process.env.PORT || 3001
 const NODE_ENV = process.env.NODE_ENV || 'development'
 
 async function startServer() {
-    try {
-        // Test database connection
-        const { data, error } = await supabaseAdmin
-            .from('user_profiles')
-            .select('count')
-            .limit(1)
+  try {
+    // Test database connection
+    const { data, error } = await supabaseAdmin
+      .from('user_profiles')
+      .select('count')
+      .limit(1)
 
-        if (error) {
-            console.error('❌ Database connection failed:', error.message)
-            process.exit(1)
-        }
+    if (error) {
+      console.error('❌ Database connection failed:', error.message)
+      process.exit(1)
+    }
 
-        console.log('✅ Database connection successful')
+    console.log('✅ Database connection successful')
 
-        // Start the server
-        const server = app.listen(PORT, () => {
-            console.log(`
+    // Start the server
+    const server = app.listen(PORT, () => {
+      console.log(`
 🚀 OpenArchive API Server Started
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📍 Environment: ${NODE_ENV}
@@ -37,27 +37,27 @@ async function startServer() {
 🏛️  Romanian Government Document Archive System
    Ready to serve document management requests!
       `)
-        })
+    })
 
-        // Graceful shutdown
-        const gracefulShutdown = () => {
-            console.log('\n🛑 Received shutdown signal, closing server...')
-            server.close(() => {
-                console.log('✅ Server closed successfully')
-                process.exit(0)
-            })
-        }
-
-        process.on('SIGTERM', gracefulShutdown)
-        process.on('SIGINT', gracefulShutdown)
-
-    } catch (error) {
-        console.error('❌ Failed to start server:', error)
-        process.exit(1)
+    // Graceful shutdown
+    const gracefulShutdown = () => {
+      console.log('\n🛑 Received shutdown signal, closing server...')
+      server.close(() => {
+        console.log('✅ Server closed successfully')
+        process.exit(0)
+      })
     }
+
+    process.on('SIGTERM', gracefulShutdown)
+    process.on('SIGINT', gracefulShutdown)
+
+  } catch (error) {
+    console.error('❌ Failed to start server:', error)
+    process.exit(1)
+  }
 }
 
 // Start the server
 startServer()
 
-export default app
+export default app 
