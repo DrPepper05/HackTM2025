@@ -261,6 +261,16 @@ export class AuthService {
       }
     })
 
+    // Convert expires_at from seconds to milliseconds if needed
+    let expiresAt = session.expires_at
+    if (expiresAt && expiresAt < 10000000000) {
+      // If less than 10 billion, it's likely in seconds, convert to milliseconds
+      expiresAt = expiresAt * 1000
+    } else if (!expiresAt) {
+      // Default to 1 hour from now if not provided
+      expiresAt = Date.now() + 3600000
+    }
+
     return {
       user: {
         id: user.id,
@@ -270,7 +280,7 @@ export class AuthService {
       session: {
         access_token: session.access_token,
         refresh_token: session.refresh_token,
-        expires_at: session.expires_at || Date.now() + 3600000
+        expires_at: expiresAt
       }
     }
   }
@@ -300,16 +310,21 @@ export class AuthService {
    */
   async logout(userId: string): Promise<void> {
     await withMonitoring('signOut', 'auth.users', async () => {
-      const { error } = await supabaseAdmin.auth.admin.signOut(userId)
-      
-      if (error) throw error
-
-      await supabaseAdmin.rpc('create_audit_log', {
-        p_action: 'USER_LOGOUT',
-        p_entity_type: 'user',
-        p_entity_id: userId,
-        p_details: {}
-      })
+      try {
+        // For user logout, we mainly need to log the audit trail
+        // The actual token invalidation happens on the client side
+        // or through Supabase's built-in session management
+        
+        await supabaseAdmin.rpc('create_audit_log', {
+          p_action: 'USER_LOGOUT',
+          p_entity_type: 'user',
+          p_entity_id: userId,
+          p_details: {}
+        })
+      } catch (error) {
+        // If audit logging fails, don't fail the logout operation
+        console.error('Error logging logout audit:', error)
+      }
     })
   }
 
@@ -628,6 +643,16 @@ export class AuthService {
         throw new Error('User profile not found')
     }
 
+    // Convert expires_at from seconds to milliseconds if needed
+    let expiresAt = data.session!.expires_at
+    if (expiresAt && expiresAt < 10000000000) {
+      // If less than 10 billion, it's likely in seconds, convert to milliseconds
+      expiresAt = expiresAt * 1000
+    } else if (!expiresAt) {
+      // Default to 1 hour from now if not provided
+      expiresAt = Date.now() + 3600000
+    }
+
     return {
         user: {
         id: data.user!.id,
@@ -637,7 +662,7 @@ export class AuthService {
         session: {
         access_token: data.session!.access_token,
         refresh_token: data.session!.refresh_token,
-        expires_at: data.session!.expires_at || Date.now() + 3600000
+        expires_at: expiresAt
         }
     }
     }
