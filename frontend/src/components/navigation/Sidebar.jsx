@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog, Transition } from '@headlessui/react'
-import { X, Home, FileText, Upload, Inbox, Clock, Send, Search, Users, Shield, BarChart, FolderArchive, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Home, FileText, Upload, Inbox, Clock, Send, Search, Users, Shield, BarChart, FolderArchive, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 function Sidebar({ sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed }) {
@@ -36,6 +36,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed }) {
     ...(hasRole('archivist') ? [
       { name: t('nav.ingest_queue'), href: '/archivist/ingest', icon: Inbox },
       { name: t('nav.retention_alerts'), href: '/archivist/retention', icon: Clock },
+      { name: t('nav.pending_requests'), href: '/archivist/pending-requests', icon: Send },
       { name: t('nav.advanced_search'), href: '/documents/search', icon: Search },
     ] : []),
     
