@@ -22,7 +22,7 @@ export interface Database {
           document_number: string | null
           creator_info: Json
           creation_date: string | null
-          status: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED'
+          status: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED' | 'NEEDS_CLASSIFICATION' // <--- STATUS ADDED HERE
           retention_category: '10y' | '30y' | 'permanent' | null
           retention_end_date: string | null
           is_public: boolean
@@ -47,7 +47,7 @@ export interface Database {
           document_number?: string | null
           creator_info?: Json
           creation_date?: string | null
-          status?: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED'
+          status?: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED' | 'NEEDS_CLASSIFICATION' // <--- STATUS ADDED HERE
           retention_category?: '10y' | '30y' | 'permanent' | null
           retention_end_date?: string | null
           is_public?: boolean
@@ -72,7 +72,7 @@ export interface Database {
           document_number?: string | null
           creator_info?: Json
           creation_date?: string | null
-          status?: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED'
+          status?: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED' | 'NEEDS_CLASSIFICATION' // <--- STATUS ADDED HERE
           retention_category?: '10y' | '30y' | 'permanent' | null
           retention_end_date?: string | null
           is_public?: boolean
@@ -339,7 +339,7 @@ export interface Database {
       transition_document_status: {
         Args: {
           p_document_id: string
-          p_new_status: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED'
+          p_new_status: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED' | 'NEEDS_CLASSIFICATION' // <--- STATUS ADDED HERE
           p_notes?: string
         }
         Returns: Database['public']['Tables']['documents']['Row']
@@ -367,7 +367,7 @@ export interface Database {
       }
     }
     Enums: {
-      document_status: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED'
+      document_status: 'INGESTING' | 'REGISTERED' | 'ACTIVE_STORAGE' | 'REVIEW' | 'DESTROY' | 'AWAITING_TRANSFER' | 'TRANSFERRED' | 'NEEDS_CLASSIFICATION' // <--- STATUS ADDED HERE
       retention_category: '10y' | '30y' | 'permanent'
       file_type: 'original' | 'redacted' | 'ocr_text' | 'transfer'
       access_request_status: 'pending' | 'approved' | 'rejected'
@@ -396,7 +396,7 @@ export type UserRole = Enums<'user_role'>
 
 // Type guards
 export const isDocumentStatus = (value: any): value is DocumentStatus => {
-  return ['INGESTING', 'REGISTERED', 'ACTIVE_STORAGE', 'REVIEW', 'DESTROY', 'AWAITING_TRANSFER', 'TRANSFERRED'].includes(value)
+  return ['INGESTING', 'REGISTERED', 'ACTIVE_STORAGE', 'REVIEW', 'DESTROY', 'AWAITING_TRANSFER', 'TRANSFERRED', 'NEEDS_CLASSIFICATION'].includes(value) // <--- STATUS ADDED HERE
 }
 
 export const isRetentionCategory = (value: any): value is RetentionCategory => {
