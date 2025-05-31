@@ -1,4 +1,5 @@
-// backend/src/controllers/document.controller.ts
+// src/controllers/document.controller.ts
+
 import { Request, Response } from 'express'
 import { documentService, enrichmentService, lifecycleService } from '../services'
 import { asyncHandler } from '../middleware'
@@ -22,7 +23,7 @@ const upload = multer({
       'image/png',
       'image/tiff'
     ]
-    
+
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true)
     } else {
@@ -37,7 +38,7 @@ export class DocumentController {
    */
   createDocument = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.userId!
-    
+
     // Handle file upload first
     await new Promise<void>((resolve, reject) => {
       upload(req, res, (err) => {
@@ -54,34 +55,15 @@ export class DocumentController {
       })
     }
 
-    const {
-      title,
-      description,
-      document_type,
-      retention_category,
-      tags,
-      creation_date,
-      is_public = false
-    } = req.body
+    // MODIFIED: Removed all metadata extraction from req.body
+    // The service now handles setting initial data.
 
-    // Parse tags if they come as string
-    const parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags
-
-    const metadata = {
-      title,
-      description,
-      document_type,
-      retention_category,
-      tags: parsedTags,
-      creation_date,
-      is_public
-    }
-
-    const document = await documentService.createDocument(file, metadata, userId)
+    // MODIFIED: The metadata object passed to the service is now empty.
+    const document = await documentService.createDocument(file, {}, userId)
 
     res.status(201).json({
       success: true,
-      message: 'Document created successfully',
+      message: 'Document created successfully and queued for enrichment.',
       data: document
     })
   })

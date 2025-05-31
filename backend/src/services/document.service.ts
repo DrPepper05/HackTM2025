@@ -1,18 +1,22 @@
+// src/services/document.service.ts
+
 import { supabaseAdmin, withMonitoring } from '../config/supabase.config'
 import { storageService, S3_BUCKETS, generateS3Key } from './storage.service'
-import { 
-  Document, 
-  DocumentFile, 
-  DocumentStatus, 
+import {
+  Document,
+  DocumentFile,
+  DocumentStatus,
   RetentionCategory,
   isDocumentStatus,
-  isRetentionCategory 
+  isRetentionCategory
 } from '../types/database.types'
 import { createHash } from 'crypto'
 import { v4 as uuidv4 } from 'uuid'
+import { queueService } from './queue.service' // MODIFIED: Ensure queueService is imported
 
+// MODIFIED: DTO becomes simpler, all fields are optional.
 export interface CreateDocumentDto {
-  title: string
+  title?: string
   description?: string
   document_type?: string
   document_number?: string
@@ -61,19 +65,20 @@ export class DocumentService {
    * Create a new document with initial file
    */
   async createDocument(
-    file: { 
+    file: {
       buffer: Buffer
       originalname: string
       mimetype: string
       size: number
     },
-    metadata: CreateDocumentDto,
+    // MODIFIED: metadata parameter is now optional.
+    metadata: CreateDocumentDto = {},
     userId: string
   ): Promise<Document> {
     return withMonitoring('create', 'documents', async () => {
       // 1. Calculate file checksum
       const checksum = createHash('sha256').update(file.buffer).digest('hex')
-      
+
       // 2. Start transaction-like operation
       let documentId: string | null = null
       let fileId: string | null = null
@@ -84,17 +89,15 @@ export class DocumentService {
         const { data: document, error: docError } = await supabaseAdmin
           .from('documents')
           .insert({
-            title: metadata.title,
-            description: metadata.description,
-            document_type: metadata.document_type,
-            document_number: metadata.document_number,
-            creator_info: metadata.creator_info || {},
-            creation_date: metadata.creation_date,
+            // MODIFIED: Use original filename as a placeholder title.
+            // Other fields are set to null or empty initially.
+            title: file.originalname,
+            description: null,
+            document_type: null,
             status: 'INGESTING',
-            retention_category: metadata.retention_category,
             uploader_user_id: userId,
-            metadata: metadata.metadata || {},
-            tags: metadata.tags || []
+            metadata: {},
+            tags: []
           })
           .select()
           .single()
@@ -136,8 +139,8 @@ export class DocumentService {
         if (fileError) throw fileError
         fileId = fileRecord.id
 
-        // 7. Queue for enrichment
-        await this.queueEnrichment(documentId!) // Ensure this is called
+        // 7. Queue for enrichment - This existing call is correct and will trigger the AI process
+        await this.queueEnrichment(documentId!)
 
         // 8. Create audit log
         await supabaseAdmin.rpc('create_audit_log', {
@@ -163,7 +166,7 @@ export class DocumentService {
             .delete()
             .eq('id', fileId)
         }
-        
+
         if (documentId) {
           console.log(`[DocumentService] Rolling back document record: ${documentId}`);
           await supabaseAdmin
@@ -181,6 +184,8 @@ export class DocumentService {
       }
     })
   }
+
+  // ... (rest of the service file remains unchanged)
 
   /**
    * Get documents with filters
@@ -250,7 +255,7 @@ export class DocumentService {
         .single()
 
         if (error) {
-          if (error.code === 'PGRST116') return null 
+          if (error.code === 'PGRST116') return null
           throw error
         }
         return data
@@ -348,7 +353,7 @@ export class DocumentService {
 
         const checksum = createHash('sha256').update(file.buffer).digest('hex')
         // Consider making S3 key generation more specific based on fileType
-        const s3Key = generateS3Key(file.originalname, documentId, fileType === 'transfer' ? 'transfer' : 'original') 
+        const s3Key = generateS3Key(file.originalname, documentId, fileType === 'transfer' ? 'transfer' : 'original')
 
         await storageService.uploadFile(
           S3_BUCKETS.DOCUMENTS, // Or a different bucket based on fileType
@@ -382,7 +387,7 @@ export class DocumentService {
           p_action: 'FILE_ADDED',
           p_entity_type: 'document_file',
           p_entity_id: data.id,
-          p_details: { 
+          p_details: {
             document_id: documentId,
             file_type: fileType,
             file_name: file.originalname,
@@ -436,13 +441,13 @@ export class DocumentService {
           },
           p_priority: 7,
           // ADDED THIS LINE based on previous diagnosis
-          p_scheduled_for: new Date().toISOString() 
+          p_scheduled_for: new Date().toISOString()
         };
-  
+
         console.log('[DocumentService] Calling supabaseAdmin.rpc("queue_task") with params:', JSON.stringify(rpcParams, null, 2));
-        
+
         const { data, error } = await supabaseAdmin.rpc('queue_task', rpcParams);
-  
+
         if (error) {
           console.error('[DocumentService] Error calling "queue_task" RPC:', JSON.stringify(error, null, 2));
         } else {
@@ -475,7 +480,7 @@ export class DocumentService {
      */
     async getDocumentsPendingReview(): Promise<Document[]> {
       const today = new Date().toISOString().split('T')[0]
-      
+
       const { data, error } = await supabaseAdmin
           .from('documents')
           .select('*')
@@ -506,7 +511,7 @@ export class DocumentService {
           p_action: 'DOCUMENT_DELETION_REQUESTED',
           p_entity_type: 'document',
           p_entity_id: documentId,
-          p_details: { 
+          p_details: {
             reason,
             requested_by: userId
            }
@@ -551,7 +556,7 @@ export class DocumentService {
 
       if (statusData) {
           statusData.forEach(doc => {
-            if (doc.status) { 
+            if (doc.status) {
                 byStatus[doc.status] = (byStatus[doc.status] || 0) + 1
             }
           })
@@ -559,7 +564,7 @@ export class DocumentService {
 
       if (retentionData) {
           retentionData.forEach(doc => {
-            if (doc.retention_category) { 
+            if (doc.retention_category) {
                 byRetention[doc.retention_category] = (byRetention[doc.retention_category] || 0) + 1
             }
           })
