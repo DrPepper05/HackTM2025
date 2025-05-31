@@ -128,7 +128,9 @@
     "user_management": "User Management",
     "system_health": "System Health",
     "audit_logs": "Audit Logs",
-    "inventory_reports": "Inventory Reports"
+    "inventory_reports": "Inventory Reports",
+    "profile": "Profile",
+    "settings": "Settings"
   },
   "roles": {
     "clerk": "Clerk",
