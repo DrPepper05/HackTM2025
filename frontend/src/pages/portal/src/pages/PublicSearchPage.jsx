@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileSearch, Search, Clock } from 'lucide-react';
-import { mockDocuments } from '../utils/mockData'; // For mock search
+import { mockDocuments } from '../utils/mockData.jsx'; // For mock search
 
 function PublicSearchPage() {
   const [searchTerm, setSearchTerm] = useState('');

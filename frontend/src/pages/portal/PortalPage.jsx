@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import Header from './components/Header';
-import MainContent from './components/MainContent';
-import LoginPage from './pages/LoginPage';
+import Sidebar from './src/components/Sidebar.jsx';
+import Header from './src/components/Header.jsx';
+import MainContent from './src/components/MainContent.jsx';
+import LoginPage from './src/pages/LoginPage.jsx';
 // import { ROLES } from './utils/constants'; // ROLES is used indirectly via LoginPage and MainContent
 
-function App() {
+function PortalPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('login');
 
@@ -34,4 +34,4 @@ function App() {
   );
 }
 
-export default App;
+export default PortalPage;

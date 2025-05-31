@@ -5,6 +5,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import RoleBasedRoute from './components/auth/RoleBasedRoute'
 import Layout from './components/layout/Layout'
 import LoadingScreen from './components/ui/LoadingScreen'
+import PortalPage from "./pages/portal/PortalPage.jsx";
 
 // Lazy load pages for better performance
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
@@ -65,7 +66,8 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        
+        <Route path="/portal" element={<PortalPage />} />
+
         {/* Protected routes */}
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />

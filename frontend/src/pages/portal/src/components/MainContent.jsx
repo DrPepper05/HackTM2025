@@ -1,14 +1,14 @@
 import React from 'react';
-import { ROLES } from '../utils/constants';
-import DashboardPage from '../pages/DashboardPage';
-import DocumentUploadPage from '../pages/DocumentUploadPage';
-import DocumentListPage from '../pages/DocumentListPage';
-import AccessRequestPage from '../pages/AccessRequestPage';
-import PublicSearchPage from '../pages/PublicSearchPage';
-import AuditLogPage from '../pages/AuditLogPage';
-import LifecycleManagementPage from '../pages/LifecycleManagementPage';
-import UserManagementPage from '../pages/UserManagementPage';
-import SystemSettingsPage from '../pages/SystemSettingsPage';
+import { ROLES } from '../utils/constants.jsx';
+import DashboardPage from '../pages/DashboardPage.jsx';
+import DocumentUploadPage from '../pages/DocumentUploadPage.jsx';
+import DocumentListPage from '../pages/DocumentListPage.jsx';
+import AccessRequestPage from '../pages/AccessRequestPage.jsx';
+import PublicSearchPage from '../pages/PublicSearchPage.jsx';
+import AuditLogPage from '../pages/AuditLogPage.jsx';
+import LifecycleManagementPage from '../pages/LifecycleManagementPage.jsx';
+import UserManagementPage from '../pages/UserManagementPage.jsx';
+import SystemSettingsPage from '../pages/SystemSettingsPage.jsx';
 
 
 function MainContent({ page, role, setCurrentPage }) { // Added setCurrentPage if needed by any child

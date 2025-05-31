@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { History } from 'lucide-react';
-import { mockAuditLogs } from '../utils/mockData';
+import { mockAuditLogs } from '../utils/mockData.jsx';
 
 function AuditLogPage() {
   const [logs, setLogs] = useState([]);

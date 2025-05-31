@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, Edit3, Trash2, CheckSquare, ListFilter, Inbox, FileText } from 'lucide-react';
-import { ROLES } from '../utils/constants';
-import { mockDocuments } from '../utils/mockData';
-import DocumentDetailModal from '../components/DocumentDetailModal';
+import { ROLES } from '../utils/constants.jsx';
+import { mockDocuments } from '../utils/mockData.jsx';
+import DocumentDetailModal from '../components/DocumentDetailModal.jsx';
 
 function DocumentListPage({ role, pageFilter }) {
   const [documents, setDocuments] = useState([]);

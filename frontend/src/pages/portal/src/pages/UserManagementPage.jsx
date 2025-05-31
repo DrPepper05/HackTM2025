@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserCog, UserPlus, Edit3, Trash2 } from 'lucide-react';
-import { ROLES } from '../utils/constants'; // Ensure ROLES is available
+import { ROLES } from '../utils/constants.jsx'; // Ensure ROLES is available
 
 function UserManagementPage() {
     const [users, setUsers] = useState([

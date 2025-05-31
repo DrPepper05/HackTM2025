@@ -1,5 +1,5 @@
 import React from 'react';
-import { ROLES } from '../utils/constants'; // Assuming ROLES might be used for conditional rendering inside modal
+import { ROLES } from '../utils/constants.jsx'; // Assuming ROLES might be used for conditional rendering inside modal
 
 function DocumentDetailModal({ doc, onClose, role }) {
     if (!doc) return null;

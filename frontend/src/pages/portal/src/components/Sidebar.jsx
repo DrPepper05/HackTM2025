@@ -1,6 +1,6 @@
 import React from 'react';
 import { Home, UploadCloud, ListFilter, Inbox, FileText, UserCheck, FileClock, FileSearch, Send, History, UserCog, Settings, Users as HelpUsersIcon, FolderArchive } from 'lucide-react'; // Renamed Users to HelpUsersIcon to avoid conflict
-import { ROLES } from '../utils/constants';
+import { ROLES } from '../utils/constants.jsx';
 
 function Sidebar({ role, setCurrentPage, currentPage }) {
   const getNavItems = () => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { FolderArchive, User, Archive, Users, Shield, Settings } from 'lucide-react';
-import { ROLES } from '../utils/constants';
+import { ROLES } from '../utils/constants.jsx';
 
 function LoginPage({ onLogin }) {
   return (

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { UserCheck, Send, FilePlus, CheckSquare, Trash2, Eye } from 'lucide-react';
-import { ROLES } from '../utils/constants';
-import { mockAccessRequests } from '../utils/mockData';
-import NewAccessRequestModal from '../components/NewAccessRequestModal';
+import { ROLES } from '../utils/constants.jsx';
+import { mockAccessRequests } from '../utils/mockData.jsx';
+import NewAccessRequestModal from '../components/NewAccessRequestModal.jsx';
 
 function AccessRequestPage({ role, pageFilter }) {
   const [requests, setRequests] = useState([]);

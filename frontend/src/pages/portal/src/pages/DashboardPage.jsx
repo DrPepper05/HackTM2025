@@ -1,8 +1,8 @@
 import React from 'react';
 import { ListFilter, Clock, FilePlus, Inbox, CheckSquare, UserCheck, FileSearch, Send, History } from 'lucide-react';
-import DashboardCard from '../components/DashboardCard';
-import { ROLES } from '../utils/constants';
-import { mockDocuments, mockAccessRequests, mockAuditLogs } from '../utils/mockData';
+import DashboardCard from '../components/DashboardCard.jsx';
+import { ROLES } from '../utils/constants.jsx';
+import { mockDocuments, mockAccessRequests, mockAuditLogs } from '../utils/mockData.jsx';
 
 
 function DashboardPage({ role }) {
