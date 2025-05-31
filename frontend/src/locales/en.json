@@ -611,7 +611,13 @@
       "access_title": "Public Access",
       "access_desc": "Access publicly available documents instantly, with options to request access to restricted materials.",
       "compliance_title": "Legal Compliance",
-      "compliance_desc": "All documents are managed in accordance with Romania's Law 16/1996 and the latest digital archiving norms."
+      "compliance_desc": "All documents are managed in accordance with Romania's Law 16/1996 and the latest digital archiving norms.",
+      "preservation_title": "Digital Preservation",
+      "preservation_desc": "Long-term preservation of documents with integrity verification and archival-quality storage.",
+      "transparency_title": "Institutional Transparency",
+      "transparency_desc": "Promoting transparency in governance through accessible public records and clear access protocols.",
+      "innovation_title": "Innovative Technology",
+      "innovation_desc": "Leveraging modern technologies for efficient document management and accessibility across platforms."
     },
     "faq": {
       "title": "Frequently Asked Questions",

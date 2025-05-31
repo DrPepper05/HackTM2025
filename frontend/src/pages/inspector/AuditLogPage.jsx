@@ -160,6 +160,38 @@ function AuditLogPage() {
     setShowDetailModal(true)
   }
 
+  const handleCloseModal = () => {
+    setShowDetailModal(false)
+    setSelectedLog(null)
+  }
+
+  const handleBackgroundClick = (e) => {
+    // Close modal when clicking the background overlay
+    if (e.target === e.currentTarget) {
+      handleCloseModal()
+    }
+  }
+
+  // Handle escape key press
+  useEffect(() => {
+    const handleEscapeKey = (e) => {
+      if (e.key === 'Escape' && showDetailModal) {
+        handleCloseModal()
+      }
+    }
+
+    if (showDetailModal) {
+      document.addEventListener('keydown', handleEscapeKey)
+      // Prevent background scrolling when modal is open
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey)
+      document.body.style.overflow = 'unset'
+    }
+  }, [showDetailModal])
+
   const handleExportLogs = async () => {
     setIsExporting(true)
     try {
@@ -648,9 +680,16 @@ function AuditLogPage() {
 
         {/* Log Detail Modal */}
         {showDetailModal && selectedLog && (
-          <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div 
+            className="fixed inset-0 z-50 overflow-y-auto"
+            onClick={handleBackgroundClick}
+          >
             <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
-              <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+              <div 
+                className="fixed inset-0 transition-opacity" 
+                aria-hidden="true"
+                onClick={handleBackgroundClick}
+              >
                 <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
               </div>
 
@@ -661,15 +700,28 @@ function AuditLogPage() {
                 &#8203;
               </span>
 
-              <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+              <div 
+                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
                     {getActionIcon(selectedLog.action)}
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">
-                      {t('inspector.log_details')}
-                    </h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium leading-6 text-gray-900">
+                        {t('inspector.log_details')}
+                      </h3>
+                      <button
+                        type="button"
+                        className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md p-1"
+                        onClick={handleCloseModal}
+                      >
+                        <span className="sr-only">Close</span>
+                        <X className="h-6 w-6" />
+                      </button>
+                    </div>
                     <div className="mt-2">
                       <div className="mt-4 text-left">
                         <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
@@ -730,7 +782,9 @@ function AuditLogPage() {
                             <dd className="mt-1 text-sm text-gray-900">
                               {selectedLog.details ? (
                                 typeof selectedLog.details === 'object' ? 
-                                  JSON.stringify(selectedLog.details, null, 2) : 
+                                  <pre className="mt-1 text-xs bg-gray-50 p-2 rounded overflow-x-auto">
+                                    {JSON.stringify(selectedLog.details, null, 2)}
+                                  </pre> : 
                                   selectedLog.details
                               ) : 'No additional details'}
                             </dd>
@@ -744,7 +798,7 @@ function AuditLogPage() {
                   <button
                     type="button"
                     className="inline-flex w-full justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:text-sm"
-                    onClick={() => setShowDetailModal(false)}
+                    onClick={handleCloseModal}
                   >
                     {t('inspector.close')}
                   </button>
