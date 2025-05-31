@@ -82,7 +82,7 @@ function AppContent() {
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
-            
+
             {/* Clerk routes */}
             <Route path="/documents/upload" element={
               <RoleBasedRoute allowedRoles={['clerk', 'archivist', 'admin']}>
@@ -161,7 +161,6 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>
-    </ThemeProvider>
   )
 }
 
