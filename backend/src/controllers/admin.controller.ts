@@ -5,7 +5,8 @@ import {
   storageService,
   accessRequestService,
   AuditLogFilter,
-  auditService
+  auditService,
+  documentService
 } from '../services'
 import { asyncHandler } from '../middleware'
 
@@ -16,23 +17,31 @@ export class AdminController {
   getDashboard = asyncHandler(async (req: Request, res: Response) => {
     const [
       queueStats,
-      lifecycleCheck,
+      documentStats,
       storageStats,
       accessRequestStats
     ] = await Promise.all([
       queueService.getTaskStatistics(),
-      lifecycleService.checkDocumentLifecycles(),
+      documentService.getDocumentStatistics(),
       storageService.getStorageStatistics(),
       accessRequestService.getAccessRequestStatistics(req.userId!, 30)
     ])
+
+    // Calculate lifecycle counts based on actual document statuses
+    const lifecycleData = {
+      pendingReview: (documentStats.byStatus['REVIEW'] || 0) + (documentStats.byStatus['NEEDS_CLASSIFICATION'] || 0),
+      toTransfer: documentStats.byStatus['AWAITING_TRANSFER'] || 0,
+      toDestroy: documentStats.byStatus['DESTROY'] || 0
+    }
 
     res.json({
       success: true,
       data: {
         queue: queueStats,
-        lifecycle: lifecycleCheck,
+        lifecycle: lifecycleData,
         storage: storageStats,
-        accessRequests: accessRequestStats
+        accessRequests: accessRequestStats,
+        documents: documentStats
       }
     })
   })
