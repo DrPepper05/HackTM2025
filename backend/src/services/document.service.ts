@@ -93,13 +93,39 @@ export class DocumentService {
       // 1. Calculate file checksum
       const checksum = createHash('sha256').update(file.buffer).digest('hex')
       
-      // 2. Start transaction-like operation
+      // 2. Get user profile information for creator_info
+      let creatorInfo = metadata.creator_info || {}
+      
+      // If no creator_info provided, get the current user's information
+      if (Object.keys(creatorInfo).length === 0) {
+        const { data: userProfile, error: userError } = await supabaseAdmin
+          .from('user_profiles')
+          .select('full_name, email, institution')
+          .eq('id', userId)
+          .single()
+        
+        if (!userError && userProfile) {
+          creatorInfo = {
+            created_by_user_id: userId,
+            creator_name: userProfile.full_name,
+            creator_email: userProfile.email,
+            creator_institution: userProfile.institution
+          }
+        } else {
+          // Fallback if profile not found
+          creatorInfo = {
+            created_by_user_id: userId
+          }
+        }
+      }
+      
+      // 3. Start transaction-like operation
       let documentId: string | null = null
       let fileId: string | null = null
       let s3Key: string | null = null
 
       try {
-        // 3. Create document record
+        // 4. Create document record
         const { data: document, error: docError } = await supabaseAdmin
           .from('documents')
           .insert({
@@ -107,7 +133,7 @@ export class DocumentService {
             description: metadata.description,
             document_type: metadata.document_type,
             document_number: metadata.document_number,
-            creator_info: metadata.creator_info || {},
+            creator_info: creatorInfo,
             creation_date: metadata.creation_date,
             status: 'INGESTING',
             retention_category: metadata.retention_category,
@@ -121,10 +147,10 @@ export class DocumentService {
         if (docError) throw docError
         documentId = document.id
 
-        // 4. Generate S3 key
+        // 5. Generate S3 key
         s3Key = generateS3Key(file.originalname, documentId!, 'original')
 
-        // 5. Upload to S3
+        // 6. Upload to S3
         await storageService.uploadFile(
           S3_BUCKETS.DOCUMENTS,
           s3Key,
@@ -136,7 +162,7 @@ export class DocumentService {
           }
         )
 
-        // 6. Create file record
+        // 7. Create file record
         const { data: fileRecord, error: fileError } = await supabaseAdmin
           .from('document_files')
           .insert({
@@ -155,10 +181,10 @@ export class DocumentService {
         if (fileError) throw fileError
         fileId = fileRecord.id
 
-        // 7. Queue for enrichment
+        // 8. Queue for enrichment
         await this.queueEnrichment(documentId!) // Ensure this is called
 
-        // 8. Create audit log
+        // 9. Create audit log
         await supabaseAdmin.rpc('create_audit_log', {
           p_action: 'DOCUMENT_UPLOADED',
           p_entity_type: 'document',
@@ -209,32 +235,42 @@ export class DocumentService {
     total: number
   }> {
     return withMonitoring('list', 'documents', async () => {
+        console.log('DocumentService.getDocuments - Input filters:', filters);
+        
         let query = supabaseAdmin
             .from('documents')
             .select('*, document_files(*)', { count: 'exact' })
 
         if (filters.status) {
+            console.log('DocumentService.getDocuments - Applying status filter:', filters.status);
             query = query.eq('status', filters.status)
         }
         if (filters.is_public !== undefined) {
+            console.log('DocumentService.getDocuments - Applying is_public filter:', filters.is_public);
             query = query.eq('is_public', filters.is_public)
         }
         if (filters.retention_category) {
+            console.log('DocumentService.getDocuments - Applying retention_category filter:', filters.retention_category);
             query = query.eq('retention_category', filters.retention_category)
         }
         if (filters.uploader_user_id) {
+            console.log('DocumentService.getDocuments - Applying uploader_user_id filter:', filters.uploader_user_id);
             query = query.eq('uploader_user_id', filters.uploader_user_id)
         }
         if (filters.tags && filters.tags.length > 0) {
+            console.log('DocumentService.getDocuments - Applying tags filter:', filters.tags);
             query = query.contains('tags', filters.tags)
         }
         if (filters.from_date) {
+            console.log('DocumentService.getDocuments - Applying from_date filter:', filters.from_date);
             query = query.gte('created_at', filters.from_date)
         }
         if (filters.to_date) {
+            console.log('DocumentService.getDocuments - Applying to_date filter:', filters.to_date);
             query = query.lte('created_at', filters.to_date)
         }
         if (filters.search) {
+            console.log('DocumentService.getDocuments - Applying search filter:', filters.search);
             query = query.textSearch('search_vector', filters.search, {
                 type: 'websearch',
                 config: 'romanian'
@@ -246,9 +282,19 @@ export class DocumentService {
         query = query.range(offset, offset + limit - 1)
         query = query.order('created_at', { ascending: false })
 
+        console.log('DocumentService.getDocuments - Final query about to execute');
         const { data, error, count } = await query
 
-        if (error) throw error
+        if (error) {
+            console.error('DocumentService.getDocuments - Database error:', error);
+            throw error;
+        }
+
+        console.log('DocumentService.getDocuments - Query results:', {
+            documentsFound: data?.length || 0,
+            totalCount: count || 0,
+            sampleUploaderIds: data?.slice(0, 3).map(d => d.uploader_user_id) || []
+        });
 
         return {
             documents: data || [],

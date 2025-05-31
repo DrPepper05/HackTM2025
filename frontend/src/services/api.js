@@ -145,6 +145,7 @@ export const authApi = {
 
 export const documentsApi = {
   getDocuments: (params) => apiService.get('/api/v1/documents', params),
+  getUserUploads: () => apiService.get('/api/v1/documents'),
   getDocument: (id) => apiService.get(`/api/v1/documents/${id}`),
   createDocument: (data) => apiService.post('/api/v1/documents', data),
   updateDocument: (id, data) => apiService.put(`/api/v1/documents/${id}`, data),
