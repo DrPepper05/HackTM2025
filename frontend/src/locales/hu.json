@@ -445,7 +445,7 @@
     "upload_files_description": "Válasszon fájlokat a feltöltéshez",
     "upload_browse": "Tallózás - Nincs kiválasztott fájl",
     "upload_drag_drop": "Húzza ide a fájlokat",
-    "upload_file_types": "Támogatott fájltípusok: PDF, DOCX, XLSX, PPTX, JPG, PNG, TIFF",
+    "upload_file_types": "Támogatott fájltípusok: Csak PDF",
     "my_uploads": "Saját Feltöltések",
     "my_uploads_description": "Saját feltöltött dokumentumok megtekintése és kezelése",
     "add_document": "Dokumentum Hozzáadása",
@@ -489,7 +489,10 @@
       "adresa": "Cím",
       "raport": "Jelentés",
       "proces_verbal": "Jegyzőkönyv"
-    }
+    },
+    "status_filter": "Szűrés Állapot szerint",
+    "date_filter": "Szűrés Dátum szerint",
+    "sort_by": "Rendezés"
   },
   "archivist": {
     "ingestQueue": {
@@ -720,7 +723,11 @@
     "submitting": "Beküldés...",
     "error_fetching_requests": "Hiba a hozzáférési kérelmek lekérése során",
     "error_loading_requests": "Hiba a Hozzáférési Kérelmek Betöltése Során",
-    "error_updating_request": "Hiba a hozzáférési kérelem frissítése során"
+    "error_updating_request": "Hiba a hozzáférési kérelem frissítése során",
+    "status_REVIEW": "Áttekintés",
+    "status_NEEDS_CLASSIFICATION": "Osztályozásra Vár",
+    "status_DESTROY": "Megsemmisítés",
+    "status_AWAITING_TRANSFER": "Átvitelre Vár"
   },
   "admin": {
     "auditLogs": {

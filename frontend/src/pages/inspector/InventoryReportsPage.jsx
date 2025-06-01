@@ -538,7 +538,7 @@ function InventoryReportsPage() {
                   type="button"
                   onClick={handleGenerateReport}
                   disabled={isLoading}
-                  className="inline-flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+                  className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
                   {isLoading ? (
                     <>
@@ -558,22 +558,22 @@ function InventoryReportsPage() {
 
           {/* Previously Generated Reports */}
           <div className="lg:col-span-1">
-            <div className="rounded-lg bg-white p-6 shadow">
+            <div className="rounded-lg bg-white py-10 px-8 shadow">
               <h3 className="text-lg font-medium leading-6 text-gray-900">
                 {t('inspector.recent_reports')}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-3 text-sm text-gray-500">
                 {t('inspector.recent_reports_description')}
               </p>
 
-              <div className="mt-6 flow-root">
-                <ul role="list" className="-my-5 divide-y divide-gray-200">
+              <div className="mt-8 flow-root">
+                <ul role="list" className="-my-6 divide-y divide-gray-200">
                   {generatedReports.length > 0 ? (
                     generatedReports.map((report) => (
-                      <li key={report.id} className="py-4">
-                        <div className="flex items-center space-x-4">
+                      <li key={report.id} className="py-6">
+                        <div className="flex items-center space-x-5">
                           <div className="flex-shrink-0">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-100">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100">
                               {getFormatIcon(report.format)}
                             </div>
                           </div>
@@ -598,9 +598,9 @@ function InventoryReportsPage() {
                       </li>
                     ))
                   ) : (
-                    <div className="rounded-md bg-yellow-50 p-3">
+                    <div className="rounded-md bg-yellow-50 p-3 mt-4">
                       <div className="flex">
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 flex items-center">
                           <AlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
                         </div>
                         <div className="ml-2">

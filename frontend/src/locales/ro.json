@@ -445,7 +445,7 @@
     "upload_files_description": "Selectează fișiere pentru încărcare",
     "upload_browse": "Răsfoiește - Niciun fișier ales",
     "upload_drag_drop": "Trage și plasează fișierele aici",
-    "upload_file_types": "Tipuri de fișiere acceptate: PDF, DOCX, XLSX, PPTX, JPG, PNG, TIFF",
+    "upload_file_types": "Tipuri de fișiere acceptate: Doar PDF",
     "my_uploads": "Încărcările Mele",
     "my_uploads_description": "Vizualizează și gestionează documentele tale încărcate",
     "add_document": "Adaugă Document",
@@ -489,7 +489,10 @@
       "adresa": "Adresă",
       "raport": "Raport",
       "proces_verbal": "Proces Verbal"
-    }
+    },
+    "status_filter": "Filtrare după Stare",
+    "date_filter": "Filtrare după Dată",
+    "sort_by": "Sortare după"
   },
   "archivist": {
     "ingestQueue": {
@@ -720,7 +723,11 @@
     "submitting": "Se trimite...",
     "error_fetching_requests": "Eroare la preluarea cererilor de acces",
     "error_loading_requests": "Eroare la Încărcarea Cererilor de Acces",
-    "error_updating_request": "Eroare la actualizarea cererii de acces"
+    "error_updating_request": "Eroare la actualizarea cererii de acces",
+    "status_REVIEW": "Revizuire",
+    "status_NEEDS_CLASSIFICATION": "Necesită Clasificare",
+    "status_DESTROY": "Distrugere",
+    "status_AWAITING_TRANSFER": "În Așteptarea Transferului"
   },
   "admin": {
     "auditLogs": {
