@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 
 const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
+console.log(SERVER_URL)
 
 function PublicHomePage() {
   const { t } = useTranslation()
