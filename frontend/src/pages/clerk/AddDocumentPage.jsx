@@ -212,12 +212,12 @@ function AddDocumentPage() {
   // Render step 1: File upload
   const renderStep1 = () => (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900">{t('clerk.upload_files')}</h2>
+      <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('clerk.upload_files')}</h2>
       <p className="mt-1 text-sm text-gray-500">{t('clerk.upload_files_description')}</p>
 
       {/* File drop area */}
       <div
-        className={`mt-6 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10 ${
+        className={`mt-4 sm:mt-6 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-3 sm:px-6 py-6 sm:py-10 ${
           dragActive ? 'border-primary bg-primary/5' : ''
         }`}
         onDragEnter={handleDrag}
@@ -226,8 +226,8 @@ function AddDocumentPage() {
         onDrop={handleDrop}
       >
         <div className="text-center">
-          <Upload className="mx-auto h-12 w-12 text-gray-300" />
-          <div className="mt-4 flex flex-col text-sm leading-6 text-gray-600">
+          <Upload className="mx-auto h-10 sm:h-12 w-10 sm:w-12 text-gray-300" />
+          <div className="mt-3 sm:mt-4 flex flex-col text-sm leading-6 text-gray-600">
             <label
               htmlFor="file-upload"
               className="relative cursor-pointer rounded-md bg-white font-semibold text-primary border border-primary px-3 py-2 mb-3 focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary-dark"
@@ -251,23 +251,23 @@ function AddDocumentPage() {
 
       {/* File list */}
       {files.length > 0 && (
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <h3 className="text-sm font-medium text-gray-900">{t('clerk.uploaded_files')}</h3>
-          <ul className="mt-3 divide-y divide-gray-100 rounded-md border border-gray-200">
+          <ul className="mt-2 sm:mt-3 divide-y divide-gray-100 rounded-md border border-gray-200">
             {files.map((file, index) => (
-              <li key={index} className="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
+              <li key={index} className="flex items-center justify-between py-2 sm:py-3 pl-2 sm:pl-3 pr-2 sm:pr-4 text-sm">
                 <div className="flex w-0 flex-1 items-center">
-                  <FileText className="h-5 w-5 flex-shrink-0 text-gray-400" />
-                  <span className="ml-2 w-0 flex-1 truncate">{file.name}</span>
+                  <FileText className="h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0 text-gray-400" />
+                  <span className="ml-2 w-0 flex-1 truncate text-xs sm:text-sm">{file.name}</span>
                 </div>
-                <div className="ml-4 flex flex-shrink-0 space-x-4">
-                  <span className="text-gray-500">{formatFileSize(file.size)}</span>
+                <div className="ml-2 sm:ml-4 flex flex-shrink-0 space-x-2 sm:space-x-4">
+                  <span className="text-xs sm:text-sm text-gray-500">{formatFileSize(file.size)}</span>
                   <button
                     type="button"
                     className="text-red-500 hover:text-red-700"
                     onClick={() => removeFile(index)}
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-4 sm:h-5 w-4 sm:w-5" />
                   </button>
                 </div>
               </li>
@@ -277,7 +277,7 @@ function AddDocumentPage() {
       )}
 
       {/* Navigation buttons */}
-      <div className="mt-8 flex justify-end">
+      <div className="mt-6 sm:mt-8 flex justify-end">
         <button
           type="button"
           onClick={nextStep}
@@ -288,28 +288,28 @@ function AddDocumentPage() {
         </button>
       </div>
     </div>
-    )
+  )
 
   // Render step 2: Review and submit (previously step 3)
   const renderStep2 = () => (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900">{t('clerk.review_and_submit')}</h2>
+      <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('clerk.review_and_submit')}</h2>
       <p className="mt-1 text-sm text-gray-500">{t('clerk.review_and_submit_description')}</p>
 
-      <div className="mt-6 border-t border-gray-100">
+      <div className="mt-4 sm:mt-6 border-t border-gray-100">
         <dl className="divide-y divide-gray-100">
-          <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+          <div className="py-4 sm:py-6 sm:grid sm:grid-cols-3 sm:gap-4">
             <dt className="text-sm font-medium leading-6 text-gray-900">{t('clerk.uploaded_files')}</dt>
             <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
               <ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
                 {files.map((file, index) => (
-                  <li key={index} className="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
+                  <li key={index} className="flex items-center justify-between py-2 sm:py-3 pl-2 sm:pl-3 pr-2 sm:pr-4 text-sm">
                     <div className="flex w-0 flex-1 items-center">
-                      <FileText className="h-5 w-5 flex-shrink-0 text-gray-400" />
-                      <span className="ml-2 w-0 flex-1 truncate">{file.name}</span>
+                      <FileText className="h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0 text-gray-400" />
+                      <span className="ml-2 w-0 flex-1 truncate text-xs sm:text-sm">{file.name}</span>
                     </div>
-                    <div className="ml-4 flex-shrink-0">
-                      <span className="text-gray-500">{formatFileSize(file.size)}</span>
+                    <div className="ml-2 sm:ml-4 flex-shrink-0">
+                      <span className="text-xs sm:text-sm text-gray-500">{formatFileSize(file.size)}</span>
                     </div>
                   </li>
                 ))}
@@ -320,7 +320,7 @@ function AddDocumentPage() {
       </div>
 
       {/* Navigation buttons */}
-      <div className="mt-8 flex justify-between">
+      <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:justify-between space-y-3 sm:space-y-0">
         <button
           type="button"
           onClick={prevStep}
@@ -331,7 +331,7 @@ function AddDocumentPage() {
         <button
           type="button"
           onClick={handleSubmit}
-          className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
+          className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
         >
           {t('clerk.submit_document')}
         </button>
@@ -342,12 +342,12 @@ function AddDocumentPage() {
   // Render success message
   const renderSuccess = () => (
     <div className="text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-        <Check className="h-6 w-6 text-green-600" aria-hidden="true" />
+      <div className="mx-auto flex h-10 sm:h-12 w-10 sm:w-12 items-center justify-center rounded-full bg-green-100">
+        <Check className="h-5 sm:h-6 w-5 sm:w-6 text-green-600" aria-hidden="true" />
       </div>
-      <h2 className="mt-6 text-xl font-semibold text-gray-900">{t('clerk.upload_success')}</h2>
+      <h2 className="mt-4 sm:mt-6 text-lg sm:text-xl font-semibold text-gray-900">{t('clerk.upload_success')}</h2>
       <p className="mt-2 text-sm text-gray-500">{t('clerk.upload_success_description')}</p>
-      <div className="mt-8 flex justify-center space-x-4">
+      <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
         <button
           type="button"
           onClick={resetForm}
@@ -368,11 +368,11 @@ function AddDocumentPage() {
 
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           {/* Progress steps */}
           {!uploadSuccess && (
-            <nav aria-label="Progress" className="mb-8">
+            <nav aria-label="Progress" className="mb-6 sm:mb-8">
               <ol
                 role="list"
                 className="divide-y divide-gray-300 rounded-md border border-gray-300 md:flex md:divide-y-0"
@@ -384,27 +384,27 @@ function AddDocumentPage() {
                   <li key={step.id} className="relative md:flex md:flex-1">
                     {step.id < currentStep ? (
                       <div className="group flex w-full items-center">
-                        <span className="flex items-center px-6 py-4 text-sm font-medium">
-                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary">
+                        <span className="flex items-center px-4 sm:px-6 py-2 sm:py-4 text-sm font-medium">
+                          <span className="flex h-8 sm:h-10 w-8 sm:w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary">
                             <span className="text-white">{step.id}</span>
                           </span>
-                          <span className="ml-4 text-sm font-medium text-gray-900">{step.name}</span>
+                          <span className="ml-2 sm:ml-4 text-xs sm:text-sm font-medium text-gray-900">{step.name}</span>
                         </span>
                       </div>
                     ) : step.id === currentStep ? (
-                      <div className="flex items-center px-6 py-4 text-sm font-medium" aria-current="step">
-                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-primary">
+                      <div className="flex items-center px-4 sm:px-6 py-2 sm:py-4 text-sm font-medium" aria-current="step">
+                        <span className="flex h-8 sm:h-10 w-8 sm:w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-primary">
                           <span className="text-primary">{step.id}</span>
                         </span>
-                        <span className="ml-4 text-sm font-medium text-primary">{step.name}</span>
+                        <span className="ml-2 sm:ml-4 text-xs sm:text-sm font-medium text-primary">{step.name}</span>
                       </div>
                     ) : (
                       <div className="group flex items-center">
-                        <span className="flex items-center px-6 py-4 text-sm font-medium">
-                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-gray-300">
+                        <span className="flex items-center px-4 sm:px-6 py-2 sm:py-4 text-sm font-medium">
+                          <span className="flex h-8 sm:h-10 w-8 sm:w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-gray-300">
                             <span className="text-gray-500">{step.id}</span>
                           </span>
-                          <span className="ml-4 text-sm font-medium text-gray-500">{step.name}</span>
+                          <span className="ml-2 sm:ml-4 text-xs sm:text-sm font-medium text-gray-500">{step.name}</span>
                         </span>
                       </div>
                     )}
