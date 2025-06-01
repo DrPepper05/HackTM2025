@@ -243,7 +243,8 @@ function StaffDocumentViewPage() {
         description: editedDocument.description,
         document_type: editedDocument.documentType,
         retention_category: editedDocument.retentionCategory,
-        confidentiality_level: editedDocument.confidentiality,
+        is_public: editedDocument.confidentiality === 'public',
+        confidentiality_note: editedDocument.confidentiality,
         status: editedDocument.status,
         tags: editedDocument.tags,
       }
@@ -264,7 +265,7 @@ function StaffDocumentViewPage() {
           description: updatedDoc.description || editedDocument.description,
           documentType: updatedDoc.document_type || editedDocument.documentType,
           retentionCategory: updatedDoc.retention_category || editedDocument.retentionCategory,
-          confidentiality: updatedDoc.confidentiality_level || editedDocument.confidentiality,
+          confidentiality: updatedDoc.confidentiality_note || (updatedDoc.is_public ? 'public' : 'private'),
           status: updatedDoc.status || editedDocument.status,
           tags: updatedDoc.tags || editedDocument.tags,
           lastModified: updatedDoc.updated_at || new Date().toISOString(),

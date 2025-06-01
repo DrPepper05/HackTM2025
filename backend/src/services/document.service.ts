@@ -51,6 +51,7 @@ export interface UpdateDocumentDto {
   is_public?: boolean
   release_date?: string
   confidentiality_note?: string
+  status?: DocumentStatus
   metadata?: Record<string, any>
   tags?: string[]
 }
@@ -181,8 +182,8 @@ export class DocumentService {
         if (fileError) throw fileError
         fileId = fileRecord.id
 
-        // 8. Queue for enrichment
-        await this.queueEnrichment(documentId!) // Ensure this is called
+        // // 8. Queue for enrichment
+        // await this.queueEnrichment(documentId!) // Ensure this is called
 
         // 9. Create audit log
         await supabaseAdmin.rpc('create_audit_log', {

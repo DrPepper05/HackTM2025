@@ -278,7 +278,14 @@ function AdvancedSearchPage() {
       }
       
       if (searchParams.confidentiality) {
-        metadataFilters.confidentiality_level = searchParams.confidentiality
+        // Map confidentiality to database fields
+        if (searchParams.confidentiality === 'public') {
+          metadataFilters.is_public = true
+        } else if (searchParams.confidentiality === 'private') {
+          metadataFilters.is_public = false
+        }
+        // Store the confidentiality_note for non-boolean filtering if needed
+        metadataFilters.confidentiality_note = searchParams.confidentiality
       }
       
       if (searchParams.status) {
@@ -1124,14 +1131,14 @@ function AdvancedSearchPage() {
                                   {formatDate(doc?.created_at)}
                               </div>
                                 
-                                {doc?.confidentiality_level && (
+                                {(doc?.confidentiality_note || doc?.is_public !== undefined) && (
                                   <span
                                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getConfidentialityBadgeColor(
-                                      doc.confidentiality_level
+                                      doc.confidentiality_note || (doc.is_public ? 'public' : 'private')
                                     )}`}
                                   >
                                     <Lock className="mr-1 h-3 w-3" />
-                                    {doc.confidentiality_level}
+                                    {doc.confidentiality_note || (doc.is_public ? 'public' : 'private')}
                                   </span>
                                 )}
                             </div>
