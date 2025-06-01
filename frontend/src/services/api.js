@@ -156,11 +156,11 @@ export const documentsApi = {
   getDocumentVersions: (id) => apiService.get(`/api/v1/documents/${id}/versions`),
   restoreVersion: (id, versionId) => apiService.post(`/api/v1/documents/${id}/versions/${versionId}/restore`),
   
-  //Added for pending requests for archivist
-  //getAccessRequests: () => apiService.get('/api/v1/access-requests'),
-  //updateAccessRequest: (requestId, data) => apiService.patch(`/api/v1/access-requests/${requestId}`, data),
-  //getAccessRequestById: (requestId) => apiService.get(`/api/v1/access-requests/${requestId}`),
-  //createAccessRequest: (data) => apiService.post('/api/v1/access-requests', data),
+  // Access request methods for archivist/admin (using management endpoints)
+  getAccessRequests: (params) => apiService.get('/api/v1/access-requests-manage', params),
+  updateAccessRequest: (requestId, data) => apiService.put(`/api/v1/access-requests-manage/${requestId}`, data),
+  getAccessRequestById: (requestId) => apiService.get(`/api/v1/access-requests/${requestId}`),
+  createAccessRequest: (data) => apiService.post('/api/v1/access-requests', data),
 }
 
 export const collectionsApi = {
@@ -223,7 +223,7 @@ export const adminApi = {
   cleanupTasks: (data) => apiService.post('/api/v1/admin/queue/cleanup', data),
   checkLifecycles: () => apiService.get('/api/v1/admin/lifecycle'),
   getStorageStats: () => apiService.get('/api/v1/admin/storage'),
-  getAccessRequestStats: () => apiService.get('/api/v1/admin/access-requests/stats'),
+  getAccessRequestStats: () => apiService.get('/api/v1/access-requests-manage/stats'),
 }
 
 // Export the main API service instance

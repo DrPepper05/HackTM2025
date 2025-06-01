@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Menu, Bell, User, LogOut, Settings, FolderArchive } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -8,8 +8,42 @@ import LanguageSwitcher from './LanguageSwitcher'
 function Header({ toggleSidebar }) {
   const { t } = useTranslation()
   const { user, signOut, userRole } = useAuth()
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const navigate = useNavigate()
+  const [activeDropdown, setActiveDropdown] = useState(null)
+  const headerRef = useRef(null)
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (headerRef.current && !headerRef.current.contains(event.target)) {
+        setActiveDropdown(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const handleDropdownToggle = (dropdownName) => {
+    // If clicking the same dropdown, close it
+    if (activeDropdown === dropdownName) {
+      setActiveDropdown(null)
+      return
+    }
+    
+    // If a different dropdown is open, close it first then open the new one after a short delay
+    if (activeDropdown) {
+      setActiveDropdown(null)
+      setTimeout(() => {
+        setActiveDropdown(dropdownName)
+      }, 100)
+    } else {
+      // If no dropdown is open, open the selected one immediately
+      setActiveDropdown(dropdownName)
+    }
+  }
 
   const handleSignOut = async () => {
     await signOut()
@@ -19,19 +53,18 @@ function Header({ toggleSidebar }) {
     navigate('/dashboard')
   }
 
-
   const handleProfileClick = () => {
-    setUserMenuOpen(false)
+    setActiveDropdown(null)
     navigate('/profile')
   }
 
   return (
-    <header className="bg-white shadow-sm z-10">
+    <header className="bg-white shadow-sm z-10" ref={headerRef}>
       <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
         {/* Mobile menu button */}
         <button
           type="button"
-          className="md:hidden rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"
+          className="md:hidden rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600 focus:outline-none"
           onClick={toggleSidebar}
         >
           <span className="sr-only">{t('nav.open_sidebar')}</span>
@@ -40,10 +73,10 @@ function Header({ toggleSidebar }) {
 
         {/* Logo and App Name */}
         <div className="flex h-16 flex-shrink-0 items-center px-4">
-            <Link to="/dashboard" className="flex items-center">
-              <FolderArchive className="text-sky-600 mr-3 h-8 w-8" />
-              <span className="text-xl font-bold text-gray-800">OpenArchive</span>
-            </Link>
+          <Link to="/dashboard" className="flex items-center">
+            <FolderArchive className="text-sky-600 mr-3 h-8 w-8" />
+            <span className="text-xl font-bold text-gray-800">OpenArchive</span>
+          </Link>
         </div>
 
         {/* Right section */}
@@ -56,22 +89,25 @@ function Header({ toggleSidebar }) {
           </div>
           
           {/* Language switcher */}
-          <LanguageSwitcher />
+          <LanguageSwitcher 
+            isOpen={activeDropdown === 'language'} 
+            onToggle={() => handleDropdownToggle('language')}
+          />
 
           {/* Notifications */}
           <div className="relative">
             <button
               type="button"
-              className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="rounded-full p-1 text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              onClick={() => handleDropdownToggle('notifications')}
             >
               <span className="sr-only">{t('common.notifications')}</span>
               <Bell className="h-6 w-6" aria-hidden="true" />
             </button>
 
             {/* Notifications dropdown */}
-            {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
+            {activeDropdown === 'notifications' && (
+              <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-20">
                 <div className="px-4 py-2 text-sm font-medium text-gray-700">
                   {t('common.notifications')}
                 </div>
@@ -82,7 +118,11 @@ function Header({ toggleSidebar }) {
                   </div>
                 </div>
                 <div className="border-t border-gray-100 px-4 py-2 text-center">
-                  <Link to="/notifications" className="text-sm font-medium text-sky-600 hover:text-sky-700">
+                  <Link 
+                    to="/notifications" 
+                    className="text-sm font-medium text-sky-600 hover:text-sky-700"
+                    onClick={() => setActiveDropdown(null)}
+                  >
                     {t('notifications.view_all')}
                   </Link>
                 </div>
@@ -94,18 +134,18 @@ function Header({ toggleSidebar }) {
           <div className="relative">
             <button
               type="button"
-              className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex rounded-full text-sm hover:bg-gray-100 focus:outline-none"
+              onClick={() => handleDropdownToggle('profile')}
             >
               <span className="sr-only">{t('nav.open_user_menu')}</span>
-              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300">
                 <User className="h-5 w-5 text-gray-500" />
               </div>
             </button>
 
             {/* User dropdown */}
-            {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-20">
+            {activeDropdown === 'profile' && (
+              <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-20">
                 <div className="px-4 py-2 text-sm text-gray-700">
                   <div className="font-medium">{user?.email}</div>
                   <div className="text-xs text-gray-500 capitalize">{t(`roles.${userRole}`)}</div>
@@ -113,23 +153,15 @@ function Header({ toggleSidebar }) {
                 <div className="border-t border-gray-100">
                   <button
                     onClick={handleProfileClick}
-                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none"
                   >
                     <User className="mr-3 h-4 w-4" />
                     {t('nav.profile')}
                   </button>
-                  {/* <Link
-                    to="/settings"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    <Settings className="mr-3 h-4 w-4" />
-                    {t('navigation.settings')}
-                  </Link> */}
                   <button
-                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none"
                     onClick={() => {
-                      setUserMenuOpen(false)
+                      setActiveDropdown(null)
                       handleSignOut()
                     }}
                   >
