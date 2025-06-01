@@ -207,15 +207,18 @@ export class EnrichmentService {
         ai_description: aiAnalysis.description 
       };
 
+      // Always update all fields regardless of confidence
+      if (aiAnalysis.title && !aiAnalysis.title.startsWith("AI Analysis Failed") && aiAnalysis.title !== "N/A" && aiAnalysis.title !== "Title Could Not Be Determined by AI") {
+          updates.title = aiAnalysis.title;
+      }
+      if (aiAnalysis.document_type && aiAnalysis.document_type !== 'other') {
+          updates.document_type = aiAnalysis.document_type;
+      }
+      // Always set retention_category with AI prediction
+      updates.retention_category = aiAnalysis.retention_category as RetentionCategory;
+
       if (aiAnalysis.confidence >= RETENTION_CONFIDENCE_THRESHOLD) {
         updates.status = 'ACTIVE_STORAGE';
-        updates.retention_category = aiAnalysis.retention_category as RetentionCategory;
-        if (aiAnalysis.title && !aiAnalysis.title.startsWith("AI Analysis Failed") && aiAnalysis.title !== "N/A" && aiAnalysis.title !== "Title Could Not Be Determined by AI") {
-            updates.title = aiAnalysis.title;
-        }
-        if (aiAnalysis.document_type && aiAnalysis.document_type !== 'other') {
-            updates.document_type = aiAnalysis.document_type;
-        }
         auditAction = 'AUTONOMOUS_CLASSIFICATION_SUCCESS';
         auditDetails.assigned_retention = updates.retention_category;
         auditDetails.final_title = updates.title;
@@ -267,7 +270,7 @@ export class EnrichmentService {
 
   private async _analyzeTextWithOpenAI(text: string): Promise<{ title: string; retention_category: string; document_type: string; description?: string; confidence: number; }> {
     console.log(`Analyzing text with OpenAI API (Model: ${openAIModelId}). Max text length for prompt: 25000 chars.`);
-    const systemPrompt = `You are an assistant that analyzes Romanian official documents. Extract specific information and return it ONLY as a valid JSON object. Do not include any explanatory text before or after the JSON. The JSON object should contain fields: "title", "description", "document_type", "retention_category", "confidence".
+    const systemPrompt = `You are an assistant that analyzes Romanian official documents. Extract specific information and return it ONLY as a valid JSON object. Do not include any explanatory text before or after the JSON. The JSON object should contain fields: "title", "description", "document_type", "retention_category", "confidence". The answer must be in Romanian.
 1.  "title": A short, relevant, and suggestive title for the document (max 15 words). If the text is too short or unclear to determine a title, return "N/A".
 2.  "description": A brief summary or description of the document's main content or purpose (1-3 sentences, max 70 words). If unclear, return "N/A".
 3.  "document_type": Classify the document into ONE of: 'contract', 'decision', 'report', 'correspondence', 'legal', 'financial', 'other'. If unsure, default to 'other'.
