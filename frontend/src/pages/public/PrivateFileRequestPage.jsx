@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { FileText, AlertCircle } from 'lucide-react'
+import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
 
 function PrivateFileRequestPage() {
   const { t } = useTranslation()
@@ -284,6 +285,9 @@ function PrivateFileRequestPage() {
           )}
         </div>
       </div>
+
+      {/* Floating Language Button */}
+      <FloatingLanguageButton />
     </div>
   )
 }

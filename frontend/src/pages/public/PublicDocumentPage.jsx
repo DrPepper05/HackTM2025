@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, FileText, Download, Calendar, Building, User, Lock, Eye, FileQuestion } from 'lucide-react'
+import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
 
 function PublicDocumentPage() {
   const { t } = useTranslation()
@@ -150,187 +151,192 @@ function PublicDocumentPage() {
   }
 
   return (
-    <div className="document-page">
-      <div className="content-container">
-        <div className="document-header">
-          <Link to="/public" className="back-button">
-            <ArrowLeft className="icon" />
-            {t('public.back_to_search')}
-          </Link>
+    <div className="min-h-screen bg-gray-50">
+      <div className="document-page">
+        <div className="content-container">
+          <div className="document-header">
+            <Link to="/public" className="back-button">
+              <ArrowLeft className="icon" />
+              {t('public.back_to_search')}
+            </Link>
 
-          <div className="document-title-container">
-            <h1 className="document-title">{document.title}</h1>
-          </div>
-
-          <div className="document-meta">
-            <div className="document-meta-item">
-              <Calendar className="icon" />
-              <span className="document-meta-label">{t('public.release_date')}:</span>
-              <span className="document-meta-value">
-                {new Date(document.releaseDate).toLocaleDateString()}
-              </span>
+            <div className="document-title-container">
+              <h1 className="document-title">{document.title}</h1>
             </div>
 
-            <div className="document-meta-item">
-              <Building className="icon" />
-              <span className="document-meta-label">{t('public.institution')}:</span>
-              <span className="document-meta-value">{document.institution}</span>
-            </div>
-
-            <div className="document-meta-item">
-              <FileText className="icon" />
-              <span className="document-meta-label">{t('public.document_type')}:</span>
-              <span className="document-meta-value">{document.documentType}</span>
-            </div>
-
-            <div className="document-meta-item">
-              <User className="icon" />
-              <span className="document-meta-label">{t('public.author')}:</span>
-              <span className="document-meta-value">{document.author}</span>
-            </div>
-
-            <div className="document-meta-item">
-              <Eye className="icon" />
-              <span className="document-meta-label">{t('public.status')}:</span>
-              <span className="document-meta-value">
-                {document.status === 'public' ? (
-                  <span className="status-public">{t('public.status_public')}</span>
-                ) : (
-                  <span className="status-restricted">{t('public.status_restricted')}</span>
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="document-content">
-          <div className="document-description">
-            <h2 className="document-section-title">{t('public.description')}</h2>
-            <p>{document.description}</p>
-          </div>
-
-          {document.status === 'public' && document.files && document.files.length > 0 ? (
-            <div className="document-files">
-              <h2 className="document-section-title">{t('public.files')}</h2>
-              <ul className="document-files-list">
-                {document.files.map((file) => (
-                  <li key={file.id} className="document-file-item">
-                    <div className="document-file-info">
-                      <FileText className="icon" />
-                      <span className="document-file-name">{file.name}</span>
-                      <span className="document-file-size">{file.size}</span>
-                    </div>
-                    <a href={file.url} className="btn btn-secondary">
-                      <Download className="icon" />
-                      {t('public.download')}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : document.status === 'restricted' ? (
-            <div className="document-restricted">
-              <div className="document-restricted-content">
-                <Lock className="document-restricted-icon" />
-                <h2 className="document-restricted-title">{t('public.restricted_access')}</h2>
-                <p className="document-restricted-message">
-                  {document.restrictionReason || t('public.restricted_access_description')}
-                </p>
-                {!showRequestForm ? (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setShowRequestForm(true)}
-                  >
-                    {t('public.request_access')}
-                  </button>
-                ) : null}
+            <div className="document-meta">
+              <div className="document-meta-item">
+                <Calendar className="icon" />
+                <span className="document-meta-label">{t('public.release_date')}:</span>
+                <span className="document-meta-value">
+                  {new Date(document.releaseDate).toLocaleDateString()}
+                </span>
               </div>
 
-              {showRequestForm && (
-                <div className="document-request-form">
-                  <h3 className="document-request-form-title">{t('public.request_access_form_title')}</h3>
-                  <form onSubmit={handleRequestSubmit}>
-                    <div className="form-group">
-                      <label htmlFor="name" className="form-label">
-                        {t('public.full_name')} *
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        className="form-input"
-                        value={requestForm.name}
-                        onChange={handleRequestFormChange}
-                        required
-                      />
-                    </div>
+              <div className="document-meta-item">
+                <Building className="icon" />
+                <span className="document-meta-label">{t('public.institution')}:</span>
+                <span className="document-meta-value">{document.institution}</span>
+              </div>
 
-                    <div className="form-group">
-                      <label htmlFor="email" className="form-label">
-                        {t('public.email')} *
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        className="form-input"
-                        value={requestForm.email}
-                        onChange={handleRequestFormChange}
-                        required
-                      />
-                    </div>
+              <div className="document-meta-item">
+                <FileText className="icon" />
+                <span className="document-meta-label">{t('public.document_type')}:</span>
+                <span className="document-meta-value">{document.documentType}</span>
+              </div>
 
-                    <div className="form-group">
-                      <label htmlFor="reason" className="form-label">
-                        {t('public.reason_for_access')} *
-                      </label>
-                      <textarea
-                        id="reason"
-                        name="reason"
-                        rows="4"
-                        className="form-textarea"
-                        value={requestForm.reason}
-                        onChange={handleRequestFormChange}
-                        required
-                      ></textarea>
-                    </div>
+              <div className="document-meta-item">
+                <User className="icon" />
+                <span className="document-meta-label">{t('public.author')}:</span>
+                <span className="document-meta-value">{document.author}</span>
+              </div>
 
-                    <div className="form-group">
-                      <div className="form-checkbox">
+              <div className="document-meta-item">
+                <Eye className="icon" />
+                <span className="document-meta-label">{t('public.status')}:</span>
+                <span className="document-meta-value">
+                  {document.status === 'public' ? (
+                    <span className="status-public">{t('public.status_public')}</span>
+                  ) : (
+                    <span className="status-restricted">{t('public.status_restricted')}</span>
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="document-content">
+            <div className="document-description">
+              <h2 className="document-section-title">{t('public.description')}</h2>
+              <p>{document.description}</p>
+            </div>
+
+            {document.status === 'public' && document.files && document.files.length > 0 ? (
+              <div className="document-files">
+                <h2 className="document-section-title">{t('public.files')}</h2>
+                <ul className="document-files-list">
+                  {document.files.map((file) => (
+                    <li key={file.id} className="document-file-item">
+                      <div className="document-file-info">
+                        <FileText className="icon" />
+                        <span className="document-file-name">{file.name}</span>
+                        <span className="document-file-size">{file.size}</span>
+                      </div>
+                      <a href={file.url} className="btn btn-secondary">
+                        <Download className="icon" />
+                        {t('public.download')}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : document.status === 'restricted' ? (
+              <div className="document-restricted">
+                <div className="document-restricted-content">
+                  <Lock className="document-restricted-icon" />
+                  <h2 className="document-restricted-title">{t('public.restricted_access')}</h2>
+                  <p className="document-restricted-message">
+                    {document.restrictionReason || t('public.restricted_access_description')}
+                  </p>
+                  {!showRequestForm ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => setShowRequestForm(true)}
+                    >
+                      {t('public.request_access')}
+                    </button>
+                  ) : null}
+                </div>
+
+                {showRequestForm && (
+                  <div className="document-request-form">
+                    <h3 className="document-request-form-title">{t('public.request_access_form_title')}</h3>
+                    <form onSubmit={handleRequestSubmit}>
+                      <div className="form-group">
+                        <label htmlFor="name" className="form-label">
+                          {t('public.full_name')} *
+                        </label>
                         <input
-                          type="checkbox"
-                          id="agree"
-                          name="agree"
-                          checked={requestForm.agree}
+                          type="text"
+                          id="name"
+                          name="name"
+                          className="form-input"
+                          value={requestForm.name}
                           onChange={handleRequestFormChange}
                           required
                         />
-                        <label htmlFor="agree">
-                          {t('public.agree_to_terms')}
-                        </label>
                       </div>
-                    </div>
 
-                    <div className="form-actions">
-                      <button
-                        type="button"
-                        className="btn btn-text"
-                        onClick={() => setShowRequestForm(false)}
-                      >
-                        {t('public.cancel')}
-                      </button>
-                      <button type="submit" className="btn btn-primary">
-                        {t('public.submit_request')}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-            </div>
-          ) : null}
+                      <div className="form-group">
+                        <label htmlFor="email" className="form-label">
+                          {t('public.email')} *
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          className="form-input"
+                          value={requestForm.email}
+                          onChange={handleRequestFormChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="reason" className="form-label">
+                          {t('public.reason_for_access')} *
+                        </label>
+                        <textarea
+                          id="reason"
+                          name="reason"
+                          rows="4"
+                          className="form-textarea"
+                          value={requestForm.reason}
+                          onChange={handleRequestFormChange}
+                          required
+                        ></textarea>
+                      </div>
+
+                      <div className="form-group">
+                        <div className="form-checkbox">
+                          <input
+                            type="checkbox"
+                            id="agree"
+                            name="agree"
+                            checked={requestForm.agree}
+                            onChange={handleRequestFormChange}
+                            required
+                          />
+                          <label htmlFor="agree">
+                            {t('public.agree_to_terms')}
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="form-actions">
+                        <button
+                          type="button"
+                          className="btn btn-text"
+                          onClick={() => setShowRequestForm(false)}
+                        >
+                          {t('public.cancel')}
+                        </button>
+                        <button type="submit" className="btn btn-primary">
+                          {t('public.submit_request')}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
+
+      {/* Floating Language Button */}
+      <FloatingLanguageButton />
     </div>
   )
 }
