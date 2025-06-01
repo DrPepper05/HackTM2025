@@ -106,7 +106,11 @@
     "new_password": "Új jelszó",
     "password_reset_success": "A jelszava sikeresen visszaállítva",
     "reset_error": "Hiba a jelszó visszaállítása során",
-    "invalid_reset_link": "Érvénytelen visszaállító link"
+    "invalid_reset_link": "Érvénytelen visszaállító link",
+    "full_name": "Teljes név",
+    "phone": "Telefonszám",
+    "institution": "Intézmény/Szervezet",
+    "role": "Szerepkör"
   },
   "nav": {
     "dashboard": "Irányítópult",
