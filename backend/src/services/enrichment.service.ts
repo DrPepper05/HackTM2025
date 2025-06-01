@@ -39,7 +39,7 @@ type DocumentWithFiles = Document & { document_files?: DocumentFile[]; };
 
 
 // AWS Clients
-const awsRegion = process.env.AWS_REGION || 'eu-central-1';
+const awsRegion = process.env.OPENARCHIVE_AWS_REGION || 'eu-central-1';
 const textractClient = new TextractClient({ region: awsRegion });
 
 // OpenAI Client Initialization

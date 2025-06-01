@@ -15,16 +15,16 @@ import fs from 'fs';
 dotenv.config();
 
 // Validate required environment variables
-if (!process.env.AWS_REGION || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+if (!process.env.OPENARCHIVE_AWS_REGION || !process.env.OPENARCHIVE_AWS_ACCESS_KEY_ID || !process.env.OPENARCHIVE_AWS_SECRET_ACCESS_KEY) {
   throw new Error('Missing AWS environment variables. Please check your .env file.');
 }
 
 // Create Textract client
 const textractClient = new TextractClient({
-  region: process.env.AWS_REGION,
+  region: process.env.OPENARCHIVE_AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    accessKeyId: process.env.OPENARCHIVE_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.OPENARCHIVE_AWS_SECRET_ACCESS_KEY
   }
 });
 

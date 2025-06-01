@@ -20,10 +20,10 @@ import { Readable } from 'stream';
 // (Rest of the S3 client setup, interfaces, and S3_BUCKETS constant remain the same)
 // Load environment variables for S3 config
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'eu-central-1', // Ensure this is your S3 bucket's region
+  region: process.env.OPENARCHIVE_AWS_REGION || 'eu-central-1', // Ensure this is your S3 bucket's region
   credentials: { // Ensure these are correctly set in your environment
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.OPENARCHIVE_AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.OPENARCHIVE_AWS_SECRET_ACCESS_KEY!,
   },
 });
 
@@ -71,7 +71,7 @@ export class StorageService {
 
       try {
         const response = await s3Client.send(command);
-        const objectUrl = `https://${bucket}.s3.${process.env.AWS_REGION || 'eu-central-1'}.amazonaws.com/${key}`;
+        const objectUrl = `https://${bucket}.s3.${process.env.OPENARCHIVE_AWS_REGION || 'eu-central-1'}.amazonaws.com/${key}`;
 
         const result: S3UploadResult = {
           key,
