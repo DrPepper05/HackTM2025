@@ -187,6 +187,39 @@ export const searchApi = {
   getSuggestions: (query) => apiService.get('/api/v1/search/suggestions', { query }),
 }
 
+// Semantic Search API service
+export const semanticSearchApi = {
+  // Call the semantic search API from the APIs folder
+  search: async (query) => {
+    const SEMANTIC_API_URL = import.meta.env.VITE_SEMANTIC_API_URL || 'http://127.0.0.1:8000'
+    
+    try {
+      const response = await fetch(`${SEMANTIC_API_URL}/sort-db`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query })
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.error) {
+        throw new Error(data.error)
+      }
+      
+      return data
+    } catch (error) {
+      console.error('Semantic search error:', error)
+      throw new ApiError(error.message || 'Semantic search failed', 0, null)
+    }
+  }
+}
+
 export const usersApi = {
   getUsers: (params) => apiService.get('/api/v1/admin/users', params),
   getUser: (id) => apiService.get(`/api/v1/admin/users/${id}`),

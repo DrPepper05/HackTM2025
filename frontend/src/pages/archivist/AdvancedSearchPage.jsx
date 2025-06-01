@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
-import { searchApi } from '../../services/api'
+import { searchApi, semanticSearchApi, documentsApi } from '../../services/api'
 import {
   Search,
   Calendar,
@@ -55,7 +55,7 @@ function AdvancedSearchPage() {
     status: '',
     
     // Options
-    useSemanticSearch: false,
+    useSemanticSearch: true, // Default to semantic search
   })
   const [tagInput, setTagInput] = useState('')
   const [mustContainAllInput, setMustContainAllInput] = useState('')
@@ -198,7 +198,107 @@ function AdvancedSearchPage() {
                         searchParams.status ||
                         searchParams.tags.length > 0
 
-      console.log('Search criteria:', { hasBasicQuery, hasAdvancedTerms, hasFilters })
+      console.log('Search criteria:', { hasBasicQuery, hasAdvancedTerms, hasFilters, useSemanticSearch: searchParams.useSemanticSearch })
+
+      // Use semantic search if enabled and we have a basic query
+      if (searchParams.useSemanticSearch && hasBasicQuery) {
+        console.log('Using semantic search')
+        
+        try {
+          // Call the semantic search API
+          const semanticResponse = await semanticSearchApi.search(searchParams.query.trim())
+          
+          if (semanticResponse.results && semanticResponse.results.length > 0) {
+            // Get detailed document information for each result
+            const documentPromises = semanticResponse.results.map(async (result) => {
+              try {
+                const docResponse = await documentsApi.getDocument(result.id)
+                if (docResponse.success && docResponse.data) {
+                  const doc = docResponse.data
+                  return {
+                    ...doc,
+                    semantic_score: result.score, // Add semantic similarity score
+                  }
+                }
+                return null
+              } catch (error) {
+                console.error(`Error fetching document ${result.id}:`, error)
+                return null
+              }
+            })
+            
+            let documents = (await Promise.all(documentPromises)).filter(doc => doc !== null)
+            
+            // Apply additional filters
+            if (hasFilters) {
+              documents = documents.filter(doc => {
+                // Document type filter
+                if (searchParams.documentType && doc.document_type !== searchParams.documentType) {
+                  return false
+                }
+                
+                // Creator filter
+                if (searchParams.creator && !doc.creator_info?.creator_name?.toLowerCase().includes(searchParams.creator.toLowerCase())) {
+                  return false
+                }
+                
+                // Date filters
+                if (searchParams.dateFrom && new Date(doc.created_at) < new Date(searchParams.dateFrom)) {
+                  return false
+                }
+                if (searchParams.dateTo && new Date(doc.created_at) > new Date(searchParams.dateTo)) {
+                  return false
+                }
+                
+                // Retention category filter
+                if (searchParams.retentionCategory && doc.retention_category !== searchParams.retentionCategory) {
+                  return false
+                }
+                
+                // Status filter
+                if (searchParams.status && doc.status !== searchParams.status) {
+                  return false
+                }
+                
+                // Tags filter
+                if (searchParams.tags.length > 0) {
+                  const docTags = doc.tags || []
+                  const hasMatchingTag = searchParams.tags.some(tag => 
+                    docTags.some(docTag => docTag.toLowerCase().includes(tag.toLowerCase()))
+                  )
+                  if (!hasMatchingTag) {
+                    return false
+                  }
+                }
+                
+                return true
+              })
+            }
+            
+            setSearchResults(documents)
+            setSearchStats({
+              total: documents.length,
+              queryTime: 0, // Semantic search doesn't provide query time
+              facets: {},
+              semantic_search: true
+            })
+            
+            // Calculate pagination
+            const itemsPerPage = 20
+            setTotalPages(Math.ceil(documents.length / itemsPerPage))
+            
+            return
+          } else {
+            setSearchError('No documents found matching your search query.')
+            setSearchResults([])
+            setSearchStats(null)
+            return
+          }
+        } catch (semanticError) {
+          console.error('Semantic search failed, falling back to regular search:', semanticError)
+          // Fall through to regular search
+        }
+      }
 
       // If no criteria provided, use basic search to get all documents
       if (!hasBasicQuery && !hasAdvancedTerms && !hasFilters) {
@@ -355,7 +455,7 @@ function AdvancedSearchPage() {
       confidentiality: '',
       tags: [],
       status: '',
-      useSemanticSearch: false,
+      useSemanticSearch: true,
     })
     setTagInput('')
     setMustContainAllInput('')
@@ -1101,10 +1201,25 @@ function AdvancedSearchPage() {
                                   {doc?.title || 'Untitled Document'}
                                 </h4>
                                 
-                                {relevanceScore && (
+                                {/* Show semantic score if available */}
+                                {doc?.semantic_score && (
+                                  <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                                    Similarity: {Math.round(doc.semantic_score * 100)}%
+                                  </span>
+                                )}
+                                
+                                {/* Show regular relevance score if available */}
+                                {relevanceScore && !doc?.semantic_score && (
                                   <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
                                     Relevance: {Math.round(relevanceScore * 100)}%
-                              </span>
+                                  </span>
+                                )}
+                                
+                                {/* Show semantic search indicator */}
+                                {searchStats?.semantic_search && (
+                                  <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                    Semantic
+                                  </span>
                                 )}
                             </div>
                               
