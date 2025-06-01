@@ -13,8 +13,10 @@ import {
 } from 'lucide-react'
 
 const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
-console.log(SERVER_URL)
-console.log(`${SERVER_URL}/api/v1/public/documents/count`)
+console.log('Environment:', import.meta.env.MODE)
+console.log('VITE_BACKEND_URL raw:', import.meta.env.VITE_BACKEND_URL)
+console.log('SERVER_URL final:', SERVER_URL)
+console.log('Full API URL:', `${SERVER_URL}/api/v1/public/documents/count`)
 
 function PublicHomePage() {
   const { t } = useTranslation()

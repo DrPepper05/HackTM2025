@@ -106,3 +106,4 @@ frontend/.env
 node_modules
 .cursor
 dist
+.vite
