@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Menu, Bell, User, LogOut, Settings, FolderArchive } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -8,6 +8,7 @@ import LanguageSwitcher from './LanguageSwitcher'
 function Header({ toggleSidebar }) {
   const { t } = useTranslation()
   const { user, signOut, userRole } = useAuth()
+  const navigate = useNavigate()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
@@ -18,7 +19,6 @@ function Header({ toggleSidebar }) {
   const handleLogoClick = () => {
     navigate('/dashboard')
   }
-
 
   const handleProfileClick = () => {
     setUserMenuOpen(false)

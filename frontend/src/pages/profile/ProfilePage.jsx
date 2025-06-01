@@ -21,7 +21,7 @@ function ProfilePage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Full Name</p>
-              <p className="text-lg font-semibold text-gray-900">{user?.name || '-'}</p>
+              <p className="text-lg font-semibold text-gray-900">{user?.profile?.full_name || '-'}</p>
             </div>
           </div>
         </div>
@@ -60,7 +60,7 @@ function ProfilePage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Organization</p>
-              <p className="text-lg font-semibold text-gray-900">{user?.organization || '-'}</p>
+              <p className="text-lg font-semibold text-gray-900">{user?.profile?.organization || '-'}</p>
             </div>
           </div>
         </div>
