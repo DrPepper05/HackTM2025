@@ -98,6 +98,39 @@ export class PublicController {
       });
     }
   });
+
+  /**
+   * Get all documents list (for public access)
+   */
+  getPublicDocuments = asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const { limit = 20, offset = 0 } = req.query;
+      
+      const { data: documents, error, count } = await supabaseAdmin
+        .from('documents')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+      if (error) {
+        throw error;
+      }
+
+      res.json({
+        success: true,
+        data: {
+          documents: documents || [],
+          total: count || 0
+        }
+      });
+    } catch (error) {
+      console.error('Error getting documents:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get documents'
+      });
+    }
+  });
 }
 
 export const publicController = new PublicController(); 
