@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Search, FileText, Filter, Calendar, X, Building, FileType } from 'lucide-react'
+import { semanticSearchApi, documentsApi } from '../../services/api'
 
 function PublicSearchPage() {
   const { t } = useTranslation()
@@ -12,6 +13,7 @@ function PublicSearchPage() {
   const [totalResults, setTotalResults] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [searchError, setSearchError] = useState('')
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
@@ -25,157 +27,106 @@ function PublicSearchPage() {
     const query = params.get('q') || ''
     setSearchQuery(query)
 
-    // Load initial frequently accessed documents
-    loadFrequentDocuments()
+    if (query) {
+      performSemanticSearch(query)
+    } else {
+      // Load initial frequently accessed documents
+      loadFrequentDocuments()
+    }
   }, [])
 
-  // Load frequently accessed documents
-  const loadFrequentDocuments = () => {
+  // Load frequently accessed public documents
+  const loadFrequentDocuments = async () => {
     setIsLoading(true)
     setCurrentPage(1)
+    setSearchError('')
     try {
-      // In a real app, this would be an API call to get most frequently accessed documents
-      // For the hackathon, we'll use mock data
-      setTimeout(() => {
-        const allMockResults = [
-          {
-            id: '1',
-            title: 'Hotărâre privind aprobarea bugetului local pe anul 2024',
-            summary: 'Hotărâre a Consiliului Local privind aprobarea bugetului local al municipiului pentru anul fiscal 2024.',
-            documentType: 'Hotărâre',
-            institution: 'Consiliul Local Timișoara',
-            releaseDate: '2024-01-15',
-          },
-          {
-            id: '2',
-            title: 'Dispoziție organizare concurs pentru ocuparea funcției publice de execuție vacante',
-            summary: 'Dispoziție privind organizarea concursului pentru ocuparea funcției publice de execuție vacante de consilier, clasa I, grad profesional superior.',
-            documentType: 'Dispoziție',
-            institution: 'Primăria Municipiului Timișoara',
-            releaseDate: '2024-02-20',
-          },
-          {
-            id: '3',
-            title: 'Contract de achiziție publică pentru servicii de mentenanță',
-            summary: 'Contract de achiziție publică pentru servicii de mentenanță a sistemelor informatice din cadrul instituției.',
-            documentType: 'Contract',
-            institution: 'Consiliul Județean Timiș',
-            releaseDate: '2024-03-10',
-          },
-          {
-            id: '4',
-            title: 'Autorizație de construire pentru imobil de locuințe colective',
-            summary: 'Autorizație de construire pentru imobil de locuințe colective S+P+4E+Er, împrejmuire și branșamente la utilități.',
-            documentType: 'Autorizație',
-            institution: 'Primăria Municipiului Timișoara',
-            releaseDate: '2024-02-05',
-          },
-          {
-            id: '5',
-            title: 'Certificat de urbanism pentru construire locuință unifamilială',
-            summary: 'Certificat de urbanism pentru construire locuință unifamilială P+1E, împrejmuire și branșamente la utilități.',
-            documentType: 'Certificat',
-            institution: 'Primăria Comunei Dumbrăvița',
-            releaseDate: '2024-01-30',
-          },
-        ]
-        
-        // Paginate results (5 per page)
-        const resultsPerPage = 5
-        const paginatedResults = allMockResults.slice(0, resultsPerPage)
+      // Get public documents from the backend
+      const response = await documentsApi.getDocuments({
+        isPublic: true,
+        limit: 10,
+        offset: 0
+      })
 
-        setSearchResults(paginatedResults)
-        setTotalResults(allMockResults.length)
-        setIsLoading(false)
-      }, 500)
+      if (response.success && response.data && response.data.documents) {
+        const documents = response.data.documents.map(doc => ({
+          id: doc.id,
+          title: doc.title,
+          summary: doc.description || doc.ai_suggested_title || 'No description available',
+          documentType: doc.document_type || 'Document',
+          institution: doc.creator_info?.creator_institution || 'Unknown Institution',
+          releaseDate: doc.release_date || doc.created_at,
+        }))
+        
+        setSearchResults(documents)
+        setTotalResults(response.data.total || documents.length)
+      } else {
+        setSearchResults([])
+        setTotalResults(0)
+      }
     } catch (error) {
       console.error('Error loading frequent documents:', error)
+      setSearchError('Failed to load documents. Please try again.')
+      setSearchResults([])
+      setTotalResults(0)
+    } finally {
       setIsLoading(false)
     }
   }
 
-  // Perform search
-  const performSearch = async (query, page = 1) => {
+  // Perform semantic search using the APIs/semantic-sort service
+  const performSemanticSearch = async (query, page = 1) => {
+    if (!query || query.trim() === '') {
+      loadFrequentDocuments()
+      return
+    }
+
     setIsLoading(true)
     setCurrentPage(page)
+    setSearchError('')
+    
     try {
-      // In a real app, this would be an API call
-      // For the hackathon, we'll use mock data
-      setTimeout(() => {
-        const allMockResults = [
-          {
-            id: '1',
-            title: 'Hotărâre privind aprobarea bugetului local pe anul 2024',
-            summary: 'Hotărâre a Consiliului Local privind aprobarea bugetului local al municipiului pentru anul fiscal 2024.',
-            documentType: 'Hotărâre',
-            institution: 'Consiliul Local Timișoara',
-            releaseDate: '2024-01-15',
-          },
-          {
-            id: '2',
-            title: 'Dispoziție organizare concurs pentru ocuparea funcției publice de execuție vacante',
-            summary: 'Dispoziție privind organizarea concursului pentru ocuparea funcției publice de execuție vacante de consilier, clasa I, grad profesional superior.',
-            documentType: 'Dispoziție',
-            institution: 'Primăria Municipiului Timișoara',
-            releaseDate: '2024-02-20',
-          },
-          {
-            id: '3',
-            title: 'Contract de achiziție publică pentru servicii de mentenanță',
-            summary: 'Contract de achiziție publică pentru servicii de mentenanță a sistemelor informatice din cadrul instituției.',
-            documentType: 'Contract',
-            institution: 'Consiliul Județean Timiș',
-            releaseDate: '2024-03-10',
-          },
-          {
-            id: '4',
-            title: 'Autorizație de construire pentru imobil de locuințe colective',
-            summary: 'Autorizație de construire pentru imobil de locuințe colective S+P+4E+Er, împrejmuire și branșamente la utilități.',
-            documentType: 'Autorizație',
-            institution: 'Primăria Municipiului Timișoara',
-            releaseDate: '2024-02-05',
-          },
-          {
-            id: '5',
-            title: 'Certificat de urbanism pentru construire locuință unifamilială',
-            summary: 'Certificat de urbanism pentru construire locuință unifamilială P+1E, împrejmuire și branșamente la utilități.',
-            documentType: 'Certificat',
-            institution: 'Primăria Comunei Dumbrăvița',
-            releaseDate: '2024-01-30',
-          },
-          {
-            id: '6',
-            title: 'Hotărâre privind aprobarea taxelor locale pentru anul 2024',
-            summary: 'Hotărâre a Consiliului Local privind aprobarea taxelor și impozitelor locale pentru anul fiscal 2024.',
-            documentType: 'Hotărâre',
-            institution: 'Consiliul Local Timișoara',
-            releaseDate: '2024-01-20',
-          },
-          {
-            id: '7',
-            title: 'Dispoziție privind constituirea comisiei de evaluare',
-            summary: 'Dispoziție privind constituirea comisiei de evaluare pentru achiziția de servicii de consultanță.',
-            documentType: 'Dispoziție',
-            institution: 'Primăria Municipiului Timișoara',
-            releaseDate: '2024-02-25',
-          },
-        ]
+      // Call the semantic search API
+      const semanticResponse = await semanticSearchApi.search(query.trim())
+      
+      if (semanticResponse.results && semanticResponse.results.length > 0) {
+        // Get detailed document information for each result
+        const documentPromises = semanticResponse.results.map(async (result) => {
+          try {
+            const docResponse = await documentsApi.getDocument(result.id)
+            if (docResponse.success && docResponse.data) {
+              const doc = docResponse.data
+              return {
+                id: doc.id,
+                title: doc.title,
+                summary: doc.description || result.description || 'No description available',
+                documentType: doc.document_type || 'Document',
+                institution: doc.creator_info?.creator_institution || 'Unknown Institution',
+                releaseDate: doc.release_date || doc.created_at,
+                score: result.score, // Semantic similarity score
+              }
+            }
+            return null
+          } catch (error) {
+            console.error(`Error fetching document ${result.id}:`, error)
+            // Return basic info from semantic search if detailed fetch fails
+            return {
+              id: result.id,
+              title: result.description.substring(0, 100) + '...',
+              summary: result.description,
+              documentType: 'Document',
+              institution: 'Unknown Institution',
+              releaseDate: new Date().toISOString(),
+              score: result.score,
+            }
+          }
+        })
         
-        // Filter results based on filters
-        let filteredResults = allMockResults
+        const documents = (await Promise.all(documentPromises)).filter(doc => doc !== null)
         
-        // Filter by search query text
-        if (query && query.trim() !== '') {
-          const searchTerms = query.toLowerCase().trim()
-          filteredResults = filteredResults.filter(item => 
-            item.title.toLowerCase().includes(searchTerms) || 
-            item.summary.toLowerCase().includes(searchTerms) ||
-            item.documentType.toLowerCase().includes(searchTerms) ||
-            item.institution.toLowerCase().includes(searchTerms)
-          )
-        }
+        // Apply additional filters if any
+        let filteredResults = documents
         
-        // Apply additional filters
         if (filters.dateFrom) {
           filteredResults = filteredResults.filter(item => 
             new Date(item.releaseDate) >= new Date(filters.dateFrom)
@@ -197,17 +148,24 @@ function PublicSearchPage() {
           )
         }
         
-        // Paginate results (5 per page)
-        const resultsPerPage = 5
+        // Paginate results (10 per page)
+        const resultsPerPage = 10
         const startIndex = (page - 1) * resultsPerPage
         const paginatedResults = filteredResults.slice(startIndex, startIndex + resultsPerPage)
-
+        
         setSearchResults(paginatedResults)
         setTotalResults(filteredResults.length)
-        setIsLoading(false)
-      }, 500)
+      } else {
+        setSearchResults([])
+        setTotalResults(0)
+        setSearchError('No documents found matching your search query.')
+      }
     } catch (error) {
-      console.error('Error performing search:', error)
+      console.error('Error performing semantic search:', error)
+      setSearchError('Search failed. Please try again.')
+      setSearchResults([])
+      setTotalResults(0)
+    } finally {
       setIsLoading(false)
     }
   }
@@ -215,16 +173,7 @@ function PublicSearchPage() {
   // Handle search form submission
   const handleSearch = (e) => {
     e.preventDefault()
-    // Update URL with search query (even if empty to clear previous search)
-    const searchParams = new URLSearchParams()
-    if (searchQuery.trim()) {
-      searchParams.set('q', searchQuery)
-    }
-    window.history.pushState({}, '', `${location.pathname}${searchQuery.trim() ? '?' + searchParams.toString() : ''}`)
-    
-    // Always perform search when button is clicked, even with empty query
-    // This will either show filtered results or reset to show all documents
-    performSearch(searchQuery)
+    performSemanticSearch(searchQuery, 1)
   }
 
   // Handle filter changes
@@ -241,7 +190,7 @@ function PublicSearchPage() {
     // Apply filters and perform search with the current query
     setFiltersOpen(false)
     setCurrentPage(1) // Reset to first page when applying filters
-    performSearch(searchQuery, 1)
+    performSemanticSearch(searchQuery, 1)
   }
 
   // Reset filters
@@ -254,7 +203,7 @@ function PublicSearchPage() {
     })
     // Perform search with reset filters
     setCurrentPage(1) // Reset to first page when resetting filters
-    performSearch(searchQuery, 1)
+    performSemanticSearch(searchQuery, 1)
   }
 
   return (
@@ -484,7 +433,7 @@ function PublicSearchPage() {
                     onClick={() => {
                       if (currentPage > 1) {
                         setCurrentPage(currentPage - 1);
-                        performSearch(searchQuery, currentPage - 1);
+                        performSemanticSearch(searchQuery, currentPage - 1);
                       }
                     }}
                   >
@@ -499,7 +448,7 @@ function PublicSearchPage() {
                       aria-current="page"
                       onClick={() => {
                         setCurrentPage(page);
-                        performSearch(searchQuery, page);
+                        performSemanticSearch(searchQuery, page);
                       }}
                     >
                       {page}
@@ -508,11 +457,11 @@ function PublicSearchPage() {
                 </div>
                 <div className="pagination-next">
                   <button
-                    disabled={currentPage >= Math.ceil(totalResults / 5)} // Assuming 5 results per page
+                    disabled={currentPage >= Math.ceil(totalResults / 10)} // Assuming 10 results per page
                     className="btn btn-text"
                     onClick={() => {
                       setCurrentPage(currentPage + 1);
-                      performSearch(searchQuery, currentPage + 1);
+                      performSemanticSearch(searchQuery, currentPage + 1);
                     }}
                   >
                     {t('public.next')}
