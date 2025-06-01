@@ -1,0 +1,107 @@
+{
+    "project_name": "Open Source Document Archiving System",
+    "region": "Timiș County and Western Romania",
+    "description": "Open-source, multi-tenant, legally compliant document archiving platform for Romanian public institutions, built with React and Supabase.",
+    "frontend": {
+      "framework": "React",
+      "language": "JavaScript",
+      "bundler": "Vite",
+      "routing": "React Router",
+      "state_management": "TanStack Query (React Query)",
+      "styling": "CSS",
+      "auth": "Supabase Auth",
+      "api_client": "Supabase JS SDK",
+      "i18n": "react-i18next",
+      "features": [
+        "User and role-based login/logout",
+        "Document upload with metadata",
+        "OCR preview and validation",
+        "Full-text search & filters",
+        "Multi-tenant dashboards",
+        "Compliance status indicators",
+        "Admin panel for tenant/user control"
+      ]
+    },
+    "backend": {
+      "provider": "Supabase",
+      "language": "Deno (Edge Functions)",
+      "functions": [
+        "ocr_extract_text",
+        "validate_compliance_rules",
+        "index_document",
+        "log_activity"
+      ],
+      "optional_services": {
+        "framework": "FastAPI (Python)",
+        "containerized": true,
+        "purpose": "Advanced OCR pipeline or AI-based tagging"
+      }
+    },
+    "database": {
+      "type": "PostgreSQL (via Supabase)",
+      "core_tables": [
+        "tenants",
+        "users",
+        "documents",
+        "document_metadata",
+        "compliance_logs",
+        "audit_logs"
+      ],
+      "multi_tenancy": {
+        "enforced_by": "tenant_id foreign key + RLS (Row Level Security)"
+      },
+      "extensions": [
+        "pg_trgm",
+        "pgroonga (optional)",
+        "full_text_search"
+      ]
+    },
+    "storage": {
+      "provider": "Supabase Storage",
+      "buckets": {
+        "documents": {
+          "access": "private",
+          "path_format": "tenant_id/YYYY/MM/document.pdf"
+        }
+      },
+      "metadata_linkage": "Linked via document_metadata table"
+    },
+    "authentication": {
+      "auth_provider": "Supabase Auth",
+      "auth_methods": ["Email", "OAuth (Google, Microsoft)"],
+      "roles": ["admin", "archivist", "reviewer", "citizen"],
+      "role_assignment": "Handled via JWT claims and RLS policies"
+    },
+    "security": {
+      "row_level_security": true,
+      "audit_logging": true,
+      "encryption": "Supabase default + custom AES (optional)",
+      "compliance": "Aligned with Law 16/1996 and EU GDPR"
+    },
+    "search": {
+      "method": "PostgreSQL FTS with pg_trgm",
+      "fields_indexed": ["ocr_text", "title", "keywords", "upload_date"]
+    },
+    "OCR": {
+      "engine": "Tesseract OCR",
+      "primary_integration": "Supabase Edge Function",
+      "optional_backend": "FastAPI service with Celery queue for batch processing"
+    },
+    "deployment": {
+      "environments": ["Supabase Cloud", "Local Dev (Vite + Supabase CLI)"],
+      "local_services": ["Docker Compose for FastAPI OCR (optional)"],
+      "ci_cd": "GitHub Actions (lint, test, deploy)",
+      "version_control": "GitHub"
+    },
+    "monitoring": {
+      "tools": ["Supabase Logs", "Optional Grafana + Prometheus for OCR service"],
+      "metrics": ["Login events", "Upload counts", "Search latency", "Compliance warnings"]
+    },
+    "future_features": {
+      "e_signature_integration": "Optional integration with Romanian eID",
+      "vector_search": "Optional embedding-based similarity search",
+      "archive_export": "ZIP or PDF bundles with metadata",
+      "API": "REST & GraphQL via Supabase Studio"
+    }
+  }
+  
