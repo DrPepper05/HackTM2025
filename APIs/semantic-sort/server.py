@@ -61,11 +61,14 @@ def sort_documents_from_db(data: QueryInput):
                 np.linalg.norm(doc_embeddings, axis=1) * np.linalg.norm(query_embedding)
         )
 
-        sorted_docs = sorted(
-            zip(ids, descriptions, similarities),
-            key=lambda x: x[2],
-            reverse=True
-        )
+        threshold = 0.25  # <-- You can adjust this value as needed
+        filtered = [
+            (id_, desc, score)
+            for id_, desc, score in zip(ids, descriptions, similarities)
+            if score >= threshold
+        ]
+
+        sorted_docs = sorted(filtered, key=lambda x: x[2], reverse=True)
 
         return {
             "results": [
