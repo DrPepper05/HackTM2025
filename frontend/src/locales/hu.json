@@ -445,7 +445,7 @@
     "upload_files_description": "Válasszon fájlokat a feltöltéshez",
     "upload_browse": "Tallózás - Nincs kiválasztott fájl",
     "upload_drag_drop": "Húzza ide a fájlokat",
-    "upload_file_types": "Támogatott fájltípusok: PDF, DOCX, XLSX, PPTX, JPG, PNG, TIFF",
+    "upload_file_types": "Támogatott fájltípusok: Csak PDF",
     "my_uploads": "Saját Feltöltések",
     "my_uploads_description": "Saját feltöltött dokumentumok megtekintése és kezelése",
     "add_document": "Dokumentum Hozzáadása",

@@ -445,7 +445,7 @@
     "upload_files_description": "Selectează fișiere pentru încărcare",
     "upload_browse": "Răsfoiește - Niciun fișier ales",
     "upload_drag_drop": "Trage și plasează fișierele aici",
-    "upload_file_types": "Tipuri de fișiere acceptate: PDF, DOCX, XLSX, PPTX, JPG, PNG, TIFF",
+    "upload_file_types": "Tipuri de fișiere acceptate: Doar PDF",
     "my_uploads": "Încărcările Mele",
     "my_uploads_description": "Vizualizează și gestionează documentele tale încărcate",
     "add_document": "Adaugă Document",

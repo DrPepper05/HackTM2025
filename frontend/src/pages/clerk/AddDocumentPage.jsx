@@ -71,20 +71,29 @@ function AddDocumentPage() {
   }
 
   const handleFiles = (fileList) => {
-    const newFiles = Array.from(fileList).map((file) => ({
-      file,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
-    }))
-    setFiles([...files, ...newFiles])
+    const newFiles = Array.from(fileList)
+      .filter((file) => {
+        // Only allow PDF files
+        if (file.type !== 'application/pdf') {
+          alert(`Error: ${file.name} is not a PDF file. Only PDF files are allowed.`);
+          return false;
+        }
+        return true;
+      })
+      .map((file) => ({
+        file,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+      }));
     
-    // Automatically advance to step 2 (review) if files were added
-    if (fileList.length > 0) {
-      setCurrentStep(2)
+    if (newFiles.length > 0) {
+      setFiles([...files, ...newFiles]);
+      // Automatically advance to step 2 (review) if files were added
+      setCurrentStep(2);
     }
-  }
+  };
 
   const removeFile = (index) => {
     const newFiles = [...files]
@@ -229,6 +238,7 @@ function AddDocumentPage() {
                 name="file-upload"
                 type="file"
                 className="sr-only"
+                accept=".pdf,application/pdf"
                 multiple
                 onChange={handleFileChange}
               />

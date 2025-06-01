@@ -12,21 +12,11 @@ const upload = multer({
     files: 1 // Single file for document creation
   },
   fileFilter: (req, file, cb) => {
-    // Allow common document types
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain',
-      'image/jpeg',
-      'image/png',
-      'image/tiff'
-    ]
-    
-    if (allowedTypes.includes(file.mimetype)) {
+    // Only allow PDF files
+    if (file.mimetype === 'application/pdf') {
       cb(null, true)
     } else {
-      cb(new Error(`File type ${file.mimetype} not allowed`))
+      cb(new Error(`File type ${file.mimetype} not allowed. Only PDF files are accepted.`))
     }
   }
 }).single('file')
@@ -239,63 +229,63 @@ export class DocumentController {
     })
   })
 
-  /**
-   * Process document for enrichment
-   */
-  processEnrichment = asyncHandler(async (req: Request, res: Response) => {
-    const { documentId } = req.params
+  // /**
+  //  * Process document for enrichment
+  //  */
+  // processEnrichment = asyncHandler(async (req: Request, res: Response) => {
+  //   const { documentId } = req.params
 
-    const result = await enrichmentService.enrichDocument(documentId)
+  //   const result = await enrichmentService.enrichDocument(documentId)
 
-    res.json({
-      success: true,
-      message: 'Document enrichment completed',
-      data: result
-    })
-  })
+  //   res.json({
+  //     success: true,
+  //     message: 'Document enrichment completed',
+  //     data: result
+  //   })
+  // })
 
-  /**
-   * Generate redacted version
-   */
-  generateRedacted = asyncHandler(async (req: Request, res: Response) => {
-    const { documentId } = req.params
-    const { pii_types = ['PERSONAL_ID', 'EMAIL', 'PHONE'] } = req.body
+  // /**
+  //  * Generate redacted version
+  //  */
+  // generateRedacted = asyncHandler(async (req: Request, res: Response) => {
+  //   const { documentId } = req.params
+  //   const { pii_types = ['PERSONAL_ID', 'EMAIL', 'PHONE'] } = req.body
 
-    const redactedFileId = await enrichmentService.generateRedactedVersion(
-      documentId,
-      pii_types
-    )
+  //   const redactedFileId = await enrichmentService.generateRedactedVersion(
+  //     documentId,
+  //     pii_types
+  //   )
 
-    res.json({
-      success: true,
-      message: 'Redacted version generated',
-      data: { redacted_file_id: redactedFileId }
-    })
-  })
+  //   res.json({
+  //     success: true,
+  //     message: 'Redacted version generated',
+  //     data: { redacted_file_id: redactedFileId }
+  //   })
+  // })
 
-  /**
-   * Queue document for lifecycle action
-   */
-  scheduleLifecycleAction = asyncHandler(async (req: Request, res: Response) => {
-    const { documentId } = req.params
-    const { action, reason } = req.body
+  // /**
+  //  * Queue document for lifecycle action
+  //  */
+  // scheduleLifecycleAction = asyncHandler(async (req: Request, res: Response) => {
+  //   const { documentId } = req.params
+  //   const { action, reason } = req.body
 
-    if (action === 'transfer') {
-      await lifecycleService.queueForTransfer(documentId, reason)
-    } else if (action === 'destroy') {
-      await lifecycleService.scheduleDestruction(documentId, reason)
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid lifecycle action'
-      })
-    }
+  //   if (action === 'transfer') {
+  //     await lifecycleService.queueForTransfer(documentId, reason)
+  //   } else if (action === 'destroy') {
+  //     await lifecycleService.scheduleDestruction(documentId, reason)
+  //   } else {
+  //     return res.status(400).json({
+  //       success: false,
+  //       message: 'Invalid lifecycle action'
+  //     })
+  //   }
 
-    res.json({
-      success: true,
-      message: `Document scheduled for ${action}`
-    })
-  })
+  //   res.json({
+  //     success: true,
+  //     message: `Document scheduled for ${action}`
+  //   })
+  // })
 
 //   /**
 //    * Bulk operations on documents

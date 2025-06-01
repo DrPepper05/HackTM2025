@@ -16,12 +16,11 @@ const upload = multer({
     fileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760') // Default to 10MB
   },
   fileFilter: (req, file, cb) => {
-    // Accept PDF, TIFF, JPEG, and PNG files
-    const allowedMimeTypes = ['application/pdf', 'image/tiff', 'image/jpeg', 'image/png'];
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    // Only accept PDF files
+    if (file.mimetype === 'application/pdf') {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only PDF, TIFF, JPEG, and PNG files are allowed.'));
+      cb(new Error('Invalid file type. Only PDF files are allowed.'));
     }
   }
 });

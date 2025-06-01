@@ -444,7 +444,7 @@
     "upload_files_description": "Select files to upload",
     "upload_browse": "Browse - No file chosen",
     "upload_drag_drop": "Drag and drop files here",
-    "upload_file_types": "Supported file types: PDF, DOCX, XLSX, PPTX, JPG, PNG, TIFF",
+    "upload_file_types": "Supported file types: PDF only",
     "my_uploads": "My Uploads",
     "my_uploads_description": "View and manage your uploaded documents",
     "add_document": "Add Document",
