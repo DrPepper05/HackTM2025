@@ -39,6 +39,7 @@ const corsOptions = {
       'http://127.0.0.1:3001',
       'http://127.0.0.1:5173',
       "https://aesthetic-genie-f68d12.netlify.app",
+      "https://opreatudor.me",
       "http://opreatudor.me",
       process.env.FRONTEND_URL
     ].filter(Boolean)
