@@ -1085,6 +1085,8 @@
     "intended_use": "Intended Use",
     "intended_use_placeholder": "How do you plan to use this document?",
     "submitting": "Submitting...",
+    "public_document": "Public Document",
+    "access_required": "Access Required",
     "faq.title": "Frequently Asked Questions",
     "faq.subtitle": "Find answers to common questions about our platform and services"
   },
