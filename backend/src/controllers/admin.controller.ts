@@ -6,7 +6,9 @@ import {
   accessRequestService,
   AuditLogFilter,
   auditService,
-  documentService
+  documentService,
+  AccessRequestFilter,
+  ProcessAccessRequestDto
 } from '../services'
 import { asyncHandler } from '../middleware'
 
@@ -170,6 +172,72 @@ export class AdminController {
     res.json({
       success: true,
       data: stats
+    })
+  })
+
+  /**
+   * Get all access requests for staff management
+   */
+  getAccessRequests = asyncHandler(async (req: Request, res: Response) => {
+    const { 
+      status, 
+      documentId, 
+      requesterEmail, 
+      fromDate, 
+      toDate, 
+      limit = 20, 
+      offset = 0 
+    } = req.query
+
+    const filters: AccessRequestFilter = {}
+    if (status) filters.status = status as any
+    if (documentId) filters.documentId = documentId as string
+    if (requesterEmail) filters.requesterEmail = requesterEmail as string
+    if (fromDate) filters.fromDate = fromDate as string
+    if (toDate) filters.toDate = toDate as string
+    if (limit) filters.limit = Number(limit)
+    if (offset) filters.offset = Number(offset)
+
+    const result = await accessRequestService.getAccessRequests(
+      filters,
+      req.userId!
+    )
+
+    res.json({
+      success: true,
+      data: result
+    })
+  })
+
+  /**
+   * Update access request status
+   */
+  updateAccessRequest = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params
+    const { status, rejectionReason, notes } = req.body
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be either approved or rejected'
+      })
+    }
+
+    const decision: ProcessAccessRequestDto = {
+      status,
+      rejectionReason,
+      notes
+    }
+
+    const result = await accessRequestService.processAccessRequest(
+      id,
+      decision,
+      req.userId!
+    )
+
+    res.json({
+      success: true,
+      data: result
     })
   })
 

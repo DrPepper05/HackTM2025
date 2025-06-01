@@ -45,8 +45,12 @@ function PendingRequestsPage() {
     setError(null)
     try {
       const response = await documentsApi.getAccessRequests()
-          // Backend returns { requests: [...], total: number }
-      setRequests(response.requests || [])
+      // Backend returns { success: true, data: { requests: [...], total: number } }
+      if (response.success && response.data) {
+        setRequests(response.data.requests || [])
+      } else {
+        setRequests([])
+      }
     } catch (err) {
       console.error('Error fetching requests:', err)
       setError(t('archivist.error_fetching_requests'))
@@ -59,15 +63,16 @@ function PendingRequestsPage() {
   const filteredRequests = requests.filter((request) => {
     // Search filter
     const matchesSearch =
-      request.documentTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.requesterInfo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.document_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.requester_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.requester_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.justification?.toLowerCase().includes(searchTerm.toLowerCase())
 
     // Date filter
     let matchesDate = true
-    if (request.createdAt) {
+    if (request.created_at) {
       const today = new Date()
-      const requestDate = new Date(request.createdAt)
+      const requestDate = new Date(request.created_at)
       const diffTime = today - requestDate
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
@@ -91,12 +96,12 @@ function PendingRequestsPage() {
     let comparison = 0
 
     if (sortBy === 'documentTitle') {
-      comparison = (a.documentTitle || '').localeCompare(b.documentTitle || '')
+      comparison = (a.document_title || '').localeCompare(b.document_title || '')
     } else if (sortBy === 'requesterInfo') {
-      comparison = (a.requesterInfo || '').localeCompare(b.requesterInfo || '')
+      comparison = (a.requester_name || '').localeCompare(b.requester_name || '')
     } else if (sortBy === 'createdAt') {
-      const dateA = new Date(a.createdAt || 0)
-      const dateB = new Date(b.createdAt || 0)
+      const dateA = new Date(a.created_at || 0)
+      const dateB = new Date(b.created_at || 0)
       comparison = dateA - dateB
     } else if (sortBy === 'status') {
       comparison = (a.status || '').localeCompare(b.status || '')
@@ -133,11 +138,10 @@ function PendingRequestsPage() {
 
     setIsSubmitting(true)
     try {
-      // In a real app, this would be an API call
-      const response = await documentsApi.updateAccessRequest(selectedRequest.id, {
+      await documentsApi.updateAccessRequest(selectedRequest.id, {
         status: selectedAction === 'approve' ? 'approved' : 'rejected',
-        processedBy: user.id,
-        processedAt: new Date().toISOString(),
+        rejectionReason: selectedAction === 'reject' ? 'Request denied by archivist' : undefined,
+        notes: `${selectedAction === 'approve' ? 'Approved' : 'Rejected'} by ${user.profile.full_name || user.email}`
       })
 
       // Refresh the requests list
@@ -361,18 +365,18 @@ function PendingRequestsPage() {
                         <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
                           <div className="flex items-center">
                             <FileText className="mr-2 h-5 w-5 text-gray-400" />
-                            {request.documentTitle || t('archivist.untitled')}
+                            {request.document_title || t('archivist.untitled')}
                           </div>
                         </td>
                         <td className="px-3 py-4 text-sm text-gray-500">
                           <div className="flex flex-col">
                             <div className="flex items-center">
                               <User className="mr-1.5 h-4 w-4 text-gray-400" />
-                              {request.requesterInfo}
+                              {request.requester_name}
                             </div>
                             <div className="flex items-center mt-1">
                               <Mail className="mr-1.5 h-4 w-4 text-gray-400" />
-                              {request.requesterEmail}
+                              {request.requester_email}
                             </div>
                           </div>
                         </td>
@@ -382,7 +386,7 @@ function PendingRequestsPage() {
                         <td className="px-3 py-4 text-sm text-gray-500">
                           <div className="flex items-center">
                             <Calendar className="mr-1.5 h-4 w-4 text-gray-400" />
-                            {formatDate(request.createdAt)}
+                            {formatDate(request.created_at)}
                           </div>
                         </td>
                         <td className="px-3 py-4 text-sm text-gray-500">
@@ -398,7 +402,7 @@ function PendingRequestsPage() {
                           <div className="flex items-center justify-end space-x-2">
                             <button
                               type="button"
-                              onClick={() => navigate(`/archivist/document/${request.documentId}`)}
+                              onClick={() => navigate(`/archivist/document/${request.document_id}`)}
                               className="rounded-full p-1 text-primary hover:bg-gray-100 hover:text-primary-dark"
                               title={t('common.view_document')}
                             >
@@ -466,13 +470,13 @@ function PendingRequestsPage() {
                 <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
                   <button
                     type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2 transition-colors"
+                    className="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-300 sm:col-start-2 transition-colors"
                     onClick={() => handleConfirmation(true)}
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-900 border-t-transparent"></div>
                         {t('archivist.submitting')}
                       </>
                     ) : (

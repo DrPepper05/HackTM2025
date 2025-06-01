@@ -4,8 +4,9 @@ import authRoutes from './auth.routes';
 import documentRoutes from './document.routes';
 import searchRoutes from './search.routes';
 import adminRoutes from './admin.routes';
-import accessRequestRoutes from './access-request.routes'; // Import the new routes
 import inspectorRoutes from './inspector.routes';
+import accessRequestRoutes from './access-request.routes';
+import accessRequestManagementRoutes from './access-request-management.routes';
 import userRoutes from './user.routes';
 import publicRoutes from './public.routes';
 
@@ -16,21 +17,16 @@ router.use('/public', publicRoutes);
 
 // Mount routes
 router.use('/auth', authRoutes);
-router.use('/documents', documentRoutes);
 router.use('/search', searchRoutes);
+
+// Protected routes
+router.use('/documents', documentRoutes);
+router.use('/access-requests', accessRequestRoutes);
+router.use('/access-requests-manage', accessRequestManagementRoutes);
+
+// Role-specific routes
 router.use('/admin', adminRoutes);
-router.use('/access-requests', accessRequestRoutes); // Mount the new access request routes
 router.use('/inspector', inspectorRoutes);
 router.use('/admin', userRoutes);
-
-// Health check endpoint
-router.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'OpenArchive API is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
-});
 
 export default router;

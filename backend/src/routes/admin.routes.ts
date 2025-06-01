@@ -28,10 +28,6 @@ router.post('/lifecycle/review', adminController.markForReview)
 router.get('/storage', adminController.getStorageStats)
 router.post('/storage/cleanup', adminController.cleanupTempFiles)
 
-// Access request management
-router.get('/access-requests/stats', adminController.getAccessRequestStats)
-router.post('/access-requests/bulk', adminController.bulkProcessAccessRequests)
-
 // Audit and export
 router.post('/audit/export', adminController.exportAuditLogs)
 
