@@ -5,7 +5,6 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import RoleBasedRoute from './components/auth/RoleBasedRoute'
 import Layout from './components/layout/Layout'
 import LoadingScreen from './components/ui/LoadingScreen'
-import PortalPage from "./pages/portal/PortalPage.jsx";
 import { AuthProvider } from './contexts/AuthContext'
 
 // Lazy load pages for better performance
@@ -30,7 +29,6 @@ const DocumentReviewPage = lazy(() => import('./pages/archivist/DocumentReviewPa
 const StaffDocumentViewPage = lazy(() => import('./pages/archivist/StaffDocumentViewPage'))
 
 // Admin pages
-const SystemHealthPage = lazy(() => import('./pages/admin/SystemHealthPage'))
 const UserManagementPage = lazy(() => import('./pages/admin/UserManagementPage'))
 
 // Inspector pages
@@ -79,7 +77,6 @@ function AppContent() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/request" element={<PrivateFileRequestPage />} />
         <Route path="/request-access" element={<PrivateFileRequestPage />} />
-        <Route path="/portal" element={<PortalPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -151,11 +148,6 @@ function AppContent() {
             <Route path="/admin/users" element={
               <RoleBasedRoute allowedRoles={['admin']}>
                 <UserManagementPage />
-              </RoleBasedRoute>
-            } />
-            <Route path="/admin/system" element={
-              <RoleBasedRoute allowedRoles={['admin']}>
-                <SystemHealthPage />
               </RoleBasedRoute>
             } />
           </Route>

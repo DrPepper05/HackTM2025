@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Search, FileText, Building, FileType, Calendar } from 'lucide-react'
+import { Search, FileText, Filter, Calendar, X, Building, FileType, ChevronDown, ChevronUp, Download } from 'lucide-react'
 import { semanticSearchApi, documentsApi } from '../../services/api'
+import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
 import Footer from '../../components/navigation/Footer'
 
 function PublicSearchPage() {
@@ -164,8 +165,8 @@ function PublicSearchPage() {
   }
 
   return (
-    <div className="public-search-page min-h-screen flex flex-col">
-      <div className="flex-grow">
+    <div className="min-h-screen bg-gray-50">
+      <div className="public-search-page">
         <section className="search-header">
           <div className="content-container">
             <div className="section-header">
@@ -356,9 +357,10 @@ function PublicSearchPage() {
           </div>
         </section>
       </div>
-      
       {/* Footer */}
       <Footer />
+      {/* Floating Language Button */}
+      <FloatingLanguageButton />
     </div>
   )
 }

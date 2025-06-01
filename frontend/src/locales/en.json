@@ -106,7 +106,11 @@
     "new_password": "New password",
     "password_reset_success": "Your password has been reset successfully",
     "reset_error": "Error resetting password",
-    "invalid_reset_link": "Invalid reset link"
+    "invalid_reset_link": "Invalid reset link",
+    "full_name": "Full Name",
+    "phone": "Phone Number",
+    "institution": "Institution/Organization",
+    "role": "Role"
   },
   "nav": {
     "dashboard": "Dashboard",

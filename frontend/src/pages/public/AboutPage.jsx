@@ -1,6 +1,8 @@
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Archive, Shield, Search, Clock, FileText, Users, ArrowRight } from 'lucide-react'
+import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
 
 function AboutPage() {
   const { t } = useTranslation()
@@ -218,6 +220,9 @@ function AboutPage() {
           </div>
         </div>
       </div>
+
+      {/* Floating Language Button */}
+      <FloatingLanguageButton />
     </div>
   )
 }

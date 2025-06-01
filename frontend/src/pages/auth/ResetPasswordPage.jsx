@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
+import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
 
 function ResetPasswordPage() {
   const { t } = useTranslation()
@@ -89,7 +90,7 @@ function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 to-indigo-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
         <div>
           <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900">
@@ -157,6 +158,9 @@ function ResetPasswordPage() {
           </div>
         </form>
       </div>
+
+      {/* Floating Language Button */}
+      <FloatingLanguageButton />
     </div>
   )
 }

@@ -471,9 +471,6 @@ function MyUploadsPage() {
                       >
                         {t('clerk.status')}
                       </th>
-                      <th scope="col" className="w-1/12 relative py-3.5 pl-3 pr-4 sm:pr-0">
-                        <span className="sr-only">{t('clerk.view')}</span>
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -497,15 +494,6 @@ function MyUploadsPage() {
                               {statusBadge.icon}
                               {document.statusName}
                             </span>
-                          </td>
-                          <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                            <Link
-                              to={`/dashboard/clerk/document/${document.id}`}
-                              className="text-primary hover:text-primary-dark inline-flex items-center"
-                            >
-                              <Eye className="mr-1 h-4 w-4" />
-                              {t('clerk.view')}
-                            </Link>
                           </td>
                         </tr>
                       )

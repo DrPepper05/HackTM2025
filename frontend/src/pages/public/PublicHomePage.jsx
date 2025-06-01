@@ -12,6 +12,7 @@ import {
   Globe
 } from 'lucide-react'
 import Footer from '../../components/navigation/Footer'
+import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
 
 const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 console.log('Environment:', import.meta.env.MODE)
@@ -302,9 +303,10 @@ function PublicHomePage() {
           </div>
         </section>
       </div>
-      
       {/* Footer */}
       <Footer />
+      {/* Floating Language Button */}
+      <FloatingLanguageButton />
     </div>
   )
 }

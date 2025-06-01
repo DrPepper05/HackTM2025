@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, Mail, Info, FileText, Lock, HelpCircle } from 'lucide-react'
+import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
 
 function FAQPage() {
   const { t } = useTranslation()
@@ -80,7 +82,7 @@ function FAQPage() {
   ]
 
   return (
-    <div className="public-home-page">
+    <div className="min-h-screen bg-gray-50">
       <section className="faq-header">
         <div className="content-container">
           <div className="section-header">
@@ -144,6 +146,9 @@ function FAQPage() {
           </div>
         </div>
       </section>
+
+      {/* Floating Language Button */}
+      <FloatingLanguageButton />
     </div>
   )
 }
