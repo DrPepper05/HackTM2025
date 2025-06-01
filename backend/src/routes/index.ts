@@ -8,7 +8,7 @@ import inspectorRoutes from './inspector.routes';
 import accessRequestRoutes from './access-request.routes';
 import accessRequestManagementRoutes from './access-request-management.routes';
 import userRoutes from './user.routes';
-import publicRoutes from './public.routes';
+import { publicRoutes } from './public.routes';
 
 const router = Router();
 

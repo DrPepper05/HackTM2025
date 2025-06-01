@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import { FileText, AlertCircle } from 'lucide-react'
 
 function PrivateFileRequestPage() {
   const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
   const [formData, setFormData] = useState({
     requesterName: '',
     requesterEmail: '',
@@ -18,6 +20,17 @@ function PrivateFileRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
+
+  // Check for document ID in URL parameters and prefill the form
+  useEffect(() => {
+    const documentId = searchParams.get('documentId')
+    if (documentId) {
+      setFormData(prevData => ({
+        ...prevData,
+        documentId: documentId
+      }))
+    }
+  }, [searchParams])
 
   const handleChange = (e) => {
     const { name, value } = e.target

@@ -13,7 +13,7 @@ function RoleBasedRoute({ children, allowedRoles }) {
 
   // Redirect to login if not authenticated
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" />
   }
 
   // Check if user has the required role
@@ -33,7 +33,7 @@ function RoleBasedRoute({ children, allowedRoles }) {
     }
     
     const redirectTo = roleRedirects[userRole] || '/'
-    return <Navigate to={redirectTo} replace />
+    return <Navigate to={redirectTo} />
   }
 
   // Render children

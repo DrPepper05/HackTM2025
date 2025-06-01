@@ -444,7 +444,7 @@
     "upload_files_description": "Select files to upload",
     "upload_browse": "Browse - No file chosen",
     "upload_drag_drop": "Drag and drop files here",
-    "upload_file_types": "Supported file types: PDF, DOCX, XLSX, PPTX, JPG, PNG, TIFF",
+    "upload_file_types": "Supported file types: PDF only",
     "my_uploads": "My Uploads",
     "my_uploads_description": "View and manage your uploaded documents",
     "add_document": "Add Document",
@@ -488,7 +488,10 @@
       "adresa": "Address",
       "raport": "Report",
       "proces_verbal": "Minutes"
-    }
+    },
+    "status_filter": "Filter by Status",
+    "date_filter": "Filter by Date",
+    "sort_by": "Sort By"
   },
   "archivist": {
     "ingestQueue": {
@@ -719,7 +722,11 @@
     "submitting": "Submitting...",
     "error_fetching_requests": "Error fetching access requests",
     "error_loading_requests": "Error Loading Access Requests",
-    "error_updating_request": "Error updating access request"
+    "error_updating_request": "Error updating access request",
+    "status_REVIEW": "Review",
+    "status_NEEDS_CLASSIFICATION": "Needs Classification",
+    "status_DESTROY": "Destroy",
+    "status_AWAITING_TRANSFER": "Awaiting Transfer"
   },
   "admin": {
     "auditLogs": {
@@ -805,7 +812,7 @@
     "home": "Home",
     "search_page": "Search",
     "about": "About",
-    "faq": "FAQ",
+    "_faq": "FAQ",
     "contact": "Contact",
     "features_title": "Archive Features",
     "features_subtitle": "Discover how our public archive serves citizens and institutions",
@@ -1085,6 +1092,8 @@
     "intended_use": "Intended Use",
     "intended_use_placeholder": "How do you plan to use this document?",
     "submitting": "Submitting...",
+    "public_document": "Public Document",
+    "access_required": "Access Required",
     "faq.title": "Frequently Asked Questions",
     "faq.subtitle": "Find answers to common questions about our platform and services"
   },

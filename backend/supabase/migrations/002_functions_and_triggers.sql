@@ -147,10 +147,10 @@ BEGIN
     
     -- Log the task creation
     PERFORM create_audit_log(
-        'TASK_QUEUED',
-        'processing_queue',
-        v_task_id,
-        json_build_object('task_type', p_task_type)
+        'TASK_QUEUED'::TEXT,
+        'processing_queue'::TEXT,
+        v_task_id::UUID,
+        jsonb_build_object('task_type', p_task_type)::JSONB
     );
     
     RETURN v_task_id;

@@ -378,7 +378,14 @@ function AdvancedSearchPage() {
       }
       
       if (searchParams.confidentiality) {
-        metadataFilters.confidentiality_level = searchParams.confidentiality
+        // Map confidentiality to database fields
+        if (searchParams.confidentiality === 'public') {
+          metadataFilters.is_public = true
+        } else if (searchParams.confidentiality === 'private') {
+          metadataFilters.is_public = false
+        }
+        // Store the confidentiality_note for non-boolean filtering if needed
+        metadataFilters.confidentiality_note = searchParams.confidentiality
       }
       
       if (searchParams.status) {
@@ -626,7 +633,7 @@ function AdvancedSearchPage() {
                     {t('archivist.must_contain_all')}
                   </label>
                   <div className="mt-2">
-                    <div className="flex">
+                    <div className="flex gap-x-1">
                       <div className="relative flex-1">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                           <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -648,7 +655,7 @@ function AdvancedSearchPage() {
                       <button
                         type="button"
                         onClick={() => handleArrayInput(mustContainAllInput, setMustContainAllInput, 'mustContainAll')}
-                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -679,7 +686,7 @@ function AdvancedSearchPage() {
                     {t('archivist.must_contain_any')}
                   </label>
                   <div className="mt-2">
-                    <div className="flex">
+                    <div className="flex gap-x-1">
                       <div className="relative flex-1">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                           <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -701,7 +708,7 @@ function AdvancedSearchPage() {
                       <button
                         type="button"
                         onClick={() => handleArrayInput(mustContainAnyInput, setMustContainAnyInput, 'mustContainAny')}
-                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -732,7 +739,7 @@ function AdvancedSearchPage() {
                     {t('archivist.must_not_contain')}
                   </label>
                   <div className="mt-2">
-                    <div className="flex">
+                    <div className="flex gap-x-1">
                       <div className="relative flex-1">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                           <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -754,7 +761,7 @@ function AdvancedSearchPage() {
                       <button
                         type="button"
                         onClick={() => handleArrayInput(mustNotContainInput, setMustNotContainInput, 'mustNotContain')}
-                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -1048,14 +1055,14 @@ function AdvancedSearchPage() {
             <button
               type="button"
               onClick={handleReset}
-              className="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-700"
+              className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
             >
               {t('archivist.reset')}
             </button>
             <button
               type="submit"
               disabled={isSearching}
-              className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
             >
               {isSearching ? (
                 <>
@@ -1239,14 +1246,14 @@ function AdvancedSearchPage() {
                                   {formatDate(doc?.created_at)}
                               </div>
                                 
-                                {doc?.confidentiality_level && (
+                                {(doc?.confidentiality_note || doc?.is_public !== undefined) && (
                                   <span
                                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getConfidentialityBadgeColor(
-                                      doc.confidentiality_level
+                                      doc.confidentiality_note || (doc.is_public ? 'public' : 'private')
                                     )}`}
                                   >
                                     <Lock className="mr-1 h-3 w-3" />
-                                    {doc.confidentiality_level}
+                                    {doc.confidentiality_note || (doc.is_public ? 'public' : 'private')}
                                   </span>
                                 )}
                             </div>
