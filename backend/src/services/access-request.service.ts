@@ -3,6 +3,7 @@ import { supabaseAdmin, withMonitoring, verifyUserRole } from '../config/supabas
 import { AccessRequest, AccessRequestStatus, UserProfile, Document } from '../types/database.types'; // Added Document
 import { emailService, MailOptions } from './email.service';
 import {DocumentStatus} from "../models/document";
+import { storageService } from './storage.service';
 
 export interface CreateAccessRequestDto {
   requesterName: string;
@@ -365,38 +366,123 @@ Your request has been: ${String(decision).toUpperCase()}
 
     if (decision === 'rejected') {
       mailBody += `\n\nReason for rejection: ${request.rejection_reason || 'No specific reason provided.'}`;
-    } else if (decision === 'approved') {
-      mailBody += `\n\nAccess to ${documentTitle} has been granted.`;
-      if (request.document_id) {
-        const documentAccessUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${request.document_id}`;
-        mailBody += `\nYou may be able to access the document here: ${documentAccessUrl}`;
-      }
-    }
-
-    mailBody += `\n\nIf you have any questions, please contact our support team.
+      mailBody += `\n\nIf you have any questions, please contact our support team.
 
 Sincerely,
 The OpenArchive Team
-    `.trim();
+      `.trim();
 
-    try {
-      await emailService.sendMail({
-        to: request.requester_email,
-        subject: mailSubject,
-        textBody: mailBody,
-      });
-      await supabaseAdmin.rpc('create_audit_log', {
-        p_action: 'ACCESS_REQUEST_DECISION_EMAIL_INITIATED',
-        p_entity_type: 'access_request',
-        p_entity_id: request.id,
-        p_details: {
-          email_type: 'decision_notification',
-          decision,
-          recipient: request.requester_email
+      // Send rejection email without attachments
+      try {
+        await emailService.sendMail({
+          to: request.requester_email,
+          subject: mailSubject,
+          textBody: mailBody,
+        });
+        await supabaseAdmin.rpc('create_audit_log', {
+          p_action: 'ACCESS_REQUEST_REJECTION_EMAIL_SENT',
+          p_entity_type: 'access_request',
+          p_entity_id: request.id,
+          p_details: {
+            email_type: 'rejection_notification',
+            recipient: request.requester_email,
+            rejection_reason: request.rejection_reason
+          }
+        });
+      } catch (error) {
+        console.error(`Failed to send rejection notification for request ${request.id}:`, error);
+      }
+    } else if (decision === 'approved') {
+      mailBody += `\n\nAccess to ${documentTitle} has been granted.`;
+      
+      // Try to attach the document file for approved requests
+      let attachments: Array<{ filename: string; content: Buffer; contentType: string }> = [];
+      
+      if (request.document_id) {
+        try {
+          // Get the document with files
+          const { data: document, error: docError } = await supabaseAdmin
+            .from('documents')
+            .select('*, document_files(*)')
+            .eq('id', request.document_id)
+            .single();
+          
+          if (!docError && document && document.document_files && document.document_files.length > 0) {
+            // Get the original file (prefer original, fallback to first available)
+            const originalFile = document.document_files.find((f: any) => f.file_type === 'original') || document.document_files[0];
+            
+            if (originalFile) {
+              try {
+                // Download the file from storage
+                const fileResult = await storageService.downloadFile(
+                  originalFile.storage_bucket,
+                  originalFile.storage_key
+                );
+                
+                attachments.push({
+                  filename: originalFile.file_name || `${documentTitle}.pdf`,
+                  content: fileResult.data,
+                  contentType: originalFile.mime_type || 'application/pdf'
+                });
+                
+                mailBody += `\nThe requested document has been attached to this email.`;
+              } catch (fileError) {
+                console.error(`Failed to download file for request ${request.id}:`, fileError);
+                // Add download link as fallback
+                const documentAccessUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${request.document_id}`;
+                mailBody += `\nYou can access the document here: ${documentAccessUrl}`;
+              }
+            }
+          } else {
+            // No files found, provide web access link
+            const documentAccessUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${request.document_id}`;
+            mailBody += `\nYou can access the document here: ${documentAccessUrl}`;
+          }
+        } catch (error) {
+          console.error(`Failed to retrieve document files for request ${request.id}:`, error);
+          // Fallback to web access link
+          const documentAccessUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${request.document_id}`;
+          mailBody += `\nYou can access the document here: ${documentAccessUrl}`;
         }
-      });
-    } catch (error) {
-      console.error(`Failed to send ${decision} notification for request ${request.id}:`, error);
+      }
+
+      mailBody += `\n\nIf you have any questions, please contact our support team.
+
+Sincerely,
+The OpenArchive Team
+      `.trim();
+
+      // Send approval email with or without attachments
+      try {
+        if (attachments.length > 0) {
+          await emailService.sendMailWithAttachments({
+            to: request.requester_email,
+            subject: mailSubject,
+            textBody: mailBody,
+            attachments: attachments
+          });
+        } else {
+          await emailService.sendMail({
+            to: request.requester_email,
+            subject: mailSubject,
+            textBody: mailBody,
+          });
+        }
+        
+        await supabaseAdmin.rpc('create_audit_log', {
+          p_action: 'ACCESS_REQUEST_APPROVAL_EMAIL_SENT',
+          p_entity_type: 'access_request',
+          p_entity_id: request.id,
+          p_details: {
+            email_type: 'approval_notification',
+            recipient: request.requester_email,
+            document_attached: attachments.length > 0,
+            attachment_filename: attachments.length > 0 ? attachments[0].filename : null
+          }
+        });
+      } catch (error) {
+        console.error(`Failed to send approval notification for request ${request.id}:`, error);
+      }
     }
   }
   
