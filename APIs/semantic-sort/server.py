@@ -18,7 +18,7 @@ class SupabaseClient:
 
     def fetch_document_descriptions(self):
         print("Attempting Supabase fetch...")
-        response = self.client.table("documents").select("*").limit(5).execute()
+        response = self.client.table("documents").select("*").execute()
 
         return response.data
 

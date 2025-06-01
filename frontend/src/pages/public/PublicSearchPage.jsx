@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useLocation, Link } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Search, FileText, Filter, Calendar, X, Building, FileType } from 'lucide-react'
 import { semanticSearchApi, documentsApi } from '../../services/api'
@@ -7,6 +7,7 @@ import { semanticSearchApi, documentsApi } from '../../services/api'
 function PublicSearchPage() {
   const { t } = useTranslation()
   const location = useLocation()
+  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -56,6 +57,7 @@ function PublicSearchPage() {
           documentType: doc.document_type || 'Document',
           institution: doc.creator_info?.creator_institution || 'Unknown Institution',
           releaseDate: doc.release_date || doc.created_at,
+          isPublic: doc.is_public
         }))
         
         setSearchResults(documents)
@@ -104,6 +106,7 @@ function PublicSearchPage() {
                 institution: doc.creator_info?.creator_institution || 'Unknown Institution',
                 releaseDate: doc.release_date || doc.created_at,
                 score: result.score, // Semantic similarity score
+                isPublic: doc.is_public
               }
             }
             return null
@@ -118,6 +121,7 @@ function PublicSearchPage() {
               institution: 'Unknown Institution',
               releaseDate: new Date().toISOString(),
               score: result.score,
+              isPublic: false // Default to private if we can't fetch details
             }
           }
         })
@@ -204,6 +208,18 @@ function PublicSearchPage() {
     // Perform search with reset filters
     setCurrentPage(1) // Reset to first page when resetting filters
     performSemanticSearch(searchQuery, 1)
+  }
+
+  // Handle document click - download if public, redirect to request form if private
+  const handleDocumentClick = (document) => {
+    if (document.isPublic) {
+      // Download the public document
+      const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
+      window.open(`${SERVER_URL}/api/v1/public/documents/${document.id}/download`, '_blank')
+    } else {
+      // Redirect to access request form with document ID prefilled
+      navigate(`/request-access?documentId=${document.id}`)
+    }
   }
 
   return (
@@ -394,12 +410,21 @@ function PublicSearchPage() {
                     <div className="search-result-content">
                       <div className="search-result-header">
                         <FileText className="icon" />
-                        <Link
-                          to={`/public/documents/${result.id}`}
+                        <button
+                          onClick={() => handleDocumentClick(result)}
                           className="search-result-title"
+                          style={{ 
+                            background: 'none', 
+                            border: 'none', 
+                            padding: 0, 
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            color: 'inherit',
+                            textDecoration: 'none'
+                          }}
                         >
                           {result.title}
-                        </Link>
+                        </button>
                       </div>
                       <p className="search-result-description">{result.summary}</p>
                       <div className="search-result-meta">
@@ -417,6 +442,16 @@ function PublicSearchPage() {
                           <Calendar className="icon h-3 w-3 mr-1" />
                           <span className="search-result-meta-label">{t('public.release_date')}:</span>
                           <span>{new Date(result.releaseDate).toLocaleDateString()}</span>
+                        </span>
+                        {/* Show public/private indicator */}
+                        <span className="search-result-meta-item">
+                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                            result.isPublic 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {result.isPublic ? t('public.public_document') : t('public.access_required')}
+                          </span>
                         </span>
                       </div>
                     </div>
