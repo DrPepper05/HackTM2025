@@ -14,6 +14,7 @@ import {
 
 const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 console.log(SERVER_URL)
+console.log(`${SERVER_URL}/api/v1/public/documents/count`)
 
 function PublicHomePage() {
   const { t } = useTranslation()
