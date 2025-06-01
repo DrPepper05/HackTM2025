@@ -17,7 +17,7 @@ function PrivateFileRequestPage() {
   const [formSubmitted, setFormSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
-  const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api/v1'
+  const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 
   const handleChange = (e) => {
     const { name, value } = e.target
