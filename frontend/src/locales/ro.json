@@ -106,7 +106,11 @@
     "new_password": "Parolă nouă",
     "password_reset_success": "Parola ta a fost resetată cu succes",
     "reset_error": "Eroare la resetarea parolei",
-    "invalid_reset_link": "Link de resetare invalid"
+    "invalid_reset_link": "Link de resetare invalid",
+    "full_name": "Nume complet",
+    "phone": "Număr de telefon",
+    "institution": "Instituție/Organizație",
+    "role": "Rol"
   },
   "nav": {
     "dashboard": "Tablou de bord",

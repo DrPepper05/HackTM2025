@@ -11,6 +11,7 @@ import {
   Building,
   Globe
 } from 'lucide-react'
+import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
 
 const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 
@@ -295,6 +296,9 @@ function PublicHomePage() {
           </div>
         </div>
       </section>
+
+      {/* Floating Language Button */}
+      <FloatingLanguageButton />
     </div>
   )
 }
