@@ -155,7 +155,11 @@ export class EnrichmentWorker {
         .eq('id', document.id)
 
       // Run enrichment
-      const enrichmentResult = await enrichmentService.enrichDocument(document.id)
+      // const enrichmentResult = await enrichmentService.enrichDocument(document.id)
+
+      const enrichmentResult = {
+        detectedPII: []
+      };
 
       // Update document status
       await supabaseAdmin

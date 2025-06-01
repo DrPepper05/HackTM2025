@@ -1,0 +1,26 @@
+# Use an official Node.js runtime as a parent image
+FROM node:20-slim
+
+# Set the working directory in the container
+WORKDIR /backend
+
+# Copy package.json and package-lock.json (if you have one)
+# to install dependencies
+COPY backend/package*.json ./
+
+# Install dependencies, including ts-node for development/worker scripts
+# This assumes ts-node is a devDependency or regular dependency in backend/package.json
+RUN npm install
+
+# Copy the rest of the application code
+COPY backend/ ./
+
+# If your worker script uses TypeScript and needs to be transpiled before running,
+# you might want to run a build step.
+# Based on backend/package.json, 'tsc' is used for build.
+RUN npm run build # This will compile TypeScript files to JavaScript in 'dist'
+
+# Option 2: If you specifically want to use ts-node at runtime (less common for production, but directly uses your request)
+# Ensure ts-node is installed as a dependency or devDependency that gets copied.
+# This assumes 'ts-node' is globally or locally accessible after npm install.
+CMD ["npx", "ts-node", "src/workers/queue.worker.ts"]

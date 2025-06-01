@@ -5,27 +5,27 @@ import { supabaseAdmin } from '../config/supabase.config';
 
 // Debug logging for AWS configuration
 console.log('AWS Configuration Debug:');
-console.log('AWS_SES_REGION:', process.env.AWS_SES_REGION);
-console.log('AWS_REGION:', process.env.AWS_REGION);
-console.log('AWS_ACCESS_KEY_ID exists:', !!process.env.AWS_ACCESS_KEY_ID);
-console.log('AWS_SECRET_ACCESS_KEY exists:', !!process.env.AWS_SECRET_ACCESS_KEY);
+console.log('OPENARCHIVE_AWS_SES_REGION:', process.env.OPENARCHIVE_AWS_SES_REGION);
+console.log('OPENARCHIVE_AWS_REGION:', process.env.OPENARCHIVE_AWS_REGION);
+console.log('OPENARCHIVE_AWS_ACCESS_KEY_ID exists:', !!process.env.OPENARCHIVE_AWS_ACCESS_KEY_ID);
+console.log('OPENARCHIVE_AWS_SECRET_ACCESS_KEY exists:', !!process.env.OPENARCHIVE_AWS_SECRET_ACCESS_KEY);
 console.log('MAIL_FROM_ADDRESS:', process.env.MAIL_FROM_ADDRESS);
 
 // Configure the SESv2Client with explicit credentials for simple emails
 const sesV2Client = new SESv2Client({
-  region: process.env.AWS_SES_REGION || process.env.AWS_REGION || 'eu-central-1',
+  region: process.env.OPENARCHIVE_AWS_SES_REGION || process.env.OPENARCHIVE_AWS_REGION || 'eu-central-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+    accessKeyId: process.env.OPENARCHIVE_AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.OPENARCHIVE_AWS_SECRET_ACCESS_KEY || ''
   }
 });
 
 // Configure the SES Client for raw emails with attachments
 const sesClient = new SESClient({
-  region: process.env.AWS_SES_REGION || process.env.AWS_REGION || 'eu-central-1',
+  region: process.env.OPENARCHIVE_AWS_SES_REGION || process.env.OPENARCHIVE_AWS_REGION || 'eu-central-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+    accessKeyId: process.env.OPENARCHIVE_AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.OPENARCHIVE_AWS_SECRET_ACCESS_KEY || ''
   }
 });
 
@@ -54,10 +54,10 @@ class EmailService {
     this.defaultFromAddress = process.env.MAIL_FROM_ADDRESS || 'noreply@openarchive.local';
 
     // Warnings for configuration issues
-    if (!process.env.AWS_SES_REGION && !process.env.AWS_REGION) {
+    if (!process.env.OPENARCHIVE_AWS_SES_REGION && !process.env.OPENARCHIVE_AWS_REGION) {
       console.warn('EmailService: AWS_SES_REGION or AWS_REGION is not set. Defaulting to eu-central-1, but this might be incorrect for your SES setup.');
     }
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+    if (!process.env.OPENARCHIVE_AWS_ACCESS_KEY_ID || !process.env.OPENARCHIVE_AWS_SECRET_ACCESS_KEY) {
       console.warn(
         'EmailService: AWS SES credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) not fully configured in environment variables. Emails might fail.'
       );

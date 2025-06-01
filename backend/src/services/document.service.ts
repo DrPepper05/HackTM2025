@@ -18,10 +18,10 @@ import {
 
 // Create Textract client
 const textractClient = new TextractClient({
-  region: process.env.AWS_REGION || 'eu-central-1',
+  region: process.env.OPENARCHIVE_AWS_REGION || 'eu-central-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
+    accessKeyId: process.env.OPENARCHIVE_AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.OPENARCHIVE_AWS_SECRET_ACCESS_KEY!
   }
 })
 

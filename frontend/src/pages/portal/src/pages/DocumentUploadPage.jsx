@@ -8,8 +8,18 @@ function DocumentUploadPage() {
   const [uploadStatus, setUploadStatus] = useState('');
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setUploadStatus('');
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      // Check if the file is a PDF
+      if (selectedFile.type !== 'application/pdf') {
+        setUploadStatus('Error: Only PDF files are allowed.');
+        e.target.value = ''; // Reset the file input
+        setFile(null);
+        return;
+      }
+      setFile(selectedFile);
+      setUploadStatus('');
+    }
   };
 
   const handleMetadataChange = (e) => {
@@ -43,6 +53,7 @@ function DocumentUploadPage() {
             type="file" 
             id="file" 
             name="file" // Added name for reset if needed
+            accept=".pdf,application/pdf"
             onChange={handleFileChange} 
             required 
             className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 border border-slate-300 rounded-lg cursor-pointer"

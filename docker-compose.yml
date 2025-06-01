@@ -1,0 +1,15 @@
+# In your project root (HackTM2025/docker-compose.yml)
+version: '3.8'
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.worker # Path to your worker Dockerfile
+    env_file:
+      - backend/.env # Path to your .env file relative to docker-compose.yml
+    # If your worker needs specific variables different from the main backend,
+    # you could have a backend/.env.worker file and reference that here instead.
+    # env_file:
+    #   - backend/.env.worker
+    # If your worker is a long-running process, you might want to restart it
+    # restart: unless-stopped
