@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Search, FileText, Filter, Calendar, X, Building, FileType, ChevronDown, ChevronUp, Download } from 'lucide-react'
 import { semanticSearchApi, documentsApi } from '../../services/api'
 import FloatingLanguageButton from '../../components/navigation/FloatingLanguageButton'
+import Footer from '../../components/navigation/Footer'
 
 function PublicSearchPage() {
   const { t } = useTranslation()
@@ -14,14 +15,7 @@ function PublicSearchPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [totalResults, setTotalResults] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [filtersOpen, setFiltersOpen] = useState(false)
   const [searchError, setSearchError] = useState('')
-  const [filters, setFilters] = useState({
-    dateFrom: '',
-    dateTo: '',
-    documentType: '',
-    institution: '',
-  })
 
   // Get search query from URL parameters and load initial documents
   useEffect(() => {
@@ -43,15 +37,13 @@ function PublicSearchPage() {
     setCurrentPage(1)
     setSearchError('')
     try {
-      // Get public documents from the backend
-      const response = await documentsApi.getDocuments({
-        isPublic: true,
-        limit: 10,
-        offset: 0
-      })
+      // Use public API endpoint for unlogged users
+      const SERVER_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
+      const response = await fetch(`${SERVER_URL}/api/v1/public/documents?limit=10&offset=0`)
+      const data = await response.json()
 
-      if (response.success && response.data && response.data.documents) {
-        const documents = response.data.documents.map(doc => ({
+      if (response.ok && data.success && data.data && data.data.documents) {
+        const documents = data.data.documents.map(doc => ({
           id: doc.id,
           title: doc.title,
           summary: doc.description || doc.ai_suggested_title || 'No description available',
@@ -62,7 +54,7 @@ function PublicSearchPage() {
         }))
         
         setSearchResults(documents)
-        setTotalResults(response.data.total || documents.length)
+        setTotalResults(data.data.total || documents.length)
       } else {
         setSearchResults([])
         setTotalResults(0)
@@ -132,27 +124,6 @@ function PublicSearchPage() {
         // Apply additional filters if any
         let filteredResults = documents
         
-        if (filters.dateFrom) {
-          filteredResults = filteredResults.filter(item => 
-            new Date(item.releaseDate) >= new Date(filters.dateFrom)
-          )
-        }
-        if (filters.dateTo) {
-          filteredResults = filteredResults.filter(item => 
-            new Date(item.releaseDate) <= new Date(filters.dateTo)
-          )
-        }
-        if (filters.documentType) {
-          filteredResults = filteredResults.filter(item => 
-            item.documentType.toLowerCase().includes(filters.documentType.toLowerCase())
-          )
-        }
-        if (filters.institution) {
-          filteredResults = filteredResults.filter(item => 
-            item.institution.toLowerCase().includes(filters.institution.toLowerCase())
-          )
-        }
-        
         // Paginate results (10 per page)
         const resultsPerPage = 10
         const startIndex = (page - 1) * resultsPerPage
@@ -178,36 +149,6 @@ function PublicSearchPage() {
   // Handle search form submission
   const handleSearch = (e) => {
     e.preventDefault()
-    performSemanticSearch(searchQuery, 1)
-  }
-
-  // Handle filter changes
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target
-    setFilters({
-      ...filters,
-      [name]: value,
-    })
-  }
-
-  // Apply filters
-  const applyFilters = () => {
-    // Apply filters and perform search with the current query
-    setFiltersOpen(false)
-    setCurrentPage(1) // Reset to first page when applying filters
-    performSemanticSearch(searchQuery, 1)
-  }
-
-  // Reset filters
-  const resetFilters = () => {
-    setFilters({
-      dateFrom: '',
-      dateTo: '',
-      documentType: '',
-      institution: '',
-    })
-    // Perform search with reset filters
-    setCurrentPage(1) // Reset to first page when resetting filters
     performSemanticSearch(searchQuery, 1)
   }
 
@@ -252,14 +193,6 @@ function PublicSearchPage() {
                   />
                   <div className="flex">
                     <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setFiltersOpen(!filtersOpen)}
-                    >
-                      <Filter className="icon" aria-hidden="true" />
-                      <span className="hidden sm:inline">{t('public.filters')}</span>
-                    </button>
-                    <button
                       type="submit"
                       className="btn btn-primary"
                       onClick={handleSearch}
@@ -272,123 +205,6 @@ function PublicSearchPage() {
               </form>
             </div>
 
-            {/* Filters panel */}
-            {filtersOpen && (
-              <div className="filter-panel">
-                <div className="filter-panel-header">
-                  <h3 className="filter-panel-title">{t('public.refine_search')}</h3>
-                  <button
-                    type="button"
-                    className="btn-icon"
-                    onClick={() => setFiltersOpen(false)}
-                  >
-                    <span className="sr-only">{t('common.close')}</span>
-                    <X className="icon" size={18} aria-hidden="true" />
-                  </button>
-                </div>
-                <div className="filter-panel-content">
-                  <div className="filter-group">
-                    <label htmlFor="dateFrom" className="form-label">
-                      {t('public.date_from')}
-                    </label>
-                    <div className="input-group">
-                      <span className="input-group-text">
-                        <Calendar className="icon" size={16} aria-hidden="true" />
-                      </span>
-                      <input
-                        type="date"
-                        name="dateFrom"
-                        id="dateFrom"
-                        className="form-input"
-                        value={filters.dateFrom}
-                        onChange={handleFilterChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="filter-group">
-                    <label htmlFor="dateTo" className="form-label">
-                      {t('public.date_to')}
-                    </label>
-                    <div className="input-group">
-                      <span className="input-group-text">
-                        <Calendar className="icon" size={16} aria-hidden="true" />
-                      </span>
-                      <input
-                        type="date"
-                        name="dateTo"
-                        id="dateTo"
-                        className="form-input"
-                        value={filters.dateTo}
-                        onChange={handleFilterChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="filter-group">
-                    <label htmlFor="documentType" className="form-label">
-                      {t('public.document_type')}
-                    </label>
-                    <div className="input-group">
-                      <span className="input-group-text">
-                        <FileType className="icon" size={16} aria-hidden="true" />
-                      </span>
-                      <select
-                        id="documentType"
-                        name="documentType"
-                        className="form-select"
-                        value={filters.documentType}
-                        onChange={handleFilterChange}
-                      >
-                        <option value="">{t('public.all_types')}</option>
-                        <option value="hotarare">{t('public.document_types.decision')}</option>
-                        <option value="dispozitie">{t('public.document_types.disposition')}</option>
-                        <option value="contract">{t('public.document_types.contract')}</option>
-                        <option value="autorizatie">{t('public.document_types.authorization')}</option>
-                        <option value="certificat">{t('public.document_types.certificate')}</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="filter-group">
-                    <label htmlFor="institution" className="form-label">
-                      {t('public.institution')}
-                    </label>
-                    <div className="input-group">
-                      <span className="input-group-text">
-                        <Building className="icon" size={16} aria-hidden="true" />
-                      </span>
-                      <select
-                        id="institution"
-                        name="institution"
-                        className="form-select"
-                        value={filters.institution}
-                        onChange={handleFilterChange}
-                      >
-                        <option value="">{t('public.all_institutions')}</option>
-                        <option value="primaria_timisoara">{t('public.institutions.timisoara_city_hall')}</option>
-                        <option value="consiliul_local_timisoara">{t('public.institutions.timisoara_local_council')}</option>
-                        <option value="consiliul_judetean_timis">{t('public.institutions.timis_county_council')}</option>
-                        <option value="primaria_dumbravita">{t('public.institutions.dumbravita_city_hall')}</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className="filter-panel-footer">
-                  <button
-                    type="button"
-                    className="btn btn-text"
-                    onClick={resetFilters}
-                  >
-                    {t('public.reset_filters')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={applyFilters}
-                  >
-                    {t('public.apply_filters')}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
@@ -519,19 +335,10 @@ function PublicSearchPage() {
                     <p>{t('public.no_results_description')}</p>
                     <p className="mt-2 text-amber-600">
                       {searchQuery && <span className="font-medium">{t('public.search_term')}: "{searchQuery}"</span>}
-                      {(filters.dateFrom || filters.dateTo || filters.documentType || filters.institution) && (
-                        <span className="block mt-1 text-sm">
-                          {filters.documentType && <span className="inline-block mr-2">{t('public.document_type')}: {filters.documentType}</span>}
-                          {filters.institution && <span className="inline-block mr-2">{t('public.institution')}: {filters.institution}</span>}
-                          {filters.dateFrom && <span className="inline-block mr-2">{t('public.date_from')}: {filters.dateFrom}</span>}
-                          {filters.dateTo && <span className="inline-block">{t('public.date_to')}: {filters.dateTo}</span>}
-                        </span>
-                      )}
                     </p>
                     <div className="mt-4">
                       <button 
                         onClick={() => {
-                          resetFilters();
                           setSearchQuery('');
                           // Reset URL by removing query parameters
                           window.history.pushState({}, '', `${location.pathname}`);
@@ -550,7 +357,8 @@ function PublicSearchPage() {
           </div>
         </section>
       </div>
-
+      {/* Footer */}
+      <Footer />
       {/* Floating Language Button */}
       <FloatingLanguageButton />
     </div>

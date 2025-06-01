@@ -110,3 +110,17 @@ The semantic sort API is served from the ```APIs/semantic-sort``` directory.
         - Request Body: ```{"query": "your search query"}```
         - Response: A JSON object containing sorted document results, including ```id```, ```description```, and ```score```.
 
+## 👥 Test Accounts
+The following accounts are available for testing:
+
+- **Clerk**: test.user@gov.ro
+- **Administrator**: test.user1@gov.ro
+- **Archivist**: test.user2@gov.ro
+- **Inspector**: test.user3@gov.ro
+
+**General Password**: SecurePass123!
+
+## 🌐 Hosting Links
+- **Release Link**: [https://aesthetic-genie-f68d12.netlify.app/](https://aesthetic-genie-f68d12.netlify.app/)
+- **Release Link**: [https://opreatudor.me/](https://opreatudor.me/)
+

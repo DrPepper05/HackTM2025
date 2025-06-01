@@ -1124,7 +1124,9 @@
     "navigation": "Navigation",
     "legal": "Legal",
     "connect": "Connect",
-    "description": "A modern platform for archiving and accessing historical documents"
+    "description": "A modern platform for archiving and accessing historical documents",
+    "login": "Login",
+    "dashboard": "Dashboard"
   },
   "inspector": {
     "status": "Status",

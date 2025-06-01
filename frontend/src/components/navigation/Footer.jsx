@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '../../hooks/useAuth'
+import { LogIn, LayoutDashboard } from 'lucide-react'
 
 function Footer() {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const currentYear = new Date().getFullYear()
 
   const navigation = {
@@ -24,13 +27,35 @@ function Footer() {
     <footer className="bg-gradient-to-r from-slate-50 to-gray-100 border-t border-gray-200 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         {/* Logo and description */}
-        <div className="mb-8 flex flex-col items-center text-center sm:items-start sm:text-left">
-          <Link to="/" className="mb-2">
-            <span className="text-xl font-bold text-sky-600">OpenArchive</span>
-          </Link>
-          <p className="mt-2 text-sm text-gray-500 max-w-md">
-            {t('footer.description', 'A modern platform for archiving and accessing historical documents.')}
-          </p>
+        <div className="mb-8 flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left sm:justify-between">
+          <div>
+            <Link to="/" className="mb-2">
+              <span className="text-xl font-bold text-sky-600">OpenArchive</span>
+            </Link>
+            <p className="mt-2 text-sm text-gray-500 max-w-md">
+              {t('footer.description', 'A modern platform for archiving and accessing historical documents.')}
+            </p>
+          </div>
+          
+          {/* Login/Dashboard Button */}
+          <div className="mt-4 sm:mt-0">
+            <Link 
+              to={user ? '/dashboard' : '/login'} 
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors duration-150"
+            >
+              {user ? (
+                <>
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  {t('footer.dashboard')}
+                </>
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  {t('footer.login')}
+                </>
+              )}
+            </Link>
+          </div>
         </div>
         
         {/* Navigation sections */}

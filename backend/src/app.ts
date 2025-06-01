@@ -38,8 +38,13 @@ const corsOptions = {
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001',
       'http://127.0.0.1:5173',
+      "https://aesthetic-genie-f68d12.netlify.app",
+      "https://opreatudor.me",
+      "http://opreatudor.me",
       process.env.FRONTEND_URL
     ].filter(Boolean)
+    
+    console.log('CORS check - Origin:', origin, 'Allowed origins:', allowedOrigins)
     
     // In development, be more permissive
     if (process.env.NODE_ENV !== 'production') {
@@ -52,6 +57,7 @@ const corsOptions = {
     if (allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
+      console.log('CORS blocked origin:', origin)
       callback(new Error('Not allowed by CORS'))
     }
   },
