@@ -834,7 +834,7 @@
     "about_feature_5_description": "Eszközök az intézmények számára archiválási kötelezettségeik hatékony kezeléséhez",
     "about_feature_6_title": "Állampolgári Részvétel",
     "about_feature_6_description": "Az állampolgárok felhatalmazása a nyilvános információkhoz való hozzáféréssel",
-    "faq": "GYIK",
+    "_faq": "GYIK",
     "faq_title": "Gyakran Ismételt Kérdések",
     "faq_description": "Találjon válaszokat a platformunkkal és szolgáltatásainkkal kapcsolatos gyakori kérdésekre",
     "faq_category_general": "Általános",
