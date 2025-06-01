@@ -5,6 +5,7 @@
   "scripts": {
     "install-all": "npm --prefix frontend install && npm --prefix backend install",
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+    "build-backend": "cd backend && npm run build"
   },
   "devDependencies": {
     "@tanstack/router-devtools": "^1.120.13",
