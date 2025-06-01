@@ -968,15 +968,17 @@
   },
   "footer": {
     "all_rights_reserved": "Minden jog fenntartva",
-    "privacy_policy": "Adatvédelmi Szabályzat",
-    "terms_of_service": "Szolgáltatási Feltételek",
-    "accessibility": "Akadálymentesség",
-    "compliance_notice": "Megfelelőségi Nyilatkozat",
+    "privacy_policy": "Adatvédelmi irányelvek",
+    "terms_of_service": "Felhasználási feltételek",
+    "accessibility": "Akadálymentesítés",
+    "compliance_notice": "Megfelelőségi nyilatkozat",
     "developed_by": "Fejlesztette",
     "navigation": "Navigáció",
     "legal": "Jogi",
     "connect": "Kapcsolat",
-    "description": "Modern platform történelmi dokumentumok archiválására és hozzáférésére"
+    "description": "Modern platform történelmi dokumentumok archiválására és hozzáféréséhez",
+    "login": "Bejelentkezés",
+    "dashboard": "Irányítópult"
   },
   "inspector": {
     "status": "Állapot",

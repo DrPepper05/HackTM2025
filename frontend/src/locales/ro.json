@@ -1060,7 +1060,9 @@
     "navigation": "Navigare",
     "legal": "Legal",
     "connect": "Conectare",
-    "description": "O platformă modernă pentru arhivarea și accesarea documentelor istorice"
+    "description": "O platformă modernă pentru arhivarea și accesarea documentelor istorice",
+    "login": "Autentificare",
+    "dashboard": "Panou de control"
   },
   "inspector": {
     "status": "Stare",

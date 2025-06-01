@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Search, FileText, Building, FileType, Calendar } from 'lucide-react'
 import { semanticSearchApi, documentsApi } from '../../services/api'
+import Footer from '../../components/navigation/Footer'
 
 function PublicSearchPage() {
   const { t } = useTranslation()
@@ -163,196 +164,201 @@ function PublicSearchPage() {
   }
 
   return (
-    <div className="public-search-page">
-      <section className="search-header">
-        <div className="content-container">
-          <div className="section-header">
-            <h1 className="section-title">
-              {t('public.search_archives')}
-            </h1>
-            <p className="section-subtitle">
-              {t('public.search_description')}
-            </p>
-          </div>
-
-          {/* Search form */}
-          <div className="search-container">
-            <form onSubmit={handleSearch} className="search-form">
-              <div className="input-group">
-                <input
-                  type="text"
-                  name="search"
-                  id="search"
-                  className="form-input"
-                  placeholder={t('public.search_placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <div className="flex">
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    onClick={handleSearch}
-                  >
-                    <Search className="icon" aria-hidden="true" />
-                    <span className="hidden sm:inline">{t('public.search_button')}</span>
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-
-        </div>
-      </section>
-
-      {/* Search results */}
-      <section className="search-results">
-        <div className="content-container">
-          {isLoading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
+    <div className="public-search-page min-h-screen flex flex-col">
+      <div className="flex-grow">
+        <section className="search-header">
+          <div className="content-container">
+            <div className="section-header">
+              <h1 className="section-title">
+                {t('public.search_archives')}
+              </h1>
+              <p className="section-subtitle">
+                {t('public.search_description')}
+              </p>
             </div>
-          ) : searchResults.length > 0 ? (
-            <div>
-              <div className="search-results-count">
-                {searchQuery ? t('public.search_results_count', { count: totalResults }) : t('public.frequent_documents')}
-              </div>
-              <ul className="search-results-list">
-                {searchResults.map((result) => (
-                  <li key={result.id} className="search-result-item">
-                    <div className="search-result-content">
-                      <div className="search-result-header">
-                        <FileText className="icon" />
-                        <button
-                          onClick={() => handleDocumentClick(result)}
-                          className="search-result-title"
-                          style={{ 
-                            background: 'none', 
-                            border: 'none', 
-                            padding: 0, 
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            color: 'inherit',
-                            textDecoration: 'none'
-                          }}
-                        >
-                          {result.title}
-                        </button>
-                      </div>
-                      <p className="search-result-description">{result.summary}</p>
-                      <div className="search-result-meta">
-                        <span className="search-result-meta-item">
-                          <FileType className="icon h-3 w-3 mr-1" />
-                          <span className="search-result-meta-label">{t('public.document_type')}:</span>
-                          <span>{result.documentType}</span>
-                        </span>
-                        <span className="search-result-meta-item">
-                          <Building className="icon h-3 w-3 mr-1" />
-                          <span className="search-result-meta-label">{t('public.institution')}:</span>
-                          <span>{result.institution}</span>
-                        </span>
-                        <span className="search-result-meta-item">
-                          <Calendar className="icon h-3 w-3 mr-1" />
-                          <span className="search-result-meta-label">{t('public.release_date')}:</span>
-                          <span>{new Date(result.releaseDate).toLocaleDateString()}</span>
-                        </span>
-                        {/* Show public/private indicator */}
-                        <span className="search-result-meta-item">
-                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                            result.isPublic 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {result.isPublic ? t('public.public_document') : t('public.access_required')}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
 
-              {/* Pagination */}
-              <nav className="pagination">
-                <div className="pagination-prev">
-                  <button
-                    disabled={currentPage === 1}
-                    className="btn btn-text"
-                    onClick={() => {
-                      if (currentPage > 1) {
-                        setCurrentPage(currentPage - 1);
-                        performSemanticSearch(searchQuery, currentPage - 1);
-                      }
-                    }}
-                  >
-                    {t('public.previous')}
-                  </button>
-                </div>
-                <div className="pagination-pages">
-                  {[1].map((page) => (
+            {/* Search form */}
+            <div className="search-container">
+              <form onSubmit={handleSearch} className="search-form">
+                <div className="input-group">
+                  <input
+                    type="text"
+                    name="search"
+                    id="search"
+                    className="form-input"
+                    placeholder={t('public.search_placeholder')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <div className="flex">
                     <button
-                      key={page}
-                      className="pagination-page pagination-page-active"
-                      aria-current="page"
-                      onClick={() => {
-                        setCurrentPage(page);
-                        performSemanticSearch(searchQuery, page);
-                      }}
+                      type="submit"
+                      className="btn btn-primary"
+                      onClick={handleSearch}
                     >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-                <div className="pagination-next">
-                  <button
-                    disabled={currentPage >= Math.ceil(totalResults / 10)} // Assuming 10 results per page
-                    className="btn btn-text"
-                    onClick={() => {
-                      setCurrentPage(currentPage + 1);
-                      performSemanticSearch(searchQuery, currentPage + 1);
-                    }}
-                  >
-                    {t('public.next')}
-                  </button>
-                </div>
-              </nav>
-            </div>
-          ) : searchResults.length === 0 && searchQuery ? (
-            <div className="alert alert-warning">
-              <div className="alert-content">
-                <h3 className="alert-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-amber-500 mb-2">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                    <line x1="12" y1="9" x2="12" y2="13"></line>
-                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                  </svg>
-                  {t('public.no_results')}
-                </h3>
-                <div className="alert-description">
-                  <p>{t('public.no_results_description')}</p>
-                  <p className="mt-2 text-amber-600">
-                    {searchQuery && <span className="font-medium">{t('public.search_term')}: "{searchQuery}"</span>}
-                  </p>
-                  <div className="mt-4">
-                    <button 
-                      onClick={() => {
-                        setSearchQuery('');
-                        // Reset URL by removing query parameters
-                        window.history.pushState({}, '', `${location.pathname}`);
-                        // Load initial documents
-                        loadFrequentDocuments();
-                      }}
-                      className="btn btn-sm btn-primary mt-2"
-                    >
-                      {t('public.try_again')}
+                      <Search className="icon" aria-hidden="true" />
+                      <span className="hidden sm:inline">{t('public.search_button')}</span>
                     </button>
                   </div>
                 </div>
-              </div>
+              </form>
             </div>
-          ) : null}
-        </div>
-      </section>
+
+          </div>
+        </section>
+
+        {/* Search results */}
+        <section className="search-results">
+          <div className="content-container">
+            {isLoading ? (
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div>
+                <div className="search-results-count">
+                  {searchQuery ? t('public.search_results_count', { count: totalResults }) : t('public.frequent_documents')}
+                </div>
+                <ul className="search-results-list">
+                  {searchResults.map((result) => (
+                    <li key={result.id} className="search-result-item">
+                      <div className="search-result-content">
+                        <div className="search-result-header">
+                          <FileText className="icon" />
+                          <button
+                            onClick={() => handleDocumentClick(result)}
+                            className="search-result-title"
+                            style={{ 
+                              background: 'none', 
+                              border: 'none', 
+                              padding: 0, 
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              color: 'inherit',
+                              textDecoration: 'none'
+                            }}
+                          >
+                            {result.title}
+                          </button>
+                        </div>
+                        <p className="search-result-description">{result.summary}</p>
+                        <div className="search-result-meta">
+                          <span className="search-result-meta-item">
+                            <FileType className="icon h-3 w-3 mr-1" />
+                            <span className="search-result-meta-label">{t('public.document_type')}:</span>
+                            <span>{result.documentType}</span>
+                          </span>
+                          <span className="search-result-meta-item">
+                            <Building className="icon h-3 w-3 mr-1" />
+                            <span className="search-result-meta-label">{t('public.institution')}:</span>
+                            <span>{result.institution}</span>
+                          </span>
+                          <span className="search-result-meta-item">
+                            <Calendar className="icon h-3 w-3 mr-1" />
+                            <span className="search-result-meta-label">{t('public.release_date')}:</span>
+                            <span>{new Date(result.releaseDate).toLocaleDateString()}</span>
+                          </span>
+                          {/* Show public/private indicator */}
+                          <span className="search-result-meta-item">
+                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                              result.isPublic 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {result.isPublic ? t('public.public_document') : t('public.access_required')}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Pagination */}
+                <nav className="pagination">
+                  <div className="pagination-prev">
+                    <button
+                      disabled={currentPage === 1}
+                      className="btn btn-text"
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          setCurrentPage(currentPage - 1);
+                          performSemanticSearch(searchQuery, currentPage - 1);
+                        }
+                      }}
+                    >
+                      {t('public.previous')}
+                    </button>
+                  </div>
+                  <div className="pagination-pages">
+                    {[1].map((page) => (
+                      <button
+                        key={page}
+                        className="pagination-page pagination-page-active"
+                        aria-current="page"
+                        onClick={() => {
+                          setCurrentPage(page);
+                          performSemanticSearch(searchQuery, page);
+                        }}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pagination-next">
+                    <button
+                      disabled={currentPage >= Math.ceil(totalResults / 10)} // Assuming 10 results per page
+                      className="btn btn-text"
+                      onClick={() => {
+                        setCurrentPage(currentPage + 1);
+                        performSemanticSearch(searchQuery, currentPage + 1);
+                      }}
+                    >
+                      {t('public.next')}
+                    </button>
+                  </div>
+                </nav>
+              </div>
+            ) : searchResults.length === 0 && searchQuery ? (
+              <div className="alert alert-warning">
+                <div className="alert-content">
+                  <h3 className="alert-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-amber-500 mb-2">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    {t('public.no_results')}
+                  </h3>
+                  <div className="alert-description">
+                    <p>{t('public.no_results_description')}</p>
+                    <p className="mt-2 text-amber-600">
+                      {searchQuery && <span className="font-medium">{t('public.search_term')}: "{searchQuery}"</span>}
+                    </p>
+                    <div className="mt-4">
+                      <button 
+                        onClick={() => {
+                          setSearchQuery('');
+                          // Reset URL by removing query parameters
+                          window.history.pushState({}, '', `${location.pathname}`);
+                          // Load initial documents
+                          loadFrequentDocuments();
+                        }}
+                        className="btn btn-sm btn-primary mt-2"
+                      >
+                        {t('public.try_again')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }
