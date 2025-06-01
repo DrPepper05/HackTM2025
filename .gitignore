@@ -1,3 +1,5 @@
+backend/.env
+frontend/.env
 .env
 # Created by https://www.toptal.com/developers/gitignore/api/windows,macos,linux,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,macos,linux,visualstudiocode
@@ -96,6 +98,11 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,linux,visualstudiocode
-.idea
 node_modules
+.idea
 package-lock.json
+frontend/.env
+
+node_modules
+.cursor
+dist

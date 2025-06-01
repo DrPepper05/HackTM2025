@@ -271,11 +271,9 @@ function SystemHealthPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-2 text-lg font-medium text-gray-700">
-              {t('admin.loading_system_health')}
-            </span>
+          <div className="loading-container h-64">
+            <div className="loading-spinner"></div>
+            <p className="text-gray-600 text-sm mt-2">{t('admin.loading_system_health')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

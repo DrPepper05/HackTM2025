@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
+import { searchApi } from '../../services/api'
 import {
   Search,
   Calendar,
@@ -17,7 +18,11 @@ import {
   Info,
   X,
   Plus,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react'
+
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 
 function AdvancedSearchPage() {
   const { t } = useTranslation()
@@ -27,8 +32,19 @@ function AdvancedSearchPage() {
   const [isSearching, setIsSearching] = useState(false)
   const [searchPerformed, setSearchPerformed] = useState(false)
   const [searchResults, setSearchResults] = useState([])
+  const [searchStats, setSearchStats] = useState(null)
+  const [searchError, setSearchError] = useState('')
   const [searchParams, setSearchParams] = useState({
+    // Basic search
     query: '',
+    
+    // Advanced boolean search
+    mustContainAll: [],
+    mustContainAny: [],
+    mustNotContain: [],
+    exactPhrase: '',
+    
+    // Filters
     documentType: '',
     creator: '',
     dateFrom: '',
@@ -36,11 +52,19 @@ function AdvancedSearchPage() {
     retentionCategory: '',
     confidentiality: '',
     tags: [],
+    status: '',
+    
+    // Options
     useSemanticSearch: false,
   })
   const [tagInput, setTagInput] = useState('')
+  const [mustContainAllInput, setMustContainAllInput] = useState('')
+  const [mustContainAnyInput, setMustContainAnyInput] = useState('')
+  const [mustNotContainInput, setMustNotContainInput] = useState('')
   const [sortBy, setSortBy] = useState('relevance')
   const [sortDirection, setSortDirection] = useState('desc')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
   // Document types for dropdown
   const documentTypes = [
@@ -72,6 +96,16 @@ function AdvancedSearchPage() {
     { id: 'internal', name: t('archivist.confidentiality_internal') },
     { id: 'confidential', name: t('archivist.confidentiality_confidential') },
     { id: 'restricted', name: t('archivist.confidentiality_restricted') },
+  ]
+
+  // Status options for dropdown
+  const statusOptions = [
+    { id: '', name: t('archivist.all_statuses') },
+    { id: 'draft', name: t('archivist.status_draft') },
+    { id: 'under_review', name: t('archivist.status_under_review') },
+    { id: 'approved', name: t('archivist.status_approved') },
+    { id: 'rejected', name: t('archivist.status_rejected') },
+    { id: 'archived', name: t('archivist.status_archived') },
   ]
 
   // Handle input changes
@@ -121,191 +155,198 @@ function AdvancedSearchPage() {
     })
   }
 
+  // Handle advanced search array inputs
+  const handleArrayInput = (inputValue, setInputValue, arrayKey, setValue) => {
+    if (inputValue.trim()) {
+      const terms = inputValue.split(',').map(term => term.trim()).filter(term => term)
+      setSearchParams({
+        ...searchParams,
+        [arrayKey]: [...new Set([...searchParams[arrayKey], ...terms])]
+      })
+      setInputValue('')
+    }
+  }
+
+  // Remove item from advanced search array
+  const removeFromArray = (item, arrayKey) => {
+    setSearchParams({
+      ...searchParams,
+      [arrayKey]: searchParams[arrayKey].filter(term => term !== item)
+    })
+  }
+
   // Handle search
   const handleSearch = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     setIsSearching(true)
     setSearchPerformed(true)
+    setSearchError('')
 
     try {
-      // In a real app, this would be an API call to search for documents
-      // For the hackathon, we'll simulate a search with mock data
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Check if any search criteria is provided
+      const hasBasicQuery = searchParams.query.trim()
+      const hasAdvancedTerms = searchParams.mustContainAll.length > 0 || 
+                               searchParams.mustContainAny.length > 0 || 
+                               searchParams.mustNotContain.length > 0 ||
+                               searchParams.exactPhrase.trim()
+      const hasFilters = searchParams.documentType || 
+                        searchParams.creator.trim() ||
+                        searchParams.dateFrom ||
+                        searchParams.dateTo ||
+                        searchParams.retentionCategory ||
+                        searchParams.confidentiality ||
+                        searchParams.status ||
+                        searchParams.tags.length > 0
 
-      // Mock search results
-      const mockResults = [
-        {
-          id: '1',
-          title: 'Hotărâre privind aprobarea bugetului local pe anul 2023',
-          documentType: 'hotarare',
-          documentTypeName: 'Hotărâre',
-          creator: 'Consiliul Local',
-          creationDate: '2023-01-15',
-          uploadDate: '2023-01-20',
-          uploadedBy: 'Ion Popescu',
-          status: 'approved',
-          statusName: t('archivist.status_approved'),
-          retentionCategory: 'c',
-          retentionYears: '10',
-          retentionEndDate: '2033-01-15',
-          confidentiality: 'public',
-          tags: ['buget', 'hotărâre', '2023', 'consiliu local'],
-          relevanceScore: 0.95,
-        },
-        {
-          id: '2',
-          title: 'Contract de achiziție publică pentru servicii de mentenanță',
-          documentType: 'contract',
-          documentTypeName: 'Contract',
-          creator: 'Direcția Achiziții Publice',
-          creationDate: '2022-10-20',
-          uploadDate: '2022-10-22',
-          uploadedBy: 'Maria Popescu',
-          status: 'approved',
-          statusName: t('archivist.status_approved'),
-          retentionCategory: 'cf',
-          retentionYears: '3',
-          retentionEndDate: '2025-10-20',
-          confidentiality: 'internal',
-          tags: ['contract', 'achiziții', 'mentenanță', 'servicii'],
-          relevanceScore: 0.82,
-        },
-        {
-          id: '3',
-          title: 'Autorizație de construire nr. 123/2020',
-          documentType: 'autorizatie',
-          documentTypeName: 'Autorizație',
-          creator: 'Direcția Urbanism',
-          creationDate: '2020-05-10',
-          uploadDate: '2020-05-15',
-          uploadedBy: 'Ana Ionescu',
-          status: 'approved',
-          statusName: t('archivist.status_approved'),
-          retentionCategory: 'cs',
-          retentionYears: '30',
-          retentionEndDate: '2050-05-10',
-          confidentiality: 'public',
-          tags: ['autorizație', 'construire', 'urbanism'],
-          relevanceScore: 0.78,
-        },
-        {
-          id: '4',
-          title: 'Proces verbal de recepție lucrări de renovare sediu primărie',
-          documentType: 'proces_verbal',
-          documentTypeName: 'Proces-verbal',
-          creator: 'Direcția Tehnică',
-          creationDate: '2020-08-15',
-          uploadDate: '2020-08-20',
-          uploadedBy: 'Mihai Dumitrescu',
-          status: 'approved',
-          statusName: t('archivist.status_approved'),
-          retentionCategory: 'cf',
-          retentionYears: '3',
-          retentionEndDate: '2023-08-15',
-          confidentiality: 'internal',
-          tags: ['proces-verbal', 'recepție', 'renovare', 'primărie'],
-          relevanceScore: 0.65,
-        },
-        {
-          id: '5',
-          title: 'Raport de activitate anual 2022 - Direcția de Asistență Socială',
-          documentType: 'raport',
-          documentTypeName: 'Raport',
-          creator: 'Direcția de Asistență Socială',
-          creationDate: '2023-01-30',
-          uploadDate: '2023-02-05',
-          uploadedBy: 'Elena Stanciu',
-          status: 'approved',
-          statusName: t('archivist.status_approved'),
-          retentionCategory: 'c',
-          retentionYears: '10',
-          retentionEndDate: '2033-01-30',
-          confidentiality: 'public',
-          tags: ['raport', 'activitate', '2022', 'asistență socială'],
-          relevanceScore: 0.60,
-        },
-      ]
+      console.log('Search criteria:', { hasBasicQuery, hasAdvancedTerms, hasFilters })
 
-      // Filter results based on search parameters
-      const filteredResults = mockResults.filter((doc) => {
-        // Filter by document type
-        if (searchParams.documentType && doc.documentType !== searchParams.documentType) {
-          return false
+      // If no criteria provided, use basic search to get all documents
+      if (!hasBasicQuery && !hasAdvancedTerms && !hasFilters) {
+        console.log('Using basic search for all documents')
+        // Use regular search API with empty query to get all documents
+        const response = await searchApi.search({
+          query: '',
+          limit: 50,
+          offset: 0
+        })
+        
+        console.log('Basic search response:', response)
+        
+        if (response.success) {
+          // Handle the response structure from searchDocuments
+          const documents = response.data.documents || []
+          setSearchResults(documents)
+          setSearchStats({
+            total: response.data.total || 0,
+            queryTime: response.data.query_time_ms || 0,
+            facets: response.data.facets || {}
+          })
+          
+          // Calculate pagination
+          const itemsPerPage = 20
+          setTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage))
+        } else {
+          setSearchError(response.message || 'Search failed')
+          setSearchResults([])
+          setSearchStats(null)
         }
+        return
+      }
 
-        // Filter by creator
-        if (
-          searchParams.creator &&
-          !doc.creator.toLowerCase().includes(searchParams.creator.toLowerCase())
-        ) {
-          return false
+      console.log('Using advanced search')
+      // Prepare search criteria for the backend (advanced search)
+      const searchCriteria = {}
+      
+      // Advanced boolean search
+      if (searchParams.mustContainAll.length > 0) {
+        searchCriteria.must_contain_all = searchParams.mustContainAll
+      }
+      
+      if (searchParams.mustContainAny.length > 0) {
+        searchCriteria.must_contain_any = searchParams.mustContainAny
+      }
+      
+      if (searchParams.mustNotContain.length > 0) {
+        searchCriteria.must_not_contain = searchParams.mustNotContain
+      }
+      
+      if (searchParams.exactPhrase) {
+        searchCriteria.exact_phrase = searchParams.exactPhrase
+      }
+
+      // Basic query
+      if (searchParams.query) {
+        if (!searchCriteria.must_contain_all) {
+          searchCriteria.must_contain_all = []
         }
+        searchCriteria.must_contain_all.push(...searchParams.query.split(' ').filter(term => term))
+      }
 
-        // Filter by date range
-        if (searchParams.dateFrom) {
-          const dateFrom = new Date(searchParams.dateFrom)
-          const creationDate = new Date(doc.creationDate)
-          if (creationDate < dateFrom) {
-            return false
-          }
-        }
+      // Metadata filters
+      const metadataFilters = {}
+      
+      if (searchParams.documentType) {
+        metadataFilters.document_type = searchParams.documentType
+      }
+      
+      if (searchParams.creator) {
+        metadataFilters.creator = searchParams.creator
+      }
+      
+      if (searchParams.retentionCategory) {
+        metadataFilters.retention_category = searchParams.retentionCategory
+      }
+      
+      if (searchParams.confidentiality) {
+        metadataFilters.confidentiality_level = searchParams.confidentiality
+      }
+      
+      if (searchParams.status) {
+        metadataFilters.status = searchParams.status
+      }
+      
+      if (searchParams.tags.length > 0) {
+        metadataFilters.tags = searchParams.tags
+      }
+      
+      if (searchParams.dateFrom) {
+        metadataFilters.created_after = searchParams.dateFrom
+      }
+      
+      if (searchParams.dateTo) {
+        metadataFilters.created_before = searchParams.dateTo
+      }
 
-        if (searchParams.dateTo) {
-          const dateTo = new Date(searchParams.dateTo)
-          const creationDate = new Date(doc.creationDate)
-          if (creationDate > dateTo) {
-            return false
-          }
-        }
+      if (Object.keys(metadataFilters).length > 0) {
+        searchCriteria.metadata_filters = metadataFilters
+      }
 
-        // Filter by retention category
-        if (searchParams.retentionCategory && doc.retentionCategory !== searchParams.retentionCategory) {
-          return false
-        }
+      console.log('Advanced search criteria:', searchCriteria)
 
-        // Filter by confidentiality
-        if (searchParams.confidentiality && doc.confidentiality !== searchParams.confidentiality) {
-          return false
-        }
-
-        // Filter by tags
-        if (searchParams.tags.length > 0) {
-          const hasAllTags = searchParams.tags.every((tag) =>
-            doc.tags.some((docTag) => docTag.toLowerCase().includes(tag.toLowerCase()))
-          )
-          if (!hasAllTags) {
-            return false
-          }
-        }
-
-        // Filter by query (text search)
-        if (searchParams.query) {
-          const query = searchParams.query.toLowerCase()
-          const matchesTitle = doc.title.toLowerCase().includes(query)
-          const matchesCreator = doc.creator.toLowerCase().includes(query)
-          const matchesType = doc.documentTypeName.toLowerCase().includes(query)
-          const matchesTags = doc.tags.some((tag) => tag.toLowerCase().includes(query))
-
-          if (!(matchesTitle || matchesCreator || matchesType || matchesTags)) {
-            return false
-          }
-        }
-
-        return true
-      })
-
-      setSearchResults(filteredResults)
+      // Make API call
+      const response = await searchApi.advancedSearch(searchCriteria)
+      
+      console.log('Advanced search response:', response)
+      
+      if (response.success) {
+        setSearchResults(response.data.documents || [])
+        setSearchStats({
+          total: response.data.total || 0,
+          queryTime: response.data.query_time_ms || 0,
+          facets: response.data.facets || {}
+        })
+        
+        // Calculate pagination
+        const itemsPerPage = 20
+        setTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage))
+      } else {
+        setSearchError(response.message || 'Search failed')
+        setSearchResults([])
+        setSearchStats(null)
+      }
     } catch (error) {
       console.error('Error searching documents:', error)
+      setSearchError(error.message || 'An error occurred during search')
+      setSearchResults([])
+      setSearchStats(null)
     } finally {
       setIsSearching(false)
     }
   }
 
+  // Load all documents on component mount
+  useEffect(() => {
+    handleSearch()
+  }, [])
+
   // Reset search form
   const handleReset = () => {
     setSearchParams({
       query: '',
+      mustContainAll: [],
+      mustContainAny: [],
+      mustNotContain: [],
+      exactPhrase: '',
       documentType: '',
       creator: '',
       dateFrom: '',
@@ -313,27 +354,44 @@ function AdvancedSearchPage() {
       retentionCategory: '',
       confidentiality: '',
       tags: [],
+      status: '',
       useSemanticSearch: false,
     })
     setTagInput('')
-    setSearchResults([])
-    setSearchPerformed(false)
+    setMustContainAllInput('')
+    setMustContainAnyInput('')
+    setMustNotContainInput('')
+    setSearchError('')
+    setCurrentPage(1)
+    
+    // Automatically search again to show all documents
+    setTimeout(() => {
+      handleSearch()
+    }, 100)
   }
 
   // Sort search results
   const sortedResults = [...searchResults].sort((a, b) => {
     let comparison = 0
 
+    // Handle both result.document and direct document structures
+    const docA = a.document || a
+    const docB = b.document || b
+
     if (sortBy === 'relevance') {
-      comparison = b.relevanceScore - a.relevanceScore
+      const scoreA = a.relevance_score || 0
+      const scoreB = b.relevance_score || 0
+      comparison = scoreB - scoreA
     } else if (sortBy === 'title') {
-      comparison = a.title.localeCompare(b.title)
+      comparison = (docA?.title || '').localeCompare(docB?.title || '')
     } else if (sortBy === 'documentType') {
-      comparison = a.documentTypeName.localeCompare(b.documentTypeName)
+      comparison = (docA?.document_type || '').localeCompare(docB?.document_type || '')
     } else if (sortBy === 'creator') {
-      comparison = a.creator.localeCompare(b.creator)
+      comparison = (docA?.created_by || '').localeCompare(docB?.created_by || '')
     } else if (sortBy === 'creationDate') {
-      comparison = new Date(a.creationDate) - new Date(b.creationDate)
+      const dateA = new Date(docA?.created_at || 0)
+      const dateB = new Date(docB?.created_at || 0)
+      comparison = dateA - dateB
     }
 
     return sortDirection === 'asc' ? comparison : -comparison
@@ -349,21 +407,40 @@ function AdvancedSearchPage() {
     }
   }
 
-  // Format date for display
+  // Format date helper
   const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString()
+    if (!dateString) return 'N/A'
+    try {
+      return new Date(dateString).toLocaleDateString()
+    } catch {
+      return 'Invalid Date'
+    }
+  }
+
+  // Get document type name with fallback
+  const getDocumentTypeName = (type) => {
+    const typeMap = {
+      'hotarare': 'Hotărâre',
+      'dispozitie': 'Dispoziție', 
+      'contract': 'Contract',
+      'autorizatie': 'Autorizație',
+      'certificat': 'Certificat',
+      'adresa': 'Adresă',
+      'raport': 'Raport',
+      'proces_verbal': 'Proces-verbal'
+    }
+    return typeMap[type] || type || 'Document'
   }
 
   // Get confidentiality badge color
-  const getConfidentialityBadgeColor = (confidentiality) => {
-    switch (confidentiality) {
+  const getConfidentialityBadgeColor = (level) => {
+    switch (level) {
       case 'public':
         return 'bg-green-100 text-green-800'
       case 'internal':
-        return 'bg-blue-100 text-blue-800'
-      case 'confidential':
         return 'bg-yellow-100 text-yellow-800'
+      case 'confidential':
+        return 'bg-orange-100 text-orange-800'
       case 'restricted':
         return 'bg-red-100 text-red-800'
       default:
@@ -372,7 +449,7 @@ function AdvancedSearchPage() {
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-transparent">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
@@ -383,27 +460,39 @@ function AdvancedSearchPage() {
           </p>
         </div>
 
+        {/* Search Error */}
+        {searchError && (
+          <div className="mb-6 rounded-md bg-red-50 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">{searchError}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Search form */}
         <form onSubmit={handleSearch} className="mb-12">
           <div className="space-y-12">
+            {/* Basic Search */}
             <div className="border-b border-gray-900/10 pb-12">
               <h2 className="text-base font-semibold leading-7 text-gray-900">
-                {t('archivist.search_criteria')}
+                {t('archivist.basic_search')}
               </h2>
               <p className="mt-1 text-sm leading-6 text-gray-600">
-                {t('archivist.search_criteria_description')}
+                {t('archivist.basic_search_description')}
               </p>
 
-              <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                {/* Text search */}
-                <div className="sm:col-span-4">
-                  <label
-                    htmlFor="query"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+              <div className="mt-6 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-12 items-center bg-gray-50 p-4 rounded-lg shadow-sm">
+                {/* Search */}
+                <div className="relative sm:col-span-12">
+                  <label htmlFor="query" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.search_query')}
                   </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
+                  <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
@@ -411,51 +500,231 @@ function AdvancedSearchPage() {
                       type="text"
                       name="query"
                       id="query"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       placeholder={t('archivist.search_query_placeholder')}
                       value={searchParams.query}
                       onChange={handleInputChange}
                     />
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* Semantic search toggle */}
-                <div className="sm:col-span-2">
-                  <div className="flex h-full items-end">
-                    <div className="relative flex items-start pt-4">
-                      <div className="flex h-6 items-center">
+            {/* Advanced Boolean Search */}
+            <div className="border-b border-gray-900/10 pb-12">
+              <h2 className="text-base font-semibold leading-7 text-gray-900">
+                {t('archivist.boolean_search')}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-gray-600">
+                {t('archivist.boolean_search_description')}
+              </p>
+
+              <div className="mt-6 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                {/* Must contain all */}
+                <div>
+                  <label htmlFor="mustContainAll" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('archivist.must_contain_all')}
+                  </label>
+                  <div className="mt-2">
+                    <div className="flex">
+                      <div className="relative flex-1">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
                         <input
-                          id="useSemanticSearch"
-                          name="useSemanticSearch"
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          checked={searchParams.useSemanticSearch}
-                          onChange={handleInputChange}
+                          type="text"
+                          value={mustContainAllInput}
+                          onChange={(e) => setMustContainAllInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleArrayInput(mustContainAllInput, setMustContainAllInput, 'mustContainAll')
+                            }
+                          }}
+                          className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                          placeholder={t('archivist.enter_terms_comma_separated')}
                         />
                       </div>
-                      <div className="ml-3 text-sm leading-6">
-                        <label htmlFor="useSemanticSearch" className="font-medium text-gray-900">
-                          {t('archivist.use_semantic_search')}
-                        </label>
-                        <p className="text-gray-500">{t('archivist.use_semantic_search_help')}</p>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleArrayInput(mustContainAllInput, setMustContainAllInput, 'mustContainAll')}
+                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {searchParams.mustContainAll.map((term, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20"
+                        >
+                          {term}
+                          <button
+                            type="button"
+                            onClick={() => removeFromArray(term, 'mustContainAll')}
+                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:bg-blue-500 focus:text-white focus:outline-none"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Document Type */}
-                <div className="sm:col-span-3">
-                  <label
-                    htmlFor="documentType"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
-                    {t('archivist.document_type')}
+                {/* Must contain any */}
+                <div>
+                  <label htmlFor="mustContainAny" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('archivist.must_contain_any')}
                   </label>
                   <div className="mt-2">
+                    <div className="flex">
+                      <div className="relative flex-1">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
+                        <input
+                          type="text"
+                          value={mustContainAnyInput}
+                          onChange={(e) => setMustContainAnyInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleArrayInput(mustContainAnyInput, setMustContainAnyInput, 'mustContainAny')
+                            }
+                          }}
+                          className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                          placeholder={t('archivist.enter_terms_comma_separated')}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleArrayInput(mustContainAnyInput, setMustContainAnyInput, 'mustContainAny')}
+                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {searchParams.mustContainAny.map((term, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
+                        >
+                          {term}
+                          <button
+                            type="button"
+                            onClick={() => removeFromArray(term, 'mustContainAny')}
+                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-green-400 hover:bg-green-200 hover:text-green-500 focus:bg-green-500 focus:text-white focus:outline-none"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Must not contain */}
+                <div>
+                  <label htmlFor="mustNotContain" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('archivist.must_not_contain')}
+                  </label>
+                  <div className="mt-2">
+                    <div className="flex">
+                      <div className="relative flex-1">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Plus className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
+                        <input
+                          type="text"
+                          value={mustNotContainInput}
+                          onChange={(e) => setMustNotContainInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleArrayInput(mustNotContainInput, setMustNotContainInput, 'mustNotContain')
+                            }
+                          }}
+                          className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                          placeholder={t('archivist.enter_terms_comma_separated')}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleArrayInput(mustNotContainInput, setMustNotContainInput, 'mustNotContain')}
+                        className="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {searchParams.mustNotContain.map((term, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20"
+                        >
+                          {term}
+                          <button
+                            type="button"
+                            onClick={() => removeFromArray(term, 'mustNotContain')}
+                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-red-400 hover:bg-red-200 hover:text-red-500 focus:bg-red-500 focus:text-white focus:outline-none"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Exact phrase */}
+                <div>
+                  <label htmlFor="exactPhrase" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('archivist.exact_phrase')}
+                  </label>
+                  <div className="relative mt-2">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
+                    <input
+                      type="text"
+                      name="exactPhrase"
+                      id="exactPhrase"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                      placeholder={t('archivist.exact_phrase_placeholder')}
+                      value={searchParams.exactPhrase}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="border-b border-gray-900/10 pb-12">
+              <h2 className="text-base font-semibold leading-7 text-gray-900">
+                {t('archivist.filters')}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-gray-600">
+                {t('archivist.filters_description')}
+              </p>
+
+              <div className="mt-10 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-6">
+                {/* Document Type */}
+                <div className="sm:col-span-3">
+                  <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('archivist.document_type')}
+                  </label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
                     <select
                       id="documentType"
                       name="documentType"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.documentType}
                       onChange={handleInputChange}
                     >
@@ -470,13 +739,10 @@ function AdvancedSearchPage() {
 
                 {/* Creator */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="creator"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="creator" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.document_creator')}
                   </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
+                  <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
@@ -484,7 +750,7 @@ function AdvancedSearchPage() {
                       type="text"
                       name="creator"
                       id="creator"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       placeholder={t('archivist.document_creator_placeholder')}
                       value={searchParams.creator}
                       onChange={handleInputChange}
@@ -494,13 +760,10 @@ function AdvancedSearchPage() {
 
                 {/* Date From */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="dateFrom"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.date_from')}
                   </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
+                  <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
@@ -508,7 +771,7 @@ function AdvancedSearchPage() {
                       type="date"
                       name="dateFrom"
                       id="dateFrom"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.dateFrom}
                       onChange={handleInputChange}
                     />
@@ -517,13 +780,10 @@ function AdvancedSearchPage() {
 
                 {/* Date To */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="dateTo"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.date_to')}
                   </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
+                  <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
@@ -531,7 +791,7 @@ function AdvancedSearchPage() {
                       type="date"
                       name="dateTo"
                       id="dateTo"
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.dateTo}
                       onChange={handleInputChange}
                     />
@@ -540,17 +800,17 @@ function AdvancedSearchPage() {
 
                 {/* Retention Category */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="retentionCategory"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="retentionCategory" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.retention_category')}
                   </label>
-                  <div className="mt-2">
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Clock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
                     <select
                       id="retentionCategory"
                       name="retentionCategory"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.retentionCategory}
                       onChange={handleInputChange}
                     >
@@ -566,17 +826,17 @@ function AdvancedSearchPage() {
 
                 {/* Confidentiality */}
                 <div className="sm:col-span-3">
-                  <label
-                    htmlFor="confidentiality"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
+                  <label htmlFor="confidentiality" className="block text-sm font-medium text-gray-700 mb-1">
                     {t('archivist.confidentiality')}
                   </label>
-                  <div className="mt-2">
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
                     <select
                       id="confidentiality"
                       name="confidentiality"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       value={searchParams.confidentiality}
                       onChange={handleInputChange}
                     >
@@ -589,52 +849,65 @@ function AdvancedSearchPage() {
                   </div>
                 </div>
 
+                {/* Status */}
+                <div className="sm:col-span-3">
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('archivist.status')}
+                  </label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Info className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </div>
+                    <select
+                      id="status"
+                      name="status"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                      value={searchParams.status}
+                      onChange={handleInputChange}
+                    >
+                      {statusOptions.map((status) => (
+                        <option key={status.id} value={status.id}>
+                          {status.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 {/* Tags */}
                 <div className="sm:col-span-6">
-                  <label
-                    htmlFor="tags"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
-                    {t('archivist.document_tags')}
+                  <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('archivist.tags')}
                   </label>
-                  <div className="mt-2">
-                    <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary">
-                      <div className="pointer-events-none flex items-center pl-3">
-                        <Tag className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      </div>
-                      <input
-                        type="text"
-                        name="tagInput"
-                        id="tagInput"
-                        className="block flex-1 border-0 bg-transparent py-1.5 pl-2 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                        placeholder={t('archivist.document_tags_placeholder')}
-                        value={tagInput}
-                        onChange={handleTagInputChange}
-                        onKeyDown={handleTagInputKeyDown}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddTag}
-                        className="m-1 inline-flex items-center rounded-md bg-primary px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                      >
-                        <Plus className="-ml-0.5 mr-1.5 h-4 w-4" aria-hidden="true" />
-                        {t('archivist.add')}
-                      </button>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Tag className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
-                    <p className="mt-2 text-sm text-gray-500">{t('archivist.document_tags_help')}</p>
+                    <input
+                      type="text"
+                      name="tags"
+                      id="tags"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                      placeholder={t('archivist.add_tag_placeholder')}
+                      value={tagInput}
+                      onChange={handleTagInputChange}
+                      onKeyDown={handleTagInputKeyDown}
+                    />
                   </div>
+                    
+                  {/* Display added tags */}
                   {searchParams.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {searchParams.tags.map((tag) => (
+                      {searchParams.tags.map((tag, index) => (
                         <span
-                          key={tag}
-                          className="inline-flex items-center rounded-md bg-primary-50 px-2 py-1 text-sm font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20"
+                          key={index}
+                          className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-300"
                         >
                           {tag}
                           <button
                             type="button"
                             onClick={() => handleRemoveTag(tag)}
-                            className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-primary-400 hover:bg-primary-200 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                            className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-500"
                           >
                             <span className="sr-only">{t('archivist.remove_tag')}</span>
                             <X className="h-3 w-3" aria-hidden="true" />
@@ -644,157 +917,365 @@ function AdvancedSearchPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Semantic search toggle */}
+                <div className="sm:col-span-6">
+                  <div className="relative flex items-center">
+                    <div className="flex h-6 items-center">
+                      <input
+                        id="useSemanticSearch"
+                        name="useSemanticSearch"
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        checked={searchParams.useSemanticSearch}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="ml-2">
+                      <label htmlFor="useSemanticSearch" className="text-sm font-medium text-gray-700">
+                        {t('archivist.use_semantic_search')}
+                      </label>
+                      <p className="text-sm text-gray-500">{t('archivist.use_semantic_search_help')}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
+          {/* Form actions */}
           <div className="mt-6 flex items-center justify-end gap-x-6">
             <button
               type="button"
               onClick={handleReset}
-              className="text-sm font-semibold leading-6 text-gray-900"
+              className="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-700"
             >
               {t('archivist.reset')}
             </button>
             <button
               type="submit"
               disabled={isSearching}
-              className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
+              className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSearching ? t('archivist.searching') : t('archivist.search')}
+              {isSearching ? (
+                <>
+                  <RefreshCw className="inline-block w-4 h-4 mr-2 animate-spin" />
+                  {t('archivist.searching')}
+                </>
+              ) : (
+                <>
+                  <Search className="inline-block w-4 h-4 mr-2" />
+                  {t('archivist.search')}
+                </>
+              )}
             </button>
           </div>
         </form>
 
-        {/* Search results */}
-        {searchPerformed && (
+        {/* Search Results */}
+        {(searchPerformed || searchResults.length > 0) && (
           <div className="mt-8">
+            <div className="sm:flex sm:items-center">
+              <div className="sm:flex-auto">
             <h3 className="text-lg font-medium leading-6 text-gray-900">
-              {t('archivist.search_results')}
+                  {(() => {
+                    const hasSearchCriteria = searchParams.query.trim() || 
+                                            searchParams.mustContainAll.length > 0 || 
+                                            searchParams.mustContainAny.length > 0 || 
+                                            searchParams.mustNotContain.length > 0 ||
+                                            searchParams.exactPhrase.trim() ||
+                                            searchParams.documentType || 
+                                            searchParams.creator.trim() ||
+                                            searchParams.dateFrom ||
+                                            searchParams.dateTo ||
+                                            searchParams.retentionCategory ||
+                                            searchParams.confidentiality ||
+                                            searchParams.status ||
+                                            searchParams.tags.length > 0
+
+                    return hasSearchCriteria 
+                      ? t('archivist.search_results')
+                      : t('archivist.all_documents')
+                  })()}
             </h3>
+                {searchStats && (
+                  <p className="mt-2 text-sm text-gray-700">
+                    {(() => {
+                      const hasSearchCriteria = searchParams.query.trim() || 
+                                              searchParams.mustContainAll.length > 0 || 
+                                              searchParams.mustContainAny.length > 0 || 
+                                              searchParams.mustNotContain.length > 0 ||
+                                              searchParams.exactPhrase.trim() ||
+                                              searchParams.documentType || 
+                                              searchParams.creator.trim() ||
+                                              searchParams.dateFrom ||
+                                              searchParams.dateTo ||
+                                              searchParams.retentionCategory ||
+                                              searchParams.confidentiality ||
+                                              searchParams.status ||
+                                              searchParams.tags.length > 0
 
-            {/* Results count and sort options */}
-            <div className="mt-4 flex flex-col justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
-              <p className="text-sm text-gray-500">
-                {t('archivist.showing_results', { count: sortedResults.length })}
-              </p>
-
-              <div className="flex items-center space-x-4">
-                <label htmlFor="sort-by" className="text-sm font-medium text-gray-700">
+                      return hasSearchCriteria 
+                        ? t('archivist.showing_results', { count: searchStats.total })
+                        : t('archivist.showing_all_documents', { count: searchStats.total })
+                    })()}
+                    {searchStats.queryTime && (
+                      <span className="text-gray-500">
+                        {' '}• {t('archivist.search_time', { time: searchStats.queryTime })}ms
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+              
+              {/* Sort options */}
+              {sortedResults.length > 0 && (
+                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="sort" className="text-sm font-medium text-gray-700">
                   {t('archivist.sort_by')}:
                 </label>
                 <select
-                  id="sort-by"
-                  name="sort-by"
-                  className="rounded-md border-gray-300 py-1 pl-2 pr-8 text-sm focus:border-primary focus:ring-primary"
-                  value={sortBy}
+                      id="sort"
+                      value={`${sortBy}-${sortDirection}`}
                   onChange={(e) => {
-                    setSortBy(e.target.value)
-                    setSortDirection('desc')
-                  }}
-                >
-                  <option value="relevance">{t('archivist.sort_by_relevance')}</option>
-                  <option value="title">{t('archivist.sort_by_title')}</option>
-                  <option value="documentType">{t('archivist.sort_by_type')}</option>
-                  <option value="creator">{t('archivist.sort_by_creator')}</option>
-                  <option value="creationDate">{t('archivist.sort_by_date')}</option>
-                </select>
-
-                <select
-                  id="sort-direction"
-                  name="sort-direction"
-                  className="rounded-md border-gray-300 py-1 pl-2 pr-8 text-sm focus:border-primary focus:ring-primary"
-                  value={sortDirection}
-                  onChange={(e) => setSortDirection(e.target.value)}
-                >
-                  <option value="desc">{t('archivist.sort_descending')}</option>
-                  <option value="asc">{t('archivist.sort_ascending')}</option>
+                        const [field, direction] = e.target.value.split('-')
+                        setSortBy(field)
+                        setSortDirection(direction)
+                      }}
+                      className="rounded-md border-gray-300 text-sm focus:border-primary focus:ring-primary"
+                    >
+                      <option value="relevance-desc">{t('archivist.sort_relevance')}</option>
+                      <option value="title-asc">{t('archivist.sort_title_asc')}</option>
+                      <option value="title-desc">{t('archivist.sort_title_desc')}</option>
+                      <option value="creationDate-desc">{t('archivist.sort_date_newest')}</option>
+                      <option value="creationDate-asc">{t('archivist.sort_date_oldest')}</option>
+                      <option value="documentType-asc">{t('archivist.sort_type_asc')}</option>
+                      <option value="creator-asc">{t('archivist.sort_creator_asc')}</option>
                 </select>
               </div>
+                </div>
+              )}
             </div>
 
-            {/* Results list */}
-            {sortedResults.length === 0 ? (
-              <div className="mt-6 rounded-md bg-yellow-50 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <Info className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+            {/* Results */}
+            <div className="mt-6">
+              {isSearching ? (
+                <div className="text-center py-12">
+                  <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">
+                    {t('archivist.loading_documents')}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {t('archivist.please_wait')}
+                  </p>
                   </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-yellow-800">
-                      {t('archivist.no_results_found')}
+              ) : sortedResults.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">
+                      {t('archivist.no_documents_found')}
                     </h3>
-                    <div className="mt-2 text-sm text-yellow-700">
-                      <p>{t('archivist.no_results_found_description')}</p>
-                    </div>
-                  </div>
-                </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {t('archivist.no_results_description')}
+                  </p>
               </div>
             ) : (
-              <div className="mt-6 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-md">
-                <ul role="list" className="divide-y divide-gray-200">
-                  {sortedResults.map((document) => (
-                    <li key={document.id}>
-                      <div className="block hover:bg-gray-50">
-                        <div className="px-4 py-4 sm:px-6">
-                          <div className="flex items-center justify-between">
-                            <div className="truncate text-sm font-medium text-primary">
-                              {document.title}
-                            </div>
-                            <div className="ml-2 flex flex-shrink-0">
-                              <span
-                                className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getConfidentialityBadgeColor(document.confidentiality)}`}
-                              >
-                                <Lock className="-ml-0.5 mr-1.5 h-4 w-4" />
-                                {confidentialityLevels.find((level) => level.id === document.confidentiality)?.name}
+                <div className="space-y-6">
+                  {sortedResults.map((result, index) => {
+                    // Handle both result.document and direct document structures
+                    const doc = result.document || result
+                    const relevanceScore = result.relevance_score
+                    const highlight = result.highlight
+
+                    return (
+                      <div
+                        key={doc?.id || index}
+                        className="relative rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="min-w-0 flex-1">
+                            <div className="focus:outline-none">
+                              <div className="flex items-center space-x-3">
+                                <h4 className="text-lg font-medium text-gray-900 truncate">
+                                  {doc?.title || 'Untitled Document'}
+                                </h4>
+                                
+                                {relevanceScore && (
+                                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                                    Relevance: {Math.round(relevanceScore * 100)}%
                               </span>
+                                )}
                             </div>
+                              
+                              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+                                <div className="flex items-center text-sm text-gray-500">
+                                  <FileText className="mr-1.5 h-4 w-4 flex-shrink-0" />
+                                  {getDocumentTypeName(doc?.document_type)}
                           </div>
-                          <div className="mt-2 sm:flex sm:justify-between">
-                            <div className="sm:flex">
+                                
                               <div className="flex items-center text-sm text-gray-500">
-                                <FileText className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
-                                {document.documentTypeName}
+                                  <User className="mr-1.5 h-4 w-4 flex-shrink-0" />
+                                  {doc?.creator_info?.creator_name || doc?.created_by || doc?.uploaded_by || 'Unknown Creator'}
                               </div>
-                              <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                                <User className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
-                                {document.creator}
+                                
+                                <div className="flex items-center text-sm text-gray-500">
+                                  <Calendar className="mr-1.5 h-4 w-4 flex-shrink-0" />
+                                  {formatDate(doc?.created_at)}
                               </div>
+                                
+                                {doc?.confidentiality_level && (
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getConfidentialityBadgeColor(
+                                      doc.confidentiality_level
+                                    )}`}
+                                  >
+                                    <Lock className="mr-1 h-3 w-3" />
+                                    {doc.confidentiality_level}
+                                  </span>
+                                )}
                             </div>
-                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                              <Calendar className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" />
-                              <p>
-                                {t('archivist.created_on')} {formatDate(document.creationDate)}
-                              </p>
+                              
+                              {doc?.description && (
+                                <p className="mt-3 text-sm text-gray-600 line-clamp-2">
+                                  {doc.description}
+                                </p>
+                              )}
+                              
+                              {/* Highlight matches */}
+                              {highlight && (
+                                <div className="mt-3 space-y-1">
+                                  {highlight.title && (
+                                    <div className="text-sm">
+                                      <span className="font-medium text-gray-700">{t('archivist.title_match')}:</span>
+                                      <span 
+                                        className="ml-1 text-gray-600"
+                                        dangerouslySetInnerHTML={{ __html: highlight.title }}
+                                      />
                             </div>
+                                  )}
+                                  {highlight.content && (
+                                    <div className="text-sm">
+                                      <span className="font-medium text-gray-700">{t('archivist.content_match')}:</span>
+                                      <span 
+                                        className="ml-1 text-gray-600"
+                                        dangerouslySetInnerHTML={{ __html: highlight.content }}
+                                      />
                           </div>
-                          <div className="mt-2 sm:flex sm:justify-between">
-                            <div className="flex flex-wrap gap-2">
-                              {document.tags.map((tag) => (
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Tags */}
+                              {doc?.tags && doc.tags.length > 0 && (
+                                <div className="mt-3 flex flex-wrap gap-1">
+                                  {doc.tags.slice(0, 5).map((tag, tagIndex) => (
                                 <span
-                                  key={tag}
+                                      key={tagIndex}
                                   className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
                                 >
                                   {tag}
                                 </span>
                               ))}
+                                  {doc.tags.length > 5 && (
+                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                      +{doc.tags.length - 5} {t('archivist.more')}
+                                    </span>
+                                  )}
                             </div>
-                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Actions */}
+                          <div className="ml-6 flex flex-shrink-0 items-center space-x-2">
                               <button
                                 type="button"
-                                onClick={() => navigate(`/dashboard/archivist/document/${document.id}`)}
-                                className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                              onClick={() => navigate(`/archivist/document/${doc?.id}`)}
+                              className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                               >
-                                <Eye className="-ml-0.5 mr-1.5 h-4 w-4" aria-hidden="true" />
-                                {t('archivist.view_document')}
+                              <Eye className="h-4 w-4 mr-1" />
+                              {t('archivist.view')}
                               </button>
+                            
+                            {doc?.file_path && (
+                              <button
+                                type="button"
+                                onClick={() => window.open(`${API_BASE_URL}/api/v1/documents/${doc.id}/download`, '_blank')}
+                                className="inline-flex items-center rounded-md bg-primary px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                {t('archivist.download')}
+                              </button>
+                            )}
                             </div>
                           </div>
                         </div>
+                    )
+                  })}
                       </div>
+              )}
+            </div>
+
+            {/* Search facets/stats */}
+            {searchStats?.facets && Object.keys(searchStats.facets).length > 0 && (
+              <div className="mt-8 border-t border-gray-200 pt-8">
+                <h4 className="text-sm font-medium text-gray-900 mb-4">
+                  {t('archivist.search_facets')}
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Document Types */}
+                  {searchStats.facets.document_types?.length > 0 && (
+                    <div>
+                      <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
+                        {t('archivist.document_types')}
+                      </h5>
+                      <ul className="space-y-1">
+                        {searchStats.facets.document_types.slice(0, 5).map((facet) => (
+                          <li key={facet.value} className="flex justify-between text-sm">
+                            <span className="text-gray-600">{getDocumentTypeName(facet.value)}</span>
+                            <span className="text-gray-900 font-medium">{facet.count}</span>
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+                  
+                  {/* Retention Categories */}
+                  {searchStats.facets.retention_categories?.length > 0 && (
+                    <div>
+                      <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
+                        {t('archivist.retention_categories')}
+                      </h5>
+                      <ul className="space-y-1">
+                        {searchStats.facets.retention_categories.slice(0, 5).map((facet) => (
+                          <li key={facet.value} className="flex justify-between text-sm">
+                            <span className="text-gray-600">{facet.value}</span>
+                            <span className="text-gray-900 font-medium">{facet.count}</span>
+                          </li>
+                        ))}
+                      </ul>
+          </div>
+        )}
+                  
+                  {/* Tags */}
+                  {searchStats.facets.tags?.length > 0 && (
+                    <div>
+                      <h5 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">
+                        {t('archivist.popular_tags')}
+                      </h5>
+                      <ul className="space-y-1">
+                        {searchStats.facets.tags.slice(0, 5).map((facet) => (
+                          <li key={facet.value} className="flex justify-between text-sm">
+                            <span className="text-gray-600">{facet.value}</span>
+                            <span className="text-gray-900 font-medium">{facet.count}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

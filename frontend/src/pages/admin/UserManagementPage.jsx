@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
+import { usersApi } from '../../services/api'
 import {
   Users,
   UserPlus,
@@ -27,170 +28,103 @@ function UserManagementPage() {
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [users, setUsers] = useState([])
-  const [filteredUsers, setFilteredUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [sortBy, setSortBy] = useState('name')
-  const [sortDirection, setSortDirection] = useState('asc')
+  const [institutionFilter, setInstitutionFilter] = useState('')
+  const [sortBy, setSortBy] = useState('created_at')
+  const [sortDirection, setSortDirection] = useState('desc')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalUsers, setTotalUsers] = useState(0)
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [showEditUserModal, setShowEditUserModal] = useState(false)
   const [showDeleteUserModal, setShowDeleteUserModal] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
   const [newUser, setNewUser] = useState({
-    name: '',
+    full_name: '',
     email: '',
     phone: '',
     role: 'clerk',
     institution: '',
-    department: '',
-    status: 'active',
   })
   const [formErrors, setFormErrors] = useState({})
   const [successMessage, setSuccessMessage] = useState('')
+  const [institutions, setInstitutions] = useState([])
 
-  // Mock roles for dropdown
+  // Available roles
   const roles = [
     { id: 'admin', name: t('admin.role_admin') },
     { id: 'archivist', name: t('admin.role_archivist') },
     { id: 'clerk', name: t('admin.role_clerk') },
     { id: 'inspector', name: t('admin.role_inspector') },
+    { id: 'citizen', name: t('admin.role_citizen') },
+    { id: 'media', name: t('admin.role_media') },
   ]
 
-  // Mock institutions for dropdown
-  const institutions = [
-    { id: 'inst1', name: 'Primăria Municipiului' },
-    { id: 'inst2', name: 'Consiliul Local' },
-    { id: 'inst3', name: 'Direcția de Asistență Socială' },
-    { id: 'inst4', name: 'Direcția de Urbanism' },
-    { id: 'inst5', name: 'Serviciul Public Comunitar Local de Evidență a Persoanelor' },
-  ]
-
-  // Mock departments for dropdown
-  const departments = [
-    { id: 'dept1', name: t('admin.department_general') },
-    { id: 'dept2', name: t('admin.department_hr') },
-    { id: 'dept3', name: t('admin.department_finance') },
-    { id: 'dept4', name: t('admin.department_legal') },
-    { id: 'dept5', name: t('admin.department_it') },
-    { id: 'dept6', name: t('admin.department_archive') },
-  ]
-
-  // Fetch users
-  const fetchUsers = async () => {
+  // Fetch users from API
+  const fetchUsers = async (page = 1) => {
     setIsLoading(true)
     try {
-      // In a real app, this would be an API call
-      // For the hackathon, we'll use mock data
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const params = {
+        page,
+        limit: 20,
+        sortBy,
+        sortDirection
+      }
 
-      // Generate 20 mock users
-      const mockUsers = Array.from({ length: 20 }, (_, i) => {
-        const roleId = ['admin', 'archivist', 'clerk', 'inspector'][Math.floor(Math.random() * 4)]
-        const institutionId = `inst${Math.floor(Math.random() * 5) + 1}`
-        const departmentId = `dept${Math.floor(Math.random() * 6) + 1}`
-        const statusOptions = ['active', 'inactive', 'pending']
-        const status = statusOptions[Math.floor(Math.random() * statusOptions.length)]
+      if (searchTerm) params.search = searchTerm
+      if (roleFilter) params.role = roleFilter
+      if (institutionFilter) params.institution = institutionFilter
 
-        return {
-          id: `user${i + 1}`,
-          name: [
-            'Ana Popescu',
-            'Ion Ionescu',
-            'Maria Dumitrescu',
-            'Andrei Radu',
-            'Elena Popa',
-            'Mihai Stancu',
-            'Cristina Diaconu',
-            'Alexandru Munteanu',
-            'Ioana Stoica',
-            'Bogdan Georgescu',
-          ][i % 10],
-          email: `user${i + 1}@example.com`,
-          phone: `07${Math.floor(10000000 + Math.random() * 90000000)}`,
-          role: roleId,
-          institution: institutionId,
-          department: departmentId,
-          status: status,
-          lastLogin: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString(),
-          createdAt: new Date(Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000).toISOString(),
-        }
-      })
-
-      setUsers(mockUsers)
-      setFilteredUsers(mockUsers)
+      const response = await usersApi.getUsers(params)
+      
+      if (response.success) {
+        setUsers(response.data.users || [])
+        setTotalPages(response.data.pagination.totalPages || 1)
+        setTotalUsers(response.data.pagination.total || 0)
+      }
     } catch (error) {
       console.error('Error fetching users:', error)
+      setUsers([])
     } finally {
       setIsLoading(false)
     }
   }
 
+  // Fetch institutions
+  const fetchInstitutions = async () => {
+    try {
+      const response = await usersApi.getInstitutions()
+      if (response.success) {
+        setInstitutions(response.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching institutions:', error)
+    }
+  }
+
   // Initial data fetch
   useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  // Filter and sort users when search term, filters, or sort options change
-  useEffect(() => {
-    let result = [...users]
-
-    // Apply search filter
-    if (searchTerm) {
-      const lowerSearchTerm = searchTerm.toLowerCase()
-      result = result.filter(
-        (user) =>
-          user.name.toLowerCase().includes(lowerSearchTerm) ||
-          user.email.toLowerCase().includes(lowerSearchTerm)
-      )
-    }
-
-    // Apply role filter
-    if (roleFilter) {
-      result = result.filter((user) => user.role === roleFilter)
-    }
-
-    // Apply status filter
-    if (statusFilter) {
-      result = result.filter((user) => user.status === statusFilter)
-    }
-
-    // Apply sorting
-    result.sort((a, b) => {
-      let aValue = a[sortBy]
-      let bValue = b[sortBy]
-
-      // Handle date fields
-      if (sortBy === 'lastLogin' || sortBy === 'createdAt') {
-        aValue = new Date(aValue)
-        bValue = new Date(bValue)
-      }
-
-      if (aValue < bValue) {
-        return sortDirection === 'asc' ? -1 : 1
-      }
-      if (aValue > bValue) {
-        return sortDirection === 'asc' ? 1 : -1
-      }
-      return 0
-    })
-
-    setFilteredUsers(result)
-  }, [users, searchTerm, roleFilter, statusFilter, sortBy, sortDirection])
+    fetchUsers(currentPage)
+    fetchInstitutions()
+  }, [currentPage, searchTerm, roleFilter, institutionFilter, sortBy, sortDirection])
 
   // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value)
+    setCurrentPage(1) // Reset to first page when searching
   }
 
   // Handle role filter change
   const handleRoleFilterChange = (e) => {
     setRoleFilter(e.target.value)
+    setCurrentPage(1)
   }
 
-  // Handle status filter change
-  const handleStatusFilterChange = (e) => {
-    setStatusFilter(e.target.value)
+  // Handle institution filter change
+  const handleInstitutionFilterChange = (e) => {
+    setInstitutionFilter(e.target.value)
+    setCurrentPage(1)
   }
 
   // Handle sort change
@@ -201,58 +135,66 @@ function UserManagementPage() {
       setSortBy(field)
       setSortDirection('asc')
     }
+    setCurrentPage(1)
   }
 
-  // Reset filters
+  // Reset all filters
   const handleResetFilters = () => {
     setSearchTerm('')
     setRoleFilter('')
-    setStatusFilter('')
-    setSortBy('name')
-    setSortDirection('asc')
+    setInstitutionFilter('')
+    setSortBy('created_at')
+    setSortDirection('desc')
+    setCurrentPage(1)
   }
 
-  // Open add user modal
+  // Handle add user click
   const handleAddUserClick = () => {
     setNewUser({
-      name: '',
+      full_name: '',
       email: '',
       phone: '',
       role: 'clerk',
       institution: '',
-      department: '',
-      status: 'active',
     })
     setFormErrors({})
     setShowAddUserModal(true)
   }
 
-  // Open edit user modal
-  const handleEditUserClick = (user) => {
-    setCurrentUser(user)
-    setNewUser({ ...user })
+  // Handle edit user click
+  const handleEditUserClick = (userToEdit) => {
+    setCurrentUser(userToEdit)
+    setNewUser({
+      full_name: userToEdit.full_name || '',
+      email: userToEdit.email || '',
+      phone: userToEdit.phone || '',
+      role: userToEdit.role || 'clerk',
+      institution: userToEdit.institution || '',
+    })
     setFormErrors({})
     setShowEditUserModal(true)
   }
 
-  // Open delete user modal
-  const handleDeleteUserClick = (user) => {
-    setCurrentUser(user)
+  // Handle delete user click
+  const handleDeleteUserClick = (userToDelete) => {
+    setCurrentUser(userToDelete)
     setShowDeleteUserModal(true)
   }
 
-  // Handle input change for add/edit user form
+  // Handle input change
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setNewUser((prev) => ({ ...prev, [name]: value }))
-
-    // Clear error for this field if it exists
+    setNewUser((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+    
+    // Clear specific field error when user starts typing
     if (formErrors[name]) {
-      setFormErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[name]
-        return newErrors
-      })
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }))
     }
   }
 
@@ -260,98 +202,82 @@ function UserManagementPage() {
   const validateForm = () => {
     const errors = {}
 
-    if (!newUser.name.trim()) {
-      errors.name = t('admin.name_required')
+    if (!newUser.full_name.trim()) {
+      errors.full_name = t('admin.error_name_required')
     }
 
     if (!newUser.email.trim()) {
-      errors.email = t('admin.email_required')
+      errors.email = t('admin.error_email_required')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)) {
-      errors.email = t('admin.email_invalid')
+      errors.email = t('admin.error_email_invalid')
     }
 
     if (!newUser.role) {
-      errors.role = t('admin.role_required')
-    }
-
-    if (!newUser.institution) {
-      errors.institution = t('admin.institution_required')
+      errors.role = t('admin.error_role_required')
     }
 
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
 
-  // Add new user
+  // Handle add user
   const handleAddUser = async () => {
     if (!validateForm()) return
 
     try {
-      // In a real app, this would be an API call
-      // For the hackathon, we'll simulate adding a user
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const newUserData = {
-        ...newUser,
-        id: `user${users.length + 1}`,
-        createdAt: new Date().toISOString(),
-        lastLogin: null,
+      const response = await usersApi.createUser(newUser)
+      
+      if (response.success) {
+        setSuccessMessage(t('admin.user_created_success'))
+        setShowAddUserModal(false)
+        fetchUsers(currentPage) // Refresh the user list
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(''), 3000)
       }
-
-      setUsers((prev) => [newUserData, ...prev])
-      setShowAddUserModal(false)
-      setSuccessMessage(t('admin.user_added_success'))
-
-      // Hide success message after 5 seconds
-      setTimeout(() => {
-        setSuccessMessage('')
-      }, 5000)
     } catch (error) {
-      console.error('Error adding user:', error)
+      console.error('Error creating user:', error)
+      setFormErrors({ general: error.message || t('admin.error_creating_user') })
     }
   }
 
-  // Update user
+  // Handle update user
   const handleUpdateUser = async () => {
     if (!validateForm()) return
 
     try {
-      // In a real app, this would be an API call
-      // For the hackathon, we'll simulate updating a user
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      setUsers((prev) =>
-        prev.map((u) => (u.id === currentUser.id ? { ...u, ...newUser } : u))
-      )
-      setShowEditUserModal(false)
-      setSuccessMessage(t('admin.user_updated_success'))
-
-      // Hide success message after 5 seconds
-      setTimeout(() => {
-        setSuccessMessage('')
-      }, 5000)
+      const response = await usersApi.updateUser(currentUser.id, newUser)
+      
+      if (response.success) {
+        setSuccessMessage(t('admin.user_updated_success'))
+        setShowEditUserModal(false)
+        fetchUsers(currentPage) // Refresh the user list
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(''), 3000)
+      }
     } catch (error) {
       console.error('Error updating user:', error)
+      setFormErrors({ general: error.message || t('admin.error_updating_user') })
     }
   }
 
-  // Delete user
+  // Handle delete user
   const handleDeleteUser = async () => {
     try {
-      // In a real app, this would be an API call
-      // For the hackathon, we'll simulate deleting a user
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      setUsers((prev) => prev.filter((u) => u.id !== currentUser.id))
-      setShowDeleteUserModal(false)
-      setSuccessMessage(t('admin.user_deleted_success'))
-
-      // Hide success message after 5 seconds
-      setTimeout(() => {
-        setSuccessMessage('')
-      }, 5000)
+      const response = await usersApi.deleteUser(currentUser.id)
+      
+      if (response.success) {
+        setSuccessMessage(t('admin.user_deleted_success'))
+        setShowDeleteUserModal(false)
+        fetchUsers(currentPage) // Refresh the user list
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(''), 3000)
+      }
     } catch (error) {
       console.error('Error deleting user:', error)
+      setFormErrors({ general: error.message || t('admin.error_deleting_user') })
     }
   }
 
@@ -372,12 +298,6 @@ function UserManagementPage() {
   const getInstitutionName = (institutionId) => {
     const institution = institutions.find((i) => i.id === institutionId)
     return institution ? institution.name : institutionId
-  }
-
-  // Get department name by ID
-  const getDepartmentName = (departmentId) => {
-    const department = departments.find((d) => d.id === departmentId)
-    return department ? department.name : departmentId
   }
 
   // Get status badge color
@@ -453,63 +373,90 @@ function UserManagementPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
             {/* Search */}
             <div>
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="search"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 {t('admin.search')}
               </label>
-              <div className="relative mt-1 rounded-md shadow-sm">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                </div>
+              <div className="relative">
                 <input
                   type="text"
                   name="search"
                   id="search"
-                  className="block w-full rounded-md border-gray-300 pl-10 focus:border-primary focus:ring-primary sm:text-sm"
+                  className="block w-full rounded-lg border-gray-300 pl-10 pr-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                   placeholder={t('admin.search_placeholder')}
                   value={searchTerm}
                   onChange={handleSearchChange}
                 />
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
               </div>
             </div>
 
             {/* Role Filter */}
             <div>
-              <label htmlFor="roleFilter" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="roleFilter"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 {t('admin.filter_by_role')}
               </label>
-              <select
-                id="roleFilter"
-                name="roleFilter"
-                className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                value={roleFilter}
-                onChange={handleRoleFilterChange}
-              >
-                <option value="">{t('admin.all_roles')}</option>
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="roleFilter"
+                  name="roleFilter"
+                  className="block w-full appearance-none rounded-lg border-gray-300 pl-10 pr-10 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
+                  value={roleFilter}
+                  onChange={handleRoleFilterChange}
+                >
+                  <option value="">{t('admin.all_roles')}</option>
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Shield className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
             </div>
 
-            {/* Status Filter */}
+            {/* Institution Filter */}
             <div>
-              <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700">
-                {t('admin.filter_by_status')}
-              </label>
-              <select
-                id="statusFilter"
-                name="statusFilter"
-                className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
-                value={statusFilter}
-                onChange={handleStatusFilterChange}
+              <label
+                htmlFor="institutionFilter"
+                className="mb-1 block text-sm font-medium text-gray-700"
               >
-                <option value="">{t('admin.all_statuses')}</option>
-                <option value="active">{t('admin.status_active')}</option>
-                <option value="inactive">{t('admin.status_inactive')}</option>
-                <option value="pending">{t('admin.status_pending')}</option>
-              </select>
+                {t('admin.filter_by_institution')}
+              </label>
+              <div className="relative">
+                <select
+                  id="institutionFilter"
+                  name="institutionFilter"
+                  className="block w-full appearance-none rounded-lg border-gray-300 pl-10 pr-10 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
+                  value={institutionFilter}
+                  onChange={handleInstitutionFilterChange}
+                >
+                  <option value="">{t('admin.all_institutions')}</option>
+                  {institutions.map((institution) => (
+                    <option key={institution.id} value={institution.id}>
+                      {institution.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Building className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
             </div>
 
             {/* Reset Filters */}
@@ -517,7 +464,7 @@ function UserManagementPage() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="inline-flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 <RefreshCw className="-ml-1 mr-2 h-5 w-5 text-gray-400" aria-hidden="true" />
                 {t('admin.reset_filters')}
@@ -532,13 +479,11 @@ function UserManagementPage() {
             <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
                 {isLoading ? (
-                  <div className="flex h-64 items-center justify-center bg-white">
-                    <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-                    <span className="ml-2 text-lg font-medium text-gray-700">
-                      {t('admin.loading_users')}
-                    </span>
+                  <div className="loading-container bg-white h-64">
+                    <div className="loading-spinner"></div>
+                    <p className="text-gray-600 text-sm mt-2">{t('admin.loading_users')}</p>
                   </div>
-                ) : filteredUsers.length === 0 ? (
+                ) : users.length === 0 ? (
                   <div className="flex h-64 flex-col items-center justify-center bg-white">
                     <Users className="h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-medium text-gray-900">
@@ -555,15 +500,15 @@ function UserManagementPage() {
                         <th
                           scope="col"
                           className="cursor-pointer py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                          onClick={() => handleSortChange('name')}
+                          onClick={() => handleSortChange('full_name')}
                         >
                           <div className="group inline-flex">
                             {t('admin.name')}
                             <span
-                              className={`ml-2 flex-none rounded ${sortBy === 'name' ? 'bg-gray-200 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}
+                              className={`ml-2 flex-none rounded ${sortBy === 'full_name' ? 'bg-gray-200 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}
                             >
                               <ChevronDown
-                                className={`h-5 w-5 ${sortBy === 'name' && sortDirection === 'desc' ? 'rotate-180' : ''}`}
+                                className={`h-5 w-5 ${sortBy === 'full_name' && sortDirection === 'desc' ? 'rotate-180' : ''}`}
                                 aria-hidden="true"
                               />
                             </span>
@@ -606,15 +551,15 @@ function UserManagementPage() {
                         <th
                           scope="col"
                           className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                          onClick={() => handleSortChange('status')}
+                          onClick={() => handleSortChange('institution')}
                         >
                           <div className="group inline-flex">
-                            {t('admin.status')}
+                            {t('admin.institution')}
                             <span
-                              className={`ml-2 flex-none rounded ${sortBy === 'status' ? 'bg-gray-200 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}
+                              className={`ml-2 flex-none rounded ${sortBy === 'institution' ? 'bg-gray-200 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}
                             >
                               <ChevronDown
-                                className={`h-5 w-5 ${sortBy === 'status' && sortDirection === 'desc' ? 'rotate-180' : ''}`}
+                                className={`h-5 w-5 ${sortBy === 'institution' && sortDirection === 'desc' ? 'rotate-180' : ''}`}
                                 aria-hidden="true"
                               />
                             </span>
@@ -623,15 +568,15 @@ function UserManagementPage() {
                         <th
                           scope="col"
                           className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                          onClick={() => handleSortChange('lastLogin')}
+                          onClick={() => handleSortChange('created_at')}
                         >
                           <div className="group inline-flex">
                             {t('admin.last_login')}
                             <span
-                              className={`ml-2 flex-none rounded ${sortBy === 'lastLogin' ? 'bg-gray-200 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}
+                              className={`ml-2 flex-none rounded ${sortBy === 'created_at' ? 'bg-gray-200 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}
                             >
                               <ChevronDown
-                                className={`h-5 w-5 ${sortBy === 'lastLogin' && sortDirection === 'desc' ? 'rotate-180' : ''}`}
+                                className={`h-5 w-5 ${sortBy === 'created_at' && sortDirection === 'desc' ? 'rotate-180' : ''}`}
                                 aria-hidden="true"
                               />
                             </span>
@@ -643,20 +588,20 @@ function UserManagementPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                      {filteredUsers.map((user) => (
+                      {users.map((user) => (
                         <tr key={user.id}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                             <div className="flex items-center">
                               <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
                                 <span className="font-medium text-gray-600">
-                                  {user.name
+                                  {user.full_name
                                     .split(' ')
                                     .map((n) => n[0])
                                     .join('')}
                                 </span>
                               </div>
                               <div className="ml-4">
-                                <div className="font-medium text-gray-900">{user.name}</div>
+                                <div className="font-medium text-gray-900">{user.full_name}</div>
                                 <div className="text-gray-500">
                                   {getInstitutionName(user.institution)}
                                 </div>
@@ -677,20 +622,10 @@ function UserManagementPage() {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <span
-                              className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusBadgeColor(
-                                user.status
-                              )}`}
-                            >
-                              {user.status === 'active'
-                                ? t('admin.status_active')
-                                : user.status === 'inactive'
-                                ? t('admin.status_inactive')
-                                : t('admin.status_pending')}
-                            </span>
+                            {getInstitutionName(user.institution)}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {formatDate(user.lastLogin)}
+                            {formatDate(user.created_at)}
                           </td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <button
@@ -764,37 +699,57 @@ function UserManagementPage() {
                 <div className="mt-5 sm:mt-4">
                   <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                     <div className="sm:col-span-3">
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="full_name"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.name')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="text"
-                          name="name"
-                          id="name"
-                          className={`block w-full rounded-md ${formErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
-                          value={newUser.name}
+                          name="full_name"
+                          id="full_name"
+                          className={`block w-full rounded-lg ${
+                            formErrors.full_name
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-4 py-2 text-sm`}
+                          value={newUser.full_name}
                           onChange={handleInputChange}
                         />
-                        {formErrors.name && (
-                          <p className="mt-2 text-sm text-red-600">{formErrors.name}</p>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Users className={`h-5 w-5 ${formErrors.full_name ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        {formErrors.full_name && (
+                          <p className="mt-2 text-sm text-red-600">{formErrors.full_name}</p>
                         )}
                       </div>
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="email"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.email')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="email"
                           name="email"
                           id="email"
-                          className={`block w-full rounded-md ${formErrors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full rounded-lg ${
+                            formErrors.email
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-4 py-2 text-sm`}
                           value={newUser.email}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Mail className={`h-5 w-5 ${formErrors.email ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.email && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.email}</p>
                         )}
@@ -802,30 +757,43 @@ function UserManagementPage() {
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="phone"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.phone')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="text"
                           name="phone"
                           id="phone"
-                          className="block w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
+                          className="block w-full rounded-lg border-gray-300 pl-10 pr-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                           value={newUser.phone}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Phone className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
                       </div>
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="role"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.role')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <select
                           id="role"
                           name="role"
-                          className={`block w-full rounded-md ${formErrors.role ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full appearance-none rounded-lg ${
+                            formErrors.role
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-10 py-2 text-sm`}
                           value={newUser.role}
                           onChange={handleInputChange}
                         >
@@ -836,6 +804,12 @@ function UserManagementPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Shield className={`h-5 w-5 ${formErrors.role ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDown className={`h-5 w-5 ${formErrors.role ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.role && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.role}</p>
                         )}
@@ -845,15 +819,19 @@ function UserManagementPage() {
                     <div className="sm:col-span-3">
                       <label
                         htmlFor="institution"
-                        className="block text-sm font-medium text-gray-700"
+                        className="mb-1 block text-sm font-medium text-gray-700"
                       >
                         {t('admin.institution')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <select
                           id="institution"
                           name="institution"
-                          className={`block w-full rounded-md ${formErrors.institution ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full appearance-none rounded-lg ${
+                            formErrors.institution
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-10 py-2 text-sm`}
                           value={newUser.institution}
                           onChange={handleInputChange}
                         >
@@ -864,53 +842,15 @@ function UserManagementPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Building className={`h-5 w-5 ${formErrors.institution ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDown className={`h-5 w-5 ${formErrors.institution ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.institution && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.institution}</p>
                         )}
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label
-                        htmlFor="department"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {t('admin.department')}
-                      </label>
-                      <div className="mt-1">
-                        <select
-                          id="department"
-                          name="department"
-                          className="block w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
-                          value={newUser.department}
-                          onChange={handleInputChange}
-                        >
-                          <option value="">{t('admin.select_department')}</option>
-                          {departments.map((department) => (
-                            <option key={department.id} value={department.id}>
-                              {department.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                        {t('admin.status')}
-                      </label>
-                      <div className="mt-1">
-                        <select
-                          id="status"
-                          name="status"
-                          className="block w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
-                          value={newUser.status}
-                          onChange={handleInputChange}
-                        >
-                          <option value="active">{t('admin.status_active')}</option>
-                          <option value="inactive">{t('admin.status_inactive')}</option>
-                          <option value="pending">{t('admin.status_pending')}</option>
-                        </select>
                       </div>
                     </div>
                   </div>
@@ -981,37 +921,57 @@ function UserManagementPage() {
                 <div className="mt-5 sm:mt-4">
                   <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                     <div className="sm:col-span-3">
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="full_name"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.name')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="text"
-                          name="name"
-                          id="name"
-                          className={`block w-full rounded-md ${formErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
-                          value={newUser.name}
+                          name="full_name"
+                          id="full_name"
+                          className={`block w-full rounded-lg ${
+                            formErrors.full_name
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-4 py-2 text-sm`}
+                          value={newUser.full_name}
                           onChange={handleInputChange}
                         />
-                        {formErrors.name && (
-                          <p className="mt-2 text-sm text-red-600">{formErrors.name}</p>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Users className={`h-5 w-5 ${formErrors.full_name ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        {formErrors.full_name && (
+                          <p className="mt-2 text-sm text-red-600">{formErrors.full_name}</p>
                         )}
                       </div>
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="email"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.email')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="email"
                           name="email"
                           id="email"
-                          className={`block w-full rounded-md ${formErrors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full rounded-lg ${
+                            formErrors.email
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-4 py-2 text-sm`}
                           value={newUser.email}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Mail className={`h-5 w-5 ${formErrors.email ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.email && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.email}</p>
                         )}
@@ -1019,30 +979,43 @@ function UserManagementPage() {
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="phone"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.phone')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <input
                           type="text"
                           name="phone"
                           id="phone"
-                          className="block w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
+                          className="block w-full rounded-lg border-gray-300 pl-10 pr-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                           value={newUser.phone}
                           onChange={handleInputChange}
                         />
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Phone className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
                       </div>
                     </div>
 
                     <div className="sm:col-span-3">
-                      <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="role"
+                        className="mb-1 block text-sm font-medium text-gray-700"
+                      >
                         {t('admin.role')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <select
                           id="role"
                           name="role"
-                          className={`block w-full rounded-md ${formErrors.role ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full appearance-none rounded-lg ${
+                            formErrors.role
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-10 py-2 text-sm`}
                           value={newUser.role}
                           onChange={handleInputChange}
                         >
@@ -1053,6 +1026,12 @@ function UserManagementPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Shield className={`h-5 w-5 ${formErrors.role ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDown className={`h-5 w-5 ${formErrors.role ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.role && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.role}</p>
                         )}
@@ -1062,15 +1041,19 @@ function UserManagementPage() {
                     <div className="sm:col-span-3">
                       <label
                         htmlFor="institution"
-                        className="block text-sm font-medium text-gray-700"
+                        className="mb-1 block text-sm font-medium text-gray-700"
                       >
                         {t('admin.institution')}
                       </label>
-                      <div className="mt-1">
+                      <div className="relative">
                         <select
                           id="institution"
                           name="institution"
-                          className={`block w-full rounded-md ${formErrors.institution ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-primary focus:ring-primary'} sm:text-sm`}
+                          className={`block w-full appearance-none rounded-lg ${
+                            formErrors.institution
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                              : 'border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary'
+                          } pl-10 pr-10 py-2 text-sm`}
                           value={newUser.institution}
                           onChange={handleInputChange}
                         >
@@ -1081,53 +1064,15 @@ function UserManagementPage() {
                             </option>
                           ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <Building className={`h-5 w-5 ${formErrors.institution ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDown className={`h-5 w-5 ${formErrors.institution ? 'text-red-400' : 'text-gray-400'}`} aria-hidden="true" />
+                        </div>
                         {formErrors.institution && (
                           <p className="mt-2 text-sm text-red-600">{formErrors.institution}</p>
                         )}
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label
-                        htmlFor="department"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        {t('admin.department')}
-                      </label>
-                      <div className="mt-1">
-                        <select
-                          id="department"
-                          name="department"
-                          className="block w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
-                          value={newUser.department}
-                          onChange={handleInputChange}
-                        >
-                          <option value="">{t('admin.select_department')}</option>
-                          {departments.map((department) => (
-                            <option key={department.id} value={department.id}>
-                              {department.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                        {t('admin.status')}
-                      </label>
-                      <div className="mt-1">
-                        <select
-                          id="status"
-                          name="status"
-                          className="block w-full rounded-md border-gray-300 focus:border-primary focus:ring-primary sm:text-sm"
-                          value={newUser.status}
-                          onChange={handleInputChange}
-                        >
-                          <option value="active">{t('admin.status_active')}</option>
-                          <option value="inactive">{t('admin.status_inactive')}</option>
-                          <option value="pending">{t('admin.status_pending')}</option>
-                        </select>
                       </div>
                     </div>
                   </div>
@@ -1180,7 +1125,7 @@ function UserManagementPage() {
                     </h3>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500">
-                        {t('admin.delete_user_confirmation', { name: currentUser?.name })}
+                        {t('admin.delete_user_confirmation', { name: currentUser?.full_name })}
                       </p>
                     </div>
                   </div>

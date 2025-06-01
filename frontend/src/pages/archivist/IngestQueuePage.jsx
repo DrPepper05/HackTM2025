@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
 import {
   Search,
-  Filter,
   FileText,
   Eye,
   Clock,
@@ -13,16 +11,17 @@ import {
   XCircle,
   Calendar,
   User,
+  ArrowUpDown,
+  Inbox,
 } from 'lucide-react'
+import { documentsApi, searchApi } from '../../services/api'
 
 function IngestQueuePage() {
   const { t } = useTranslation()
-  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [documents, setDocuments] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState('all')
-  const [typeFilter, setTypeFilter] = useState('all')
   const [sortBy, setSortBy] = useState('date_desc')
 
   // Date options for filtering
@@ -33,19 +32,6 @@ function IngestQueuePage() {
     { id: 'this_month', name: t('archivist.filter_this_month') },
   ]
 
-  // Document type options for filtering
-  const typeOptions = [
-    { id: 'all', name: t('archivist.filter_all_types') },
-    { id: 'hotarare', name: 'Hotărâre' },
-    { id: 'dispozitie', name: 'Dispoziție' },
-    { id: 'contract', name: 'Contract' },
-    { id: 'autorizatie', name: 'Autorizație' },
-    { id: 'certificat', name: 'Certificat' },
-    { id: 'adresa', name: 'Adresă' },
-    { id: 'raport', name: 'Raport' },
-    { id: 'proces_verbal', name: 'Proces-verbal' },
-  ]
-
   // Sort options
   const sortOptions = [
     { id: 'date_desc', name: t('archivist.sort_newest') },
@@ -54,82 +40,107 @@ function IngestQueuePage() {
     { id: 'title_desc', name: t('archivist.sort_title_za') },
   ]
 
-  // Mock data for documents
+  // Fetch documents from API
   useEffect(() => {
-    // In a real app, this would be an API call to fetch documents in the ingest queue
     const fetchDocuments = async () => {
       setIsLoading(true)
       try {
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
-        // Mock data
-        const mockDocuments = [
-          {
-            id: '1',
-            title: 'Contract de achiziție publică pentru servicii de mentenanță',
-            documentType: 'contract',
-            documentTypeName: 'Contract',
-            creationDate: '2023-10-20',
-            uploadDate: '2023-10-22',
-            uploadedBy: 'Maria Popescu',
-            status: 'registered',
-            retentionCategory: 'c',
-            confidentiality: 'internal',
-          },
-          {
-            id: '2',
-            title: 'Dispoziție privind constituirea comisiei de inventariere',
-            documentType: 'dispozitie',
-            documentTypeName: 'Dispoziție',
-            creationDate: '2023-11-01',
-            uploadDate: '2023-11-02',
-            uploadedBy: 'Ion Ionescu',
-            status: 'registered',
-            retentionCategory: 'ci',
-            confidentiality: 'internal',
-          },
-          {
-            id: '3',
-            title: 'Certificat de urbanism pentru construire locuință',
-            documentType: 'certificat',
-            documentTypeName: 'Certificat',
-            creationDate: '2023-09-10',
-            uploadDate: '2023-09-12',
-            uploadedBy: 'Ana Popescu',
-            status: 'registered',
-            retentionCategory: 'cs',
-            confidentiality: 'public',
-          },
-          {
-            id: '4',
-            title: 'Autorizație de construire pentru imobil rezidențial',
-            documentType: 'autorizatie',
-            documentTypeName: 'Autorizație',
-            creationDate: '2023-11-10',
-            uploadDate: '2023-11-12',
-            uploadedBy: 'Mihai Popa',
-            status: 'registered',
-            retentionCategory: 'cs',
-            confidentiality: 'public',
-          },
-          {
-            id: '5',
-            title: 'Proces-verbal de recepție lucrări de infrastructură',
-            documentType: 'proces_verbal',
-            documentTypeName: 'Proces-verbal',
-            creationDate: '2023-11-15',
-            uploadDate: '2023-11-16',
-            uploadedBy: 'Elena Dumitrescu',
-            status: 'registered',
-            retentionCategory: 'c',
-            confidentiality: 'internal',
-          },
-        ]
-
-        setDocuments(mockDocuments)
+        console.log('Fetching documents with INGESTING status...')
+        
+        let allDocuments = []
+        
+        // Approach 1: Try search API first as it should return all documents for staff
+        try {
+          const response = await searchApi.search({ 
+            query: '', // Empty query to get all documents
+            limit: 1000, // Large limit to get all ingesting documents
+            offset: 0 
+          })
+          console.log('Search API Response:', response)
+          
+          if (response.data?.documents) {
+            // Extract the actual document objects from the nested structure
+            allDocuments = response.data.documents.map(item => item.document)
+            console.log('Extracted documents from search API:', allDocuments.length)
+          } else if (Array.isArray(response.data)) {
+            allDocuments = response.data
+          }
+        } catch (searchError) {
+          console.log('Search API failed:', searchError)
+        }
+        
+        // Approach 2: Try documents API without user filter
+        if (allDocuments.length === 0) {
+          try {
+            const response = await documentsApi.getDocuments({ limit: 1000 })
+            console.log('Documents API Response:', response)
+            
+            if (response && response.documents) {
+              allDocuments = response.documents
+            } else if (response && response.data) {
+              if (response.data.documents) {
+                allDocuments = response.data.documents
+              } else if (Array.isArray(response.data)) {
+                allDocuments = response.data
+              }
+            } else if (Array.isArray(response)) {
+              allDocuments = response
+            }
+          } catch (docError) {
+            console.log('Documents API failed:', docError)
+          }
+        }
+        
+        // Approach 3: Try direct API call to get all documents (for staff)
+        if (allDocuments.length === 0) {
+          try {
+            const token = JSON.parse(localStorage.getItem('auth_session'))?.access_token
+            const directResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'}/admin/documents`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            })
+            
+            if (directResponse.ok) {
+              const directData = await directResponse.json()
+              console.log('Direct admin API Response:', directData.length, 'documents')
+              allDocuments = Array.isArray(directData) ? directData : []
+            }
+          } catch (directError) {
+            console.log('Direct admin API failed:', directError)
+          }
+        }
+        
+        console.log('All documents found:', allDocuments.length)
+        
+        // Filter documents to only show those with INGESTING status
+        const ingestingDocuments = allDocuments.filter(doc => {
+          console.log('Document status:', doc.status, 'Document title:', doc.title?.substring(0, 50))
+          return doc.status === 'INGESTING'
+        })
+        
+        console.log('Filtered ingesting documents:', ingestingDocuments.length, 'out of', allDocuments.length)
+        
+        // Transform the API response to match the expected format
+        const transformedDocuments = ingestingDocuments.map(doc => ({
+          id: doc.id,
+          title: doc.title || 'Untitled Document',
+          documentType: doc.document_type || 'unknown',
+          documentTypeName: doc.document_type || 'Unknown',
+          creationDate: doc.created_at ? doc.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          uploadDate: doc.created_at ? doc.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          uploadedBy: doc.uploader_user_id || 'Unknown User',
+          status: 'ingesting', // Ensure consistent lowercase status for UI
+          retentionCategory: doc.retention_category || 'unknown',
+          confidentiality: doc.is_public ? 'public' : 'internal',
+        }))
+        
+        setDocuments(transformedDocuments)
       } catch (error) {
         console.error('Error fetching documents:', error)
+        // Fallback to empty array on error
+        setDocuments([])
       } finally {
         setIsLoading(false)
       }
@@ -146,9 +157,6 @@ function IngestQueuePage() {
       doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.documentTypeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase())
-
-    // Type filter
-    const matchesType = typeFilter === 'all' || doc.documentType === typeFilter
 
     // Date filter
     let matchesDate = true
@@ -168,7 +176,7 @@ function IngestQueuePage() {
       matchesDate = uploadDate >= thisMonthStart
     }
 
-    return matchesSearch && matchesType && matchesDate
+    return matchesSearch && matchesDate
   })
 
   // Sort documents
@@ -185,34 +193,19 @@ function IngestQueuePage() {
     return 0
   })
 
-  // Get status badge color and icon
+  // Get status badge icon
   const getStatusBadge = (status) => {
     switch (status) {
+      case 'ingesting':
+        return { icon: <Clock className="h-5 w-5 text-blue-500 animate-spin" /> }
       case 'registered':
-        return {
-          color: 'bg-blue-50 text-blue-700 ring-blue-600/20',
-          icon: <Clock className="mr-1 h-4 w-4" />,
-        }
-      case 'pending_review':
-        return {
-          color: 'bg-yellow-50 text-yellow-700 ring-yellow-600/20',
-          icon: <Clock className="mr-1 h-4 w-4" />,
-        }
+        return { icon: <Clock className="h-5 w-5 text-amber-500" /> }
       case 'approved':
-        return {
-          color: 'bg-green-50 text-green-700 ring-green-600/20',
-          icon: <CheckCircle className="mr-1 h-4 w-4" />,
-        }
+        return { icon: <CheckCircle className="h-5 w-5 text-green-500" /> }
       case 'rejected':
-        return {
-          color: 'bg-red-50 text-red-700 ring-red-600/20',
-          icon: <XCircle className="mr-1 h-4 w-4" />,
-        }
+        return { icon: <XCircle className="h-5 w-5 text-red-500" /> }
       default:
-        return {
-          color: 'bg-gray-50 text-gray-700 ring-gray-600/20',
-          icon: <AlertTriangle className="mr-1 h-4 w-4" />,
-        }
+        return { icon: <AlertTriangle className="h-5 w-5 text-gray-500" /> }
     }
   }
 
@@ -224,42 +217,51 @@ function IngestQueuePage() {
 
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-2xl font-semibold leading-6 text-gray-900">
-              {t('archivist.ingest_queue')}
-            </h1>
-            <p className="mt-2 text-sm text-gray-700">{t('archivist.ingest_queue_description')}</p>
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-8">
+          <div className="flex items-center mb-4">
+            <Inbox className="h-8 w-8 text-purple-500 mr-3" />
+            <h1 className="text-2xl font-bold text-gray-900">{t('archivist.ingest_queue')}</h1>
           </div>
+          <p className="text-gray-600 max-w-3xl">{t('archivist.ingest_queue_description')}</p>
         </div>
 
         {/* Search and filters */}
-        <div className="mt-8 sm:flex sm:items-center">
-          <div className="relative flex-grow">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-8 items-center bg-gray-50 p-4 rounded-lg shadow-sm">
+          {/* Search */}
+          <div className="relative sm:col-span-4">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.search_documents')}
+            </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <input
+                type="text"
+                name="search"
+                id="search"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                placeholder={t('archivist.search_documents')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              name="search"
-              id="search"
-              className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
-              placeholder={t('archivist.search_documents')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
           </div>
 
-          <div className="mt-4 flex sm:ml-4 sm:mt-0">
-            <div className="relative flex-grow">
+          {/* Date filter */}
+          <div className="relative sm:col-span-2">
+            <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.date_filter')}
+            </label>
+            <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Calendar className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
               <select
                 id="date-filter"
                 name="date-filter"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               >
@@ -270,31 +272,21 @@ function IngestQueuePage() {
                 ))}
               </select>
             </div>
+          </div>
 
-            <div className="relative ml-4 flex-grow">
+          {/* Sort by */}
+          <div className="relative sm:col-span-2">
+            <label htmlFor="sort-by" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('archivist.sort_by')}
+            </label>
+            <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <FileText className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <ArrowUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
-              <select
-                id="type-filter"
-                name="type-filter"
-                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-              >
-                {typeOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="relative ml-4 flex-grow">
               <select
                 id="sort-by"
                 name="sort-by"
-                className="block w-full rounded-md border-0 py-1.5 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
@@ -309,120 +301,73 @@ function IngestQueuePage() {
         </div>
 
         {/* Documents table */}
-        <div className="mt-8 flow-root">
-          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
-                </div>
-              ) : sortedDocuments.length === 0 ? (
-                <div className="py-8 text-center">
-                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-semibold text-gray-900">
-                    {t('archivist.no_documents')}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {t('archivist.no_documents_description')}
-                  </p>
-                </div>
-              ) : (
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead>
-                    <tr>
-                      <th
-                        scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
-                      >
-                        {t('archivist.document_title')}
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        {t('archivist.document_type')}
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        {t('archivist.uploaded_by')}
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        {t('archivist.upload_date')}
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        {t('archivist.status')}
-                      </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                        <span className="sr-only">{t('archivist.actions')}</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {sortedDocuments.map((document) => {
-                      const statusBadge = getStatusBadge(document.status)
-                      return (
-                        <tr key={document.id}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                            {document.title}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {document.documentTypeName}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <User className="mr-1.5 h-4 w-4 text-gray-400" />
-                              {document.uploadedBy}
-                            </div>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {formatDate(document.uploadDate)}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <span
-                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusBadge.color}`}
-                            >
-                              {statusBadge.icon}
-                              {t(`archivist.status_${document.status}`)}
-                            </span>
-                          </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                            <div className="flex justify-end space-x-4">
-                              <Link
-                                to={`/dashboard/archivist/document/${document.id}`}
-                                className="text-primary hover:text-primary-dark"
-                              >
-                                <span className="flex items-center">
-                                  <Eye className="mr-1 h-4 w-4" />
-                                  {t('archivist.view')}
-                                </span>
-                              </Link>
-                              <Link
-                                to={`/dashboard/archivist/document/${document.id}/review`}
-                                className="text-primary hover:text-primary-dark"
-                              >
-                                <span className="flex items-center">
-                                  <CheckCircle className="mr-1 h-4 w-4" />
-                                  {t('archivist.review')}
-                                </span>
-                              </Link>
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              )}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          {isLoading ? (
+            <div className="loading-container h-64">
+              <div className="loading-spinner"></div>
+              <p className="text-gray-600 text-sm mt-2">{t('common.loading')}</p>
             </div>
-          </div>
+          ) : sortedDocuments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <FileText className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('archivist.no_documents')}</h3>
+              <p className="text-gray-500 max-w-md">{t('archivist.no_documents_description')}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-300 table-fixed">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.document_title')}
+                    </th>
+                    <th scope="col" className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.document_type')}
+                    </th>
+                    <th scope="col" className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.uploaded_by')}
+                    </th>
+                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.upload_date')}
+                    </th>
+                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('archivist.status')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedDocuments.map((document) => {
+                    const statusBadge = getStatusBadge(document.status)
+                    return (
+                      <tr key={document.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900 break-words">
+                          {document.title}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 break-words">
+                          {document.documentTypeName}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 break-words">
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 text-gray-400 flex-shrink-0 mr-2" />
+                            {document.uploadedBy}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {formatDate(document.uploadDate)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            {statusBadge.icon}
+                            <span className="ml-2">Ingesting</span>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

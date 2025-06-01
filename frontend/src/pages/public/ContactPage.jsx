@@ -47,16 +47,16 @@ function ContactPage() {
       icon: Phone,
       title: t('public.contact_phone'),
       details: [
-        '+40 256 123 456',
-        '+40 256 789 012',
+        t('public.contact_phone_primary'),
+        t('public.contact_phone_secondary'),
       ],
     },
     {
       icon: Mail,
       title: t('public.contact_email'),
       details: [
-        'contact@openarchive.ro',
-        'support@openarchive.ro',
+        t('public.contact_email_primary'),
+        t('public.contact_email_support'),
       ],
     },
     {

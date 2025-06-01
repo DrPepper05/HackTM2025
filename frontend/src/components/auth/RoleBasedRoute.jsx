@@ -16,9 +16,24 @@ function RoleBasedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />
   }
 
-  // Redirect to dashboard if user doesn't have the required role
-  if (!hasRole(allowedRoles)) {
-    return <Navigate to="/dashboard" replace />
+  // Check if user has the required role
+  const hasRequiredRole = Array.isArray(allowedRoles) 
+    ? allowedRoles.some(role => hasRole(role))
+    : hasRole(allowedRoles)
+
+  // Redirect to appropriate page if user doesn't have the required role
+  if (!hasRequiredRole) {
+    // Define redirect based on user role
+    const roleRedirects = {
+      archivist: '/archivist/ingest',
+      clerk: '/documents/upload',
+      inspector: '/inspector/audit-logs',
+      admin: '/dashboard',
+      citizen: '/'
+    }
+    
+    const redirectTo = roleRedirects[userRole] || '/'
+    return <Navigate to={redirectTo} replace />
   }
 
   // Render children

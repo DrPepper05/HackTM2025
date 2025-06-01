@@ -462,6 +462,14 @@
       "trackRequest": "Kérelmét nyomon követheti ezzel a hivatkozási számmal"
     }
   },
+  "notifications": {
+    "no_notifications": "Nincsenek értesítések",
+    "view_all": "Összes értesítés megtekintése",
+    "new_document": "Új dokumentum feltöltve",
+    "document_approved": "Dokumentum jóváhagyva",
+    "retention_alert": "Megőrzési időszak közeledik a végéhez",
+    "time_ago": "{{time}} ezelőtt"
+  },
   "errors": {
     "notFound": "Az oldal nem található",
     "notFoundMessage": "A keresett oldal nem létezik vagy áthelyezték",

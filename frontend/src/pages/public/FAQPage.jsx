@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown, ChevronUp, Mail } from 'lucide-react'
+import { ChevronDown, Mail, Info, FileText, Lock, HelpCircle } from 'lucide-react'
 
 function FAQPage() {
   const { t } = useTranslation()
@@ -16,64 +16,64 @@ function FAQPage() {
   const faqCategories = [
     {
       id: 'general',
-      title: t('faq.categories.general'),
+      title: t('public.faq.categories.general'),
       questions: [
         {
           id: 'what-is-openarchive',
-          question: t('faq.questions.what_is_openarchive'),
-          answer: t('faq.answers.what_is_openarchive'),
+          question: t('public.faq.questions.what_is_openarchive'),
+          answer: t('public.faq.answers.what_is_openarchive'),
         },
         {
           id: 'who-can-use',
-          question: t('faq.questions.who_can_use'),
-          answer: t('faq.answers.who_can_use'),
+          question: t('public.faq.questions.who_can_use'),
+          answer: t('public.faq.answers.who_can_use'),
         },
         {
           id: 'is-free',
-          question: t('faq.questions.is_free'),
-          answer: t('faq.answers.is_free'),
+          question: t('public.faq.questions.is_free'),
+          answer: t('public.faq.answers.is_free'),
         },
       ],
     },
     {
       id: 'documents',
-      title: t('faq.categories.documents'),
+      title: t('public.faq.categories.documents'),
       questions: [
         {
           id: 'what-documents',
-          question: t('faq.questions.what_documents'),
-          answer: t('faq.answers.what_documents'),
+          question: t('public.faq.questions.what_documents'),
+          answer: t('public.faq.answers.what_documents'),
         },
         {
           id: 'how-to-search',
-          question: t('faq.questions.how_to_search'),
-          answer: t('faq.answers.how_to_search'),
+          question: t('public.faq.questions.how_to_search'),
+          answer: t('public.faq.answers.how_to_search'),
         },
         {
           id: 'document-formats',
-          question: t('faq.questions.document_formats'),
-          answer: t('faq.answers.document_formats'),
+          question: t('public.faq.questions.document_formats'),
+          answer: t('public.faq.answers.document_formats'),
         },
       ],
     },
     {
       id: 'access',
-      title: t('faq.categories.access'),
+      title: t('public.faq.categories.access'),
       questions: [
         {
           id: 'request-access',
-          question: t('faq.questions.request_access'),
-          answer: t('faq.answers.request_access'),
+          question: t('public.faq.questions.request_access'),
+          answer: t('public.faq.answers.request_access'),
         },
         {
           id: 'access-denied',
-          question: t('faq.questions.access_denied'),
-          answer: t('faq.answers.access_denied'),
+          question: t('public.faq.questions.access_denied'),
+          answer: t('public.faq.answers.access_denied'),
         },
         {
           id: 'response-time',
-          question: t('faq.questions.response_time'),
-          answer: t('faq.answers.response_time'),
+          question: t('public.faq.questions.response_time'),
+          answer: t('public.faq.answers.response_time'),
         },
       ],
     },
@@ -84,8 +84,11 @@ function FAQPage() {
       <section className="faq-header">
         <div className="content-container">
           <div className="section-header">
-            <h1 className="section-title">{t('faq.title')}</h1>
-            <p className="section-subtitle">{t('faq.subtitle')}</p>
+            <div className="icon-container">
+              <HelpCircle size={28} strokeWidth={2} />
+            </div>
+            <h1 className="section-title">{t('public.faq.title')}</h1>
+            <p className="section-subtitle">{t('public.faq.subtitle')}</p>
           </div>
         </div>
       </section>
@@ -95,10 +98,15 @@ function FAQPage() {
           <div className="faq-categories">
             {faqCategories.map((category) => (
               <div key={category.id} className="faq-category">
-                <h2 className="faq-category-title">{category.title}</h2>
+                <h2 className="faq-category-title">
+                  {category.id === 'general' && <Info size={20} />}
+                  {category.id === 'documents' && <FileText size={20} />}
+                  {category.id === 'privacy' && <Lock size={20} />}
+                  {category.title}
+                </h2>
                 <div className="faq-questions">
                   {category.questions.map((faq) => (
-                    <div key={faq.id} className="faq-question">
+                    <div key={faq.id} className="faq-question" aria-expanded={openQuestions[faq.id] ? "true" : "false"}>
                       <button
                         type="button"
                         className="faq-question-button"
@@ -107,11 +115,7 @@ function FAQPage() {
                       >
                         <span className="faq-question-text">{faq.question}</span>
                         <span className="faq-question-icon">
-                          {openQuestions[faq.id] ? (
-                            <ChevronUp className="icon" aria-hidden="true" />
-                          ) : (
-                            <ChevronDown className="icon" aria-hidden="true" />
-                          )}
+                          <ChevronDown className="icon" aria-hidden="true" />
                         </span>
                       </button>
                       {openQuestions[faq.id] && (
@@ -131,11 +135,11 @@ function FAQPage() {
       <section className="faq-contact">
         <div className="content-container">
           <div className="faq-contact-content">
-            <h2 className="faq-contact-title">{t('faq.contact_title')}</h2>
-            <p className="faq-contact-description">{t('faq.contact_description')}</p>
-            <a href="/public/contact" className="btn btn-primary">
+            <h2 className="faq-contact-title">{t('public.faq.contact_title')}</h2>
+            <p className="faq-contact-description">{t('public.faq.contact_description')}</p>
+            <a href={t('public.faq.contact_url')} className="btn btn-primary">
               <Mail className="icon" aria-hidden="true" />
-              {t('faq.contact_button')}
+              {t('public.faq.contact_button')}
             </a>
           </div>
         </div>

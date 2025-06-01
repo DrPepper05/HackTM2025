@@ -10,7 +10,7 @@ function PublicHeader() {
 
   const navigation = [
     { name: t('public.home'), href: '/' },
-    { name: t('public.search'), href: '/search' },
+    { name: t('public.search_page'), href: '/search' },
     { name: t('public.about'), href: '/about' },
     { name: t('public.faq'), href: '/faq' },
     { name: t('public.contact'), href: '/contact' },
@@ -22,7 +22,7 @@ function PublicHeader() {
         <div className="flex lg:flex-1">
           <Link to="/" className="-m-1.5 p-1.5">
             <span className="sr-only">OpenArchive</span>
-            <span className="text-xl font-bold text-primary">OpenArchive</span>
+            <span className="text-xl font-bold text-sky-600">OpenArchive</span>
           </Link>
         </div>
         
@@ -32,14 +32,14 @@ function PublicHeader() {
             className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
             onClick={() => setMobileMenuOpen(true)}
           >
-            <span className="sr-only">{t('navigation.open_main_menu')}</span>
+            <span className="sr-only">{t('nav.open_main_menu')}</span>
             <Menu className="h-6 w-6" aria-hidden="true" />
           </button>
         </div>
         
         <div className="hidden lg:flex lg:gap-x-12">
           {navigation.map((item) => (
-            <Link key={item.name} to={item.href} className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary">
+            <Link key={item.name} to={item.href} className="text-sm font-semibold leading-6 text-gray-900 hover:text-sky-600">
               {item.name}
             </Link>
           ))}
@@ -47,7 +47,7 @@ function PublicHeader() {
         
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
           <LanguageSwitcher />
-          <Link to="/login" className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary">
+          <Link to="/login" className="text-sm font-semibold leading-6 text-gray-900 hover:text-sky-600">
             {t('auth.sign_in')} <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
@@ -61,14 +61,14 @@ function PublicHeader() {
             <div className="flex items-center justify-between">
               <Link to="/" className="-m-1.5 p-1.5">
                 <span className="sr-only">OpenArchive</span>
-                <span className="text-xl font-bold text-primary">OpenArchive</span>
+                <span className="text-xl font-bold text-sky-600">OpenArchive</span>
               </Link>
               <button
                 type="button"
                 className="-m-2.5 rounded-md p-2.5 text-gray-700"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <span className="sr-only">{t('navigation.close_menu')}</span>
+                <span className="sr-only">{t('nav.close_menu')}</span>
                 <X className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>

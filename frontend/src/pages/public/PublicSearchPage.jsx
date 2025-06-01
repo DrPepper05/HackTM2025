@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Search, FileText, Filter, Calendar, X } from 'lucide-react'
+import { Search, FileText, Filter, Calendar, X, Building, FileType } from 'lucide-react'
 
 function PublicSearchPage() {
   const { t } = useTranslation()
@@ -19,25 +19,25 @@ function PublicSearchPage() {
     institution: '',
   })
 
-  // Get search query from URL parameters
+  // Get search query from URL parameters and load initial documents
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const query = params.get('q') || ''
     setSearchQuery(query)
 
-    if (query) {
-      performSearch(query)
-    }
-  }, [location.search])
+    // Load initial frequently accessed documents
+    loadFrequentDocuments()
+  }, [])
 
-  // Perform search
-  const performSearch = async (query, page = 1) => {
+  // Load frequently accessed documents
+  const loadFrequentDocuments = () => {
     setIsLoading(true)
+    setCurrentPage(1)
     try {
-      // In a real app, this would be an API call
+      // In a real app, this would be an API call to get most frequently accessed documents
       // For the hackathon, we'll use mock data
       setTimeout(() => {
-        const mockResults = [
+        const allMockResults = [
           {
             id: '1',
             title: 'Hotărâre privind aprobarea bugetului local pe anul 2024',
@@ -79,9 +79,131 @@ function PublicSearchPage() {
             releaseDate: '2024-01-30',
           },
         ]
+        
+        // Paginate results (5 per page)
+        const resultsPerPage = 5
+        const paginatedResults = allMockResults.slice(0, resultsPerPage)
 
-        setSearchResults(mockResults)
-        setTotalResults(mockResults.length)
+        setSearchResults(paginatedResults)
+        setTotalResults(allMockResults.length)
+        setIsLoading(false)
+      }, 500)
+    } catch (error) {
+      console.error('Error loading frequent documents:', error)
+      setIsLoading(false)
+    }
+  }
+
+  // Perform search
+  const performSearch = async (query, page = 1) => {
+    setIsLoading(true)
+    setCurrentPage(page)
+    try {
+      // In a real app, this would be an API call
+      // For the hackathon, we'll use mock data
+      setTimeout(() => {
+        const allMockResults = [
+          {
+            id: '1',
+            title: 'Hotărâre privind aprobarea bugetului local pe anul 2024',
+            summary: 'Hotărâre a Consiliului Local privind aprobarea bugetului local al municipiului pentru anul fiscal 2024.',
+            documentType: 'Hotărâre',
+            institution: 'Consiliul Local Timișoara',
+            releaseDate: '2024-01-15',
+          },
+          {
+            id: '2',
+            title: 'Dispoziție organizare concurs pentru ocuparea funcției publice de execuție vacante',
+            summary: 'Dispoziție privind organizarea concursului pentru ocuparea funcției publice de execuție vacante de consilier, clasa I, grad profesional superior.',
+            documentType: 'Dispoziție',
+            institution: 'Primăria Municipiului Timișoara',
+            releaseDate: '2024-02-20',
+          },
+          {
+            id: '3',
+            title: 'Contract de achiziție publică pentru servicii de mentenanță',
+            summary: 'Contract de achiziție publică pentru servicii de mentenanță a sistemelor informatice din cadrul instituției.',
+            documentType: 'Contract',
+            institution: 'Consiliul Județean Timiș',
+            releaseDate: '2024-03-10',
+          },
+          {
+            id: '4',
+            title: 'Autorizație de construire pentru imobil de locuințe colective',
+            summary: 'Autorizație de construire pentru imobil de locuințe colective S+P+4E+Er, împrejmuire și branșamente la utilități.',
+            documentType: 'Autorizație',
+            institution: 'Primăria Municipiului Timișoara',
+            releaseDate: '2024-02-05',
+          },
+          {
+            id: '5',
+            title: 'Certificat de urbanism pentru construire locuință unifamilială',
+            summary: 'Certificat de urbanism pentru construire locuință unifamilială P+1E, împrejmuire și branșamente la utilități.',
+            documentType: 'Certificat',
+            institution: 'Primăria Comunei Dumbrăvița',
+            releaseDate: '2024-01-30',
+          },
+          {
+            id: '6',
+            title: 'Hotărâre privind aprobarea taxelor locale pentru anul 2024',
+            summary: 'Hotărâre a Consiliului Local privind aprobarea taxelor și impozitelor locale pentru anul fiscal 2024.',
+            documentType: 'Hotărâre',
+            institution: 'Consiliul Local Timișoara',
+            releaseDate: '2024-01-20',
+          },
+          {
+            id: '7',
+            title: 'Dispoziție privind constituirea comisiei de evaluare',
+            summary: 'Dispoziție privind constituirea comisiei de evaluare pentru achiziția de servicii de consultanță.',
+            documentType: 'Dispoziție',
+            institution: 'Primăria Municipiului Timișoara',
+            releaseDate: '2024-02-25',
+          },
+        ]
+        
+        // Filter results based on filters
+        let filteredResults = allMockResults
+        
+        // Filter by search query text
+        if (query && query.trim() !== '') {
+          const searchTerms = query.toLowerCase().trim()
+          filteredResults = filteredResults.filter(item => 
+            item.title.toLowerCase().includes(searchTerms) || 
+            item.summary.toLowerCase().includes(searchTerms) ||
+            item.documentType.toLowerCase().includes(searchTerms) ||
+            item.institution.toLowerCase().includes(searchTerms)
+          )
+        }
+        
+        // Apply additional filters
+        if (filters.dateFrom) {
+          filteredResults = filteredResults.filter(item => 
+            new Date(item.releaseDate) >= new Date(filters.dateFrom)
+          )
+        }
+        if (filters.dateTo) {
+          filteredResults = filteredResults.filter(item => 
+            new Date(item.releaseDate) <= new Date(filters.dateTo)
+          )
+        }
+        if (filters.documentType) {
+          filteredResults = filteredResults.filter(item => 
+            item.documentType.toLowerCase().includes(filters.documentType.toLowerCase())
+          )
+        }
+        if (filters.institution) {
+          filteredResults = filteredResults.filter(item => 
+            item.institution.toLowerCase().includes(filters.institution.toLowerCase())
+          )
+        }
+        
+        // Paginate results (5 per page)
+        const resultsPerPage = 5
+        const startIndex = (page - 1) * resultsPerPage
+        const paginatedResults = filteredResults.slice(startIndex, startIndex + resultsPerPage)
+
+        setSearchResults(paginatedResults)
+        setTotalResults(filteredResults.length)
         setIsLoading(false)
       }, 500)
     } catch (error) {
@@ -93,13 +215,16 @@ function PublicSearchPage() {
   // Handle search form submission
   const handleSearch = (e) => {
     e.preventDefault()
+    // Update URL with search query (even if empty to clear previous search)
+    const searchParams = new URLSearchParams()
     if (searchQuery.trim()) {
-      // Update URL with search query
-      const searchParams = new URLSearchParams()
       searchParams.set('q', searchQuery)
-      window.history.pushState({}, '', `${location.pathname}?${searchParams.toString()}`)
-      performSearch(searchQuery)
     }
+    window.history.pushState({}, '', `${location.pathname}${searchQuery.trim() ? '?' + searchParams.toString() : ''}`)
+    
+    // Always perform search when button is clicked, even with empty query
+    // This will either show filtered results or reset to show all documents
+    performSearch(searchQuery)
   }
 
   // Handle filter changes
@@ -113,10 +238,10 @@ function PublicSearchPage() {
 
   // Apply filters
   const applyFilters = () => {
-    // In a real app, this would update the search with filters
-    // For the hackathon, we'll just close the filters panel
+    // Apply filters and perform search with the current query
     setFiltersOpen(false)
-    performSearch(searchQuery)
+    setCurrentPage(1) // Reset to first page when applying filters
+    performSearch(searchQuery, 1)
   }
 
   // Reset filters
@@ -127,10 +252,13 @@ function PublicSearchPage() {
       documentType: '',
       institution: '',
     })
+    // Perform search with reset filters
+    setCurrentPage(1) // Reset to first page when resetting filters
+    performSearch(searchQuery, 1)
   }
 
   return (
-    <div className="public-home-page">
+    <div className="public-search-page">
       <section className="search-header">
         <div className="content-container">
           <div className="section-header">
@@ -155,24 +283,29 @@ function PublicSearchPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setFiltersOpen(!filtersOpen)}
-                >
-                  <Filter className="icon" aria-hidden="true" />
-                  {t('public.filters')}
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                >
-                  <Search className="icon" aria-hidden="true" />
-                  {t('public.search')}
-                </button>
+                <div className="flex">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setFiltersOpen(!filtersOpen)}
+                  >
+                    <Filter className="icon" aria-hidden="true" />
+                    <span className="hidden sm:inline">{t('public.filters')}</span>
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    onClick={handleSearch}
+                  >
+                    <Search className="icon" aria-hidden="true" />
+                    <span className="hidden sm:inline">{t('public.search_button')}</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>
+
+{/* TODO: make the advanced filters look usable! */}
 
           {/* Filters panel */}
           {filtersOpen && (
@@ -185,7 +318,7 @@ function PublicSearchPage() {
                   onClick={() => setFiltersOpen(false)}
                 >
                   <span className="sr-only">{t('common.close')}</span>
-                  <X className="icon" aria-hidden="true" />
+                  <X className="icon" size={18} aria-hidden="true" />
                 </button>
               </div>
               <div className="filter-panel-content">
@@ -195,7 +328,7 @@ function PublicSearchPage() {
                   </label>
                   <div className="input-group">
                     <span className="input-group-text">
-                      <Calendar className="icon" aria-hidden="true" />
+                      <Calendar className="icon" size={16} aria-hidden="true" />
                     </span>
                     <input
                       type="date"
@@ -213,7 +346,7 @@ function PublicSearchPage() {
                   </label>
                   <div className="input-group">
                     <span className="input-group-text">
-                      <Calendar className="icon" aria-hidden="true" />
+                      <Calendar className="icon" size={16} aria-hidden="true" />
                     </span>
                     <input
                       type="date"
@@ -229,38 +362,48 @@ function PublicSearchPage() {
                   <label htmlFor="documentType" className="form-label">
                     {t('public.document_type')}
                   </label>
-                  <select
-                    id="documentType"
-                    name="documentType"
-                    className="form-select"
-                    value={filters.documentType}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">{t('public.all_types')}</option>
-                    <option value="hotarare">Hotărâre</option>
-                    <option value="dispozitie">Dispoziție</option>
-                    <option value="contract">Contract</option>
-                    <option value="autorizatie">Autorizație</option>
-                    <option value="certificat">Certificat</option>
-                  </select>
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <FileType className="icon" size={16} aria-hidden="true" />
+                    </span>
+                    <select
+                      id="documentType"
+                      name="documentType"
+                      className="form-select"
+                      value={filters.documentType}
+                      onChange={handleFilterChange}
+                    >
+                      <option value="">{t('public.all_types')}</option>
+                      <option value="hotarare">{t('public.document_types.decision')}</option>
+                      <option value="dispozitie">{t('public.document_types.disposition')}</option>
+                      <option value="contract">{t('public.document_types.contract')}</option>
+                      <option value="autorizatie">{t('public.document_types.authorization')}</option>
+                      <option value="certificat">{t('public.document_types.certificate')}</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="filter-group">
                   <label htmlFor="institution" className="form-label">
                     {t('public.institution')}
                   </label>
-                  <select
-                    id="institution"
-                    name="institution"
-                    className="form-select"
-                    value={filters.institution}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">{t('public.all_institutions')}</option>
-                    <option value="primaria_timisoara">Primăria Municipiului Timișoara</option>
-                    <option value="consiliul_local_timisoara">Consiliul Local Timișoara</option>
-                    <option value="consiliul_judetean_timis">Consiliul Județean Timiș</option>
-                    <option value="primaria_dumbravita">Primăria Comunei Dumbrăvița</option>
-                  </select>
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <Building className="icon" size={16} aria-hidden="true" />
+                    </span>
+                    <select
+                      id="institution"
+                      name="institution"
+                      className="form-select"
+                      value={filters.institution}
+                      onChange={handleFilterChange}
+                    >
+                      <option value="">{t('public.all_institutions')}</option>
+                      <option value="primaria_timisoara">{t('public.institutions.timisoara_city_hall')}</option>
+                      <option value="consiliul_local_timisoara">{t('public.institutions.timisoara_local_council')}</option>
+                      <option value="consiliul_judetean_timis">{t('public.institutions.timis_county_council')}</option>
+                      <option value="primaria_dumbravita">{t('public.institutions.dumbravita_city_hall')}</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="filter-panel-footer">
@@ -291,10 +434,10 @@ function PublicSearchPage() {
             <div className="loading-container">
               <div className="loading-spinner"></div>
             </div>
-          ) : searchQuery && searchResults.length > 0 ? (
+          ) : searchResults.length > 0 ? (
             <div>
               <div className="search-results-count">
-                {t('public.search_results_count', { count: totalResults })}
+                {searchQuery ? t('public.search_results_count', { count: totalResults }) : t('public.frequent_documents')}
               </div>
               <ul className="search-results-list">
                 {searchResults.map((result) => (
@@ -312,14 +455,17 @@ function PublicSearchPage() {
                       <p className="search-result-description">{result.summary}</p>
                       <div className="search-result-meta">
                         <span className="search-result-meta-item">
+                          <FileType className="icon h-3 w-3 mr-1" />
                           <span className="search-result-meta-label">{t('public.document_type')}:</span>
                           <span>{result.documentType}</span>
                         </span>
                         <span className="search-result-meta-item">
+                          <Building className="icon h-3 w-3 mr-1" />
                           <span className="search-result-meta-label">{t('public.institution')}:</span>
                           <span>{result.institution}</span>
                         </span>
                         <span className="search-result-meta-item">
+                          <Calendar className="icon h-3 w-3 mr-1" />
                           <span className="search-result-meta-label">{t('public.release_date')}:</span>
                           <span>{new Date(result.releaseDate).toLocaleDateString()}</span>
                         </span>
@@ -335,6 +481,12 @@ function PublicSearchPage() {
                   <button
                     disabled={currentPage === 1}
                     className="btn btn-text"
+                    onClick={() => {
+                      if (currentPage > 1) {
+                        setCurrentPage(currentPage - 1);
+                        performSearch(searchQuery, currentPage - 1);
+                      }
+                    }}
                   >
                     {t('public.previous')}
                   </button>
@@ -345,6 +497,10 @@ function PublicSearchPage() {
                       key={page}
                       className="pagination-page pagination-page-active"
                       aria-current="page"
+                      onClick={() => {
+                        setCurrentPage(page);
+                        performSearch(searchQuery, page);
+                      }}
                     >
                       {page}
                     </button>
@@ -352,20 +508,57 @@ function PublicSearchPage() {
                 </div>
                 <div className="pagination-next">
                   <button
-                    disabled={true} // Only one page in our mock data
+                    disabled={currentPage >= Math.ceil(totalResults / 5)} // Assuming 5 results per page
                     className="btn btn-text"
+                    onClick={() => {
+                      setCurrentPage(currentPage + 1);
+                      performSearch(searchQuery, currentPage + 1);
+                    }}
                   >
                     {t('public.next')}
                   </button>
                 </div>
               </nav>
             </div>
-          ) : searchQuery ? (
+          ) : searchResults.length === 0 && searchQuery ? (
             <div className="alert alert-warning">
               <div className="alert-content">
-                <h3 className="alert-title">{t('public.no_results')}</h3>
+                <h3 className="alert-title">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-amber-500 mb-2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  {t('public.no_results')}
+                </h3>
                 <div className="alert-description">
                   <p>{t('public.no_results_description')}</p>
+                  <p className="mt-2 text-amber-600">
+                    {searchQuery && <span className="font-medium">{t('public.search_term')}: "{searchQuery}"</span>}
+                    {(filters.dateFrom || filters.dateTo || filters.documentType || filters.institution) && (
+                      <span className="block mt-1 text-sm">
+                        {filters.documentType && <span className="inline-block mr-2">{t('public.document_type')}: {filters.documentType}</span>}
+                        {filters.institution && <span className="inline-block mr-2">{t('public.institution')}: {filters.institution}</span>}
+                        {filters.dateFrom && <span className="inline-block mr-2">{t('public.date_from')}: {filters.dateFrom}</span>}
+                        {filters.dateTo && <span className="inline-block">{t('public.date_to')}: {filters.dateTo}</span>}
+                      </span>
+                    )}
+                  </p>
+                  <div className="mt-4">
+                    <button 
+                      onClick={() => {
+                        resetFilters();
+                        setSearchQuery('');
+                        // Reset URL by removing query parameters
+                        window.history.pushState({}, '', `${location.pathname}`);
+                        // Load initial documents
+                        loadFrequentDocuments();
+                      }}
+                      className="btn btn-sm btn-primary mt-2"
+                    >
+                      {t('public.try_again')}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
