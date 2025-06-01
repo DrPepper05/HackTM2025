@@ -538,7 +538,7 @@ function InventoryReportsPage() {
                   type="button"
                   onClick={handleGenerateReport}
                   disabled={isLoading}
-                  className="inline-flex h-10 w-full items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+                  className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
                   {isLoading ? (
                     <>

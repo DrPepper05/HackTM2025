@@ -488,7 +488,10 @@
       "adresa": "Address",
       "raport": "Report",
       "proces_verbal": "Minutes"
-    }
+    },
+    "status_filter": "Filter by Status",
+    "date_filter": "Filter by Date",
+    "sort_by": "Sort By"
   },
   "archivist": {
     "ingestQueue": {
@@ -719,7 +722,11 @@
     "submitting": "Submitting...",
     "error_fetching_requests": "Error fetching access requests",
     "error_loading_requests": "Error Loading Access Requests",
-    "error_updating_request": "Error updating access request"
+    "error_updating_request": "Error updating access request",
+    "status_REVIEW": "Review",
+    "status_NEEDS_CLASSIFICATION": "Needs Classification",
+    "status_DESTROY": "Destroy",
+    "status_AWAITING_TRANSFER": "Awaiting Transfer"
   },
   "admin": {
     "auditLogs": {

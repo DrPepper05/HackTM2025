@@ -489,7 +489,10 @@
       "adresa": "Адреса",
       "raport": "Извештај",
       "proces_verbal": "Записник"
-    }
+    },
+    "status_filter": "Филтрирај по статусу",
+    "date_filter": "Филтрирај по датуму",
+    "sort_by": "Сортирај по"
   },
   "archivist": {
     "ingestQueue": {
@@ -720,7 +723,11 @@
     "submitting": "Слање...",
     "error_fetching_requests": "Грешка при преузимању захтева за приступ",
     "error_loading_requests": "Грешка при учитавању захтева за приступ",
-    "error_updating_request": "Грешка при ажурирању захтева за приступ"
+    "error_updating_request": "Грешка при ажурирању захтева за приступ",
+    "status_REVIEW": "Преглед",
+    "status_NEEDS_CLASSIFICATION": "Потребна Класификација",
+    "status_DESTROY": "Уништење",
+    "status_AWAITING_TRANSFER": "Чека Пренос"
   },
   "admin": {
     "auditLogs": {
