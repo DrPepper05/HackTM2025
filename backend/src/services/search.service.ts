@@ -87,7 +87,7 @@ export class SearchService {
                 if (error) throw error
 
                 return {
-                    documents: (ranked || []).map(doc => ({
+                    documents: (ranked || []).map((doc: any) => ({
                         document: doc,
                         relevance_score: doc.relevance,
                         highlight: this.generateHighlight(doc, searchQuery.query)
