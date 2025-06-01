@@ -57,7 +57,7 @@ function Dashboard() {
     // All other roles should be redirected to their respective first page
     if (userRole && roleRedirectMap[userRole]) {
       console.log(`Redirecting ${userRole} to ${roleRedirectMap[userRole]}`)
-      navigate(roleRedirectMap[userRole], { replace: true })
+      navigate(roleRedirectMap[userRole])
       return
     }
 
